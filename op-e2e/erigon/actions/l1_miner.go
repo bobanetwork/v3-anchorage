@@ -3,6 +3,7 @@ package actions
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/trie"
 	"github.com/ledgerwatch/erigon/common"
 	"github.com/ledgerwatch/erigon/consensus/misc"
 	"github.com/ledgerwatch/erigon/core"
@@ -10,7 +11,6 @@ import (
 	"github.com/ledgerwatch/erigon/core/types"
 	"github.com/ledgerwatch/erigon/params"
 	"github.com/ledgerwatch/log/v3"
-	//"github.com/ledgerwatch/erigon/trie"
 )
 
 // L1Miner wraps a L1Replica with instrumented block building ability.
