@@ -1,9 +1,10 @@
-package op_e2e
+package geth
 
 import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/ethereum-optimism/optimism/op-e2e"
 	"math/big"
 	"testing"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/sources"
 	"github.com/ethereum-optimism/optimism/op-node/testlog"
 	"github.com/ethereum-optimism/optimism/op-node/withdrawals"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
@@ -73,7 +73,7 @@ func TestL2OutputSubmitter(t *testing.T) {
 	// for that block and subsequently reorgs to match what the verifier derives when running the
 	// reconcillation process.
 	l2Verif := sys.Clients["verifier"]
-	_, err = waitForBlock(big.NewInt(6), l2Verif, 10*time.Duration(cfg.DeployConfig.L2BlockTime)*time.Second)
+	_, err = op_e2e.waitForBlock(big.NewInt(6), l2Verif, 10*time.Duration(cfg.DeployConfig.L2BlockTime)*time.Second)
 	require.Nil(t, err)
 
 	// Wait for batch submitter to update L2 output oracle.
@@ -161,13 +161,13 @@ func TestSystemE2E(t *testing.T) {
 	tx, err := depositContract.DepositTransaction(opts, fromAddr, common.Big0, 1_000_000, false, nil)
 	require.Nil(t, err, "with deposit tx")
 
-	receipt, err := waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err := op_e2e.waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for deposit tx on L1")
 
 	reconstructedDep, err := derive.UnmarshalDepositLogEvent(receipt.Logs[0])
 	require.NoError(t, err, "Could not reconstruct L2 Deposit")
 	tx = types.NewTx(reconstructedDep)
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 6*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 6*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.NoError(t, err)
 	require.Equal(t, receipt.Status, types.ReceiptStatusSuccessful)
 
@@ -195,10 +195,10 @@ func TestSystemE2E(t *testing.T) {
 	err = l2Seq.SendTransaction(context.Background(), tx)
 	require.Nil(t, err, "Sending L2 tx to sequencer")
 
-	_, err = waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	_, err = op_e2e.waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for L2 tx on sequencer")
 
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for L2 tx on verifier")
 	require.Equal(t, types.ReceiptStatusSuccessful, receipt.Status, "TX should have succeeded")
 
@@ -343,13 +343,13 @@ func TestMintOnRevertedDeposit(t *testing.T) {
 	tx, err := depositContract.DepositTransaction(opts, toAddr, value, 1_000_000, false, nil)
 	require.Nil(t, err, "with deposit tx")
 
-	receipt, err := waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err := op_e2e.waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for deposit tx on L1")
 
 	reconstructedDep, err := derive.UnmarshalDepositLogEvent(receipt.Logs[0])
 	require.NoError(t, err, "Could not reconstruct L2 Deposit")
 	tx = types.NewTx(reconstructedDep)
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.NoError(t, err)
 	require.Equal(t, receipt.Status, types.ReceiptStatusFailed)
 
@@ -416,11 +416,11 @@ func TestMissingBatchE2E(t *testing.T) {
 	require.Nil(t, err, "Sending L2 tx to sequencer")
 
 	// Let it show up on the unsafe chain
-	receipt, err := waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err := op_e2e.waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for L2 tx on sequencer")
 
 	// Wait until the block it was first included in shows up in the safe chain on the verifier
-	_, err = waitForBlock(receipt.BlockNumber, l2Verif, time.Duration(sys.RollupConfig.SeqWindowSize*cfg.DeployConfig.L1BlockTime)*time.Second)
+	_, err = op_e2e.waitForBlock(receipt.BlockNumber, l2Verif, time.Duration(sys.RollupConfig.SeqWindowSize*cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for block on verifier")
 
 	// Assert that the transaction is not found on the verifier
@@ -497,7 +497,7 @@ func TestSystemMockP2P(t *testing.T) {
 	}
 
 	var published, received []common.Hash
-	seqTracer, verifTracer := new(FnTracer), new(FnTracer)
+	seqTracer, verifTracer := new(op_e2e.FnTracer), new(op_e2e.FnTracer)
 	seqTracer.OnPublishL2PayloadFn = func(ctx context.Context, payload *eth.ExecutionPayload) {
 		published = append(published, payload.BlockHash)
 	}
@@ -532,11 +532,11 @@ func TestSystemMockP2P(t *testing.T) {
 	require.Nil(t, err, "Sending L2 tx to sequencer")
 
 	// Wait for tx to be mined on the L2 sequencer chain
-	receiptSeq, err := waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(sys.RollupConfig.BlockTime)*time.Second)
+	receiptSeq, err := op_e2e.waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(sys.RollupConfig.BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for L2 tx on sequencer")
 
 	// Wait until the block it was first included in shows up in the safe chain on the verifier
-	receiptVerif, err := waitForTransaction(tx.Hash(), l2Verif, 6*time.Duration(sys.RollupConfig.BlockTime)*time.Second)
+	receiptVerif, err := op_e2e.waitForTransaction(tx.Hash(), l2Verif, 6*time.Duration(sys.RollupConfig.BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for L2 tx on verifier")
 
 	require.Equal(t, receiptSeq, receiptVerif)
@@ -567,9 +567,9 @@ func TestL1InfoContract(t *testing.T) {
 
 	endVerifBlockNumber := big.NewInt(4)
 	endSeqBlockNumber := big.NewInt(6)
-	endVerifBlock, err := waitForBlock(endVerifBlockNumber, l2Verif, time.Minute)
+	endVerifBlock, err := op_e2e.waitForBlock(endVerifBlockNumber, l2Verif, time.Minute)
 	require.Nil(t, err)
-	endSeqBlock, err := waitForBlock(endSeqBlockNumber, l2Seq, time.Minute)
+	endSeqBlock, err := op_e2e.waitForBlock(endSeqBlockNumber, l2Seq, time.Minute)
 	require.Nil(t, err)
 
 	seqL1Info, err := bindings.NewL1Block(cfg.L1InfoPredeployAddress, l2Seq)
@@ -714,7 +714,7 @@ func TestWithdrawals(t *testing.T) {
 	tx, err := depositContract.DepositTransaction(opts, fromAddr, common.Big0, 1_000_000, false, nil)
 	require.Nil(t, err, "with deposit tx")
 
-	receipt, err := waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err := op_e2e.waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for deposit tx on L1")
 
 	// Bind L2 Withdrawer Contract
@@ -725,7 +725,7 @@ func TestWithdrawals(t *testing.T) {
 	reconstructedDep, err := derive.UnmarshalDepositLogEvent(receipt.Logs[0])
 	require.NoError(t, err, "Could not reconstruct L2 Deposit")
 	tx = types.NewTx(reconstructedDep)
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.NoError(t, err)
 	require.Equal(t, receipt.Status, types.ReceiptStatusSuccessful)
 
@@ -753,7 +753,7 @@ func TestWithdrawals(t *testing.T) {
 	tx, err = l2withdrawer.InitiateWithdrawal(l2opts, fromAddr, big.NewInt(21000), nil)
 	require.Nil(t, err, "sending initiate withdraw tx")
 
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "withdrawal initiated on L2 sequencer")
 	require.Equal(t, receipt.Status, types.ReceiptStatusSuccessful, "transaction failed")
 
@@ -820,7 +820,7 @@ func TestWithdrawals(t *testing.T) {
 
 	require.Nil(t, err)
 
-	receipt, err = waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l1Client, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "finalize withdrawal")
 	require.Equal(t, types.ReceiptStatusSuccessful, receipt.Status)
 
@@ -875,7 +875,7 @@ func TestFees(t *testing.T) {
 	tx, err := gpoContract.SetOverhead(l2opts, big.NewInt(2100))
 	require.Nil(t, err, "sending overhead update tx")
 
-	receipt, err := waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err := op_e2e.waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "waiting for overhead update tx")
 	require.Equal(t, receipt.Status, types.ReceiptStatusSuccessful, "transaction failed")
 
@@ -883,7 +883,7 @@ func TestFees(t *testing.T) {
 	tx, err = gpoContract.SetDecimals(l2opts, big.NewInt(6))
 	require.Nil(t, err, "sending gpo update tx")
 
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "waiting for gpo decimals update tx")
 	require.Equal(t, receipt.Status, types.ReceiptStatusSuccessful, "transaction failed")
 
@@ -891,7 +891,7 @@ func TestFees(t *testing.T) {
 	tx, err = gpoContract.SetScalar(l2opts, big.NewInt(1_000_000))
 	require.Nil(t, err, "sending gpo update tx")
 
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 10*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "waiting for gpo scalar update tx")
 	require.Equal(t, receipt.Status, types.ReceiptStatusSuccessful, "transaction failed")
 
@@ -939,10 +939,10 @@ func TestFees(t *testing.T) {
 	err = l2Seq.SendTransaction(context.Background(), tx)
 	require.Nil(t, err, "Sending L2 tx to sequencer")
 
-	_, err = waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	_, err = op_e2e.waitForTransaction(tx.Hash(), l2Seq, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for L2 tx on sequencer")
 
-	receipt, err = waitForTransaction(tx.Hash(), l2Verif, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
+	receipt, err = op_e2e.waitForTransaction(tx.Hash(), l2Verif, 3*time.Duration(cfg.DeployConfig.L1BlockTime)*time.Second)
 	require.Nil(t, err, "Waiting for L2 tx on verifier")
 	require.Equal(t, types.ReceiptStatusSuccessful, receipt.Status, "TX should have succeeded")
 

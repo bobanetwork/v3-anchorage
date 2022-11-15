@@ -1,4 +1,4 @@
-package op_e2e
+package erigon
 
 import (
 	"context"
@@ -24,14 +24,14 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/testlog"
 	l2os "github.com/ethereum-optimism/optimism/op-proposer"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core"
-	geth_eth "github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ledgerwatch/erigon/common"
+	"github.com/ledgerwatch/erigon/common/hexutil"
+	"github.com/ledgerwatch/erigon/core"
+	geth_eth "github.com/ledgerwatch/erigon/eth"
+	//"github.com/ledgerwatch/erigon/ethclient"
+	"github.com/ledgerwatch/erigon/node"
+	"github.com/ledgerwatch/erigon/rpc"
+	"github.com/ledgerwatch/log/v3"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -298,15 +298,26 @@ func (cfg SystemConfig) Start() (*System, error) {
 	sys.RollupConfig = &defaultConfig
 
 	// Initialize nodes
-	l1Node, l1Backend, err := initL1Geth(&cfg, l1Genesis)
+	l1Node, l1Backend, err := op_e2e.initL1Geth(&cfg, l1Genesis)
 	if err != nil {
 		return nil, err
 	}
 	sys.Nodes["l1"] = l1Node
 	sys.Backends["l1"] = l1Backend
 
+	client := op_e2e.Geth // TODO
+	chainId := big.NewInt(int64(cfg.DeployConfig.L2ChainID))
+	jwtFilePath := cfg.JWTFilePath
+	panic(jwtFilePath)
+	log.Error("############################################################## JWT: %s", jwtFilePath)
+
+	if client == op_e2e.Erigon {
+		chainId = big.NewInt(int64(1))
+		jwtFilePath = "../"
+	}
+
 	for name := range cfg.Nodes {
-		node, backend, err := initL2Client(Geth, name, big.NewInt(int64(cfg.DeployConfig.L2ChainID)), l2Genesis, cfg.JWTFilePath)
+		node, backend, err := op_e2e.initL2Client(client, name, chainId, l2Genesis, jwtFilePath)
 		if err != nil {
 			return nil, err
 		}
@@ -380,7 +391,7 @@ func (cfg SystemConfig) Start() (*System, error) {
 		sys.Clients[name] = client
 	}
 
-	_, err = waitForBlock(big.NewInt(2), l1Client, 6*time.Second*time.Duration(cfg.DeployConfig.L1BlockTime))
+	_, err = op_e2e.waitForBlock(big.NewInt(2), l1Client, 6*time.Second*time.Duration(cfg.DeployConfig.L1BlockTime))
 	if err != nil {
 		return nil, fmt.Errorf("waiting for blocks: %w", err)
 	}

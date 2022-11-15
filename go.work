@@ -11,7 +11,8 @@ use (
 	./op-batcher
 	./op-bindings
 	./op-chain-ops
-	./op-e2e
+	./op-e2e/geth
+	./op-e2e/erigon
 	./op-exporter
 	./op-node
 	./op-proposer
