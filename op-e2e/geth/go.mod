@@ -1,8 +1,9 @@
-module github.com/ethereum-optimism/optimism/op-e2e
+module github.com/ethereum-optimism/optimism/op-e2e/geth
 
 go 1.18
 
 require (
+	github.com/ethereum-optimism/optimism/op-e2e/e2eutils v0.0.1
 	github.com/ethereum-optimism/optimism/op-batcher v0.8.10
 	github.com/ethereum-optimism/optimism/op-bindings v0.8.10
 	github.com/ethereum-optimism/optimism/op-chain-ops v0.8.10
@@ -14,7 +15,9 @@ require (
 	github.com/libp2p/go-libp2p-core v0.19.1
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
 	github.com/stretchr/testify v1.8.0
+	//github.com/ledgerwatch/erigon v1.0.0
 )
+
 
 require (
 	github.com/VictoriaMetrics/fastcache v1.10.0 // indirect
@@ -157,4 +160,6 @@ require (
 	lukechampine.com/blake3 v1.1.7 // indirect
 )
 
+//replace github.com/ledgerwatch/erigon => ../op-erigon
 replace github.com/ethereum/go-ethereum v1.10.23 => github.com/ethereum-optimism/op-geth v0.0.0-20220926184707-53d23c240afd
+replace github.com/ethereum-optimism/optimism/op-e2e/e2eutils => ../e2eutils

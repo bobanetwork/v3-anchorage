@@ -1,4 +1,4 @@
-package op_e2e
+package geth
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/cmd/utils"
 
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
