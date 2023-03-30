@@ -24,6 +24,7 @@ const (
 	// -----
 	BobaTuringCredit             = "0x42000000000000000000000000000000000000ff"
 	BobaL2                       = "0x42000000000000000000000000000000000000fe"
+	BobaHCHelper                 = "0x42000000000000000000000000000000000000fd"
 )
 
 var (
@@ -48,6 +49,7 @@ var (
 	// -----
 	BobaTuringCreditAddr             = common.HexToAddress(BobaTuringCredit)
 	BobaL2Addr                       = common.HexToAddress(BobaL2)
+	BobaHCHelperAddr                 = common.HexToAddress(BobaHCHelper)
 
 	Predeploys = make(map[string]*common.Address)
 )
@@ -74,4 +76,5 @@ func init() {
 	// -----
 	Predeploys["BobaTuringCredit"] = &BobaTuringCreditAddr
 	Predeploys["BobaL2"] = &BobaL2Addr
+	Predeploys["BobaHCHelper"] = &BobaHCHelperAddr
 }

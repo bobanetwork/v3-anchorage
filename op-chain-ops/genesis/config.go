@@ -435,14 +435,12 @@ func NewL2StorageConfig(config *DeployConfig, block *types.Block) (state.Storage
 	storage["ProxyAdmin"] = state.StorageValues{
 		"_owner": config.ProxyAdminOwner,
 	}
-	storage["ProxyAdmin"] = state.StorageValues{
-		"_owner": config.ProxyAdminOwner,
-	}
 	storage["BobaL2"] = state.StorageValues{
 		"_name":       "Boba L2",
 		"_symbol":     "BOBA",
 	}
 	storage["BobaTuringCredit"] = state.StorageValues{}
+	storage["BobaHCHelper"] = state.StorageValues{}
 
 	return storage, nil
 }

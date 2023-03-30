@@ -111,6 +111,9 @@ func BuildOptimism(immutable ImmutableConfig) (DeploymentResults, error) {
 		{
 			Name: "BobaTuringCredit",
 		},
+		{
+			Name: "BobaHCHelper",
+		},
 	}
 	return BuildL2(deployments)
 }
@@ -207,6 +210,9 @@ func l2Deployer(backend *backends.SimulatedBackend, opts *bind.TransactOpts, dep
 	case "BobaTuringCredit":
 		addr, tx, _, err = bindings.DeployBobaTuringCredit(opts, backend, big.NewInt(10))
 		log.Info("MMDBG BobaTuringCredit", "addr", addr)
+	case "BobaHCHelper":
+		addr, tx, _, err = bindings.DeployBobaHCHelper(opts, backend)
+		log.Info("MMDBG HCHelper", "addr", addr)
 	case "BobaL2":
 		bridge, ok := deployment.Args[0].(common.Address)
 		if !ok {

@@ -27,6 +27,7 @@ bindings: l1block-bindings \
 	weth9-bindings \
 	deployer-whitelist-bindings \
 	boba-turing-credit-bindings \
+	boba-hchelper-bindings \
 	l2-erc721-bridge-bindings \
 	l1-erc721-bridge-bindings \
 	optimism-mintable-erc721-factory-bindings \
@@ -65,6 +66,9 @@ boba-l1-bindings: compile
 	
 boba-turing-credit-bindings: compile
 	./gen_bindings.sh contracts/boba/BobaTuringCredit.sol:BobaTuringCredit $(pkg)
+
+boba-hchelper-bindings: compile
+	./gen_bindings.sh contracts/boba/BobaHCHelper.sol:BobaHCHelper $(pkg)
 
 l1block-bindings: compile
 	./gen_bindings.sh contracts/L2/L1Block.sol:L1Block $(pkg)
@@ -133,7 +137,7 @@ more:
 	go run ./gen/main.go \
 		-artifacts ../packages/contracts-bedrock/artifacts \
 		-out ./bindings \
-		-contracts SystemConfig,OptimismMintableERC20Factory,L2StandardBridge,L1BlockNumber,LegacyMessagePasser,DeployerWhitelist,Proxy,OptimismPortal,L2ToL1MessagePasser,L2CrossDomainMessenger,SequencerFeeVault,L1Block,LegacyERC20ETH,WETH9,GovernanceToken,L1CrossDomainMessenger,L2ERC721Bridge,OptimismMintableERC721Factory,ProxyAdmin,BobaTuringCredit,OptimismMintableERC20 \
+		-contracts SystemConfig,OptimismMintableERC20Factory,L2StandardBridge,L1BlockNumber,LegacyMessagePasser,DeployerWhitelist,Proxy,OptimismPortal,L2ToL1MessagePasser,L2CrossDomainMessenger,SequencerFeeVault,L1Block,LegacyERC20ETH,WETH9,GovernanceToken,L1CrossDomainMessenger,L2ERC721Bridge,OptimismMintableERC721Factory,ProxyAdmin,BobaTuringCredit,BobaHCHelper,OptimismMintableERC20 \
 		-package bindings
 
 mkdir:
