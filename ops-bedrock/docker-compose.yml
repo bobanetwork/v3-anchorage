@@ -42,6 +42,7 @@ services:
       dockerfile: Dockerfile.l2-erigon
     ports:
       - "9545:8545"
+      - "9551:8551"
     volumes:
       - "l2_data:/db"
       - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
