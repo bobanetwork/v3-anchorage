@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 //import '@openzeppelin/contracts/access/Ownable.sol';
 
 // import "./ITuringHelper.sol";
+import { Burn } from "../libraries/Burn.sol";
 
 contract BobaHCHelper /*is Ownable*/ {
 
@@ -79,16 +80,41 @@ contract BobaHCHelper /*is Ownable*/ {
     bytes32 cacheKey = keccak256(abi.encodePacked(_url, _method, _payload));
     require(OffchainResponses[cacheKey].length > 0, "Missing cache entry");
     bytes memory response = OffchainResponses[cacheKey];
+
+    // We burn additional L2 gas here to reflect the cost of storing the Response data in the L1 rollup.
+    // TODO - calculate (L1_Gas_per_byte * Length) * (L1_Gas_Price / L2_Gas_Price). 
+    uint256 gasToBurn = response.length;
+    Burn.gas (gasToBurn * 5000);
+    
     delete(OffchainResponses[cacheKey]);
     return response;
   }
   
+  // This is called by a special Offchain transaction inserted ahead of one which is anticipated
+  // to call GetResponse. This will also transfer Boba tokens to pay for the offchain operation.
+  // Note that the token payment is separate from the extra gas burned in GetResponse to cover 
+  // L1 calldata storage.
   function PutResponse(bytes32 cacheKey, bytes memory _payload) public {
     // Eventually this should just overwrite
     require(OffchainResponses[cacheKey].length == 0, "DEBUG - Already exists");
     OffchainResponses[cacheKey] = _payload;
   }
 
+  // This function will transfer a Boba token payment but will not store the _payload.
+  // The sequencer will call this in the event that a user has called eth_estimateGas() to
+  // populate the cache but has not submitted a real transaction within a specified time
+  // interval. Since the offchain work has already been performed, this is how we bill for
+  // it in the absence of a regular transaction.
+  // Because there's no way to burn gas for the L1 calldata storage in this scenario, we
+  // instead charge more Boba tokens than would be collected on a completed transaction.
+
+  function ExpiredResponse(bytes32 cacheKey /*... + caller information */ ) public {
+    // consume tokens
+
+    // This function can also be used to clean up the state after a reverted GetResponse transaction.
+    // In this case we do not need to charge any additional Boba here because that was paid in the PutResponse.    
+    delete(OffchainResponses[cacheKey]);
+  }
 /*
   function addPermittedCaller(address _callerAddress)
     public onlyOwner {
