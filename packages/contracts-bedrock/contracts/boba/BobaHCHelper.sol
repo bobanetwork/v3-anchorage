@@ -64,7 +64,7 @@ contract BobaHCHelper /*is Ownable*/ {
   }
 
 
-  function GetResponse(uint32 rType, string memory _url, string memory _method, bytes memory _payload)
+  function GetResponse(uint32 rType, string memory _url, bytes memory _payload)
     public returns (bytes memory) {
 
     //require (msg.sender == address(this), "Turing:GetResponse:msg.sender != address(this)");
@@ -77,7 +77,7 @@ contract BobaHCHelper /*is Ownable*/ {
       return _payload;
     }
     
-    bytes32 cacheKey = keccak256(abi.encodePacked(_url, _method, _payload));
+    bytes32 cacheKey = keccak256(abi.encodePacked(_url, msg.sender, _payload));
     require(OffchainResponses[cacheKey].length > 0, "Missing cache entry");
     bytes memory response = OffchainResponses[cacheKey];
 
