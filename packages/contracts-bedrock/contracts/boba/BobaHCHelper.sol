@@ -8,9 +8,11 @@ import { Burn } from "../libraries/Burn.sol";
 
 contract BobaHCHelper /*is Ownable*/ {
 
-  BobaHCHelper Self;
+  address immutable HelperAddr = 0x42000000000000000000000000000000000000Fd;
+
 
   event OffchainRandom(uint version, uint256 random);
+  event DBG(bytes b);
 
   uint256 public NextSimpleRandom;
   mapping(bytes32 => bytes) OffchainResponses;
@@ -25,6 +27,7 @@ contract BobaHCHelper /*is Ownable*/ {
   event OffchainResponse(uint version, bytes responseData);
   event Offchain42(uint version, uint256 random);
 
+
   modifier onlyPermittedCaller() {
     require(
       permittedCaller[msg.sender],
@@ -36,9 +39,19 @@ contract BobaHCHelper /*is Ownable*/ {
 
 
   constructor () {
-    Self = BobaHCHelper(address(this));
-  }
+   }
 
+  function Ping(uint32 a) public returns (uint32) {
+    BobaHCHelper Self = BobaHCHelper(HelperAddr);
+    
+    if (a==0) {
+      return 1;
+    } else {
+      return 2 * Self.Ping(a - 1);
+    }
+  }
+  
+  
   // Return a random number which was previously deposited by the
   // offchain interface. Note that this method theoretically allows
   // a hostile Sequencer node to force a desired outcome. Use the
@@ -62,6 +75,13 @@ contract BobaHCHelper /*is Ownable*/ {
   	//require (NextSimpleRandom == 0, "NextSimpleRandom already set");
 	NextSimpleRandom = val;
   }
+  
+  function GetBounce(uint32 rType, string memory _url, bytes memory _payload)
+    public returns (bytes memory) {
+     emit DBG(_payload);
+    bytes32 z = 0;
+    return abi.encode(z);
+}
 
 
   function GetResponse(uint32 rType, string memory _url, bytes memory _payload)
@@ -115,6 +135,84 @@ contract BobaHCHelper /*is Ownable*/ {
     // In this case we do not need to charge any additional Boba here because that was paid in the PutResponse.    
     delete(OffchainResponses[cacheKey]);
   }
+  
+  // This is called to register an offchain endpoint. Registration requires
+  // that endpoint to respond to an RPC call from the Helper contract, to
+  // prove that the endpoint is under the control of the person attempting to
+  // register it. The response to that challenge must be a bytes32 value which
+  // is the keccak256 pre-image of "auth".
+  //
+  // This function also takes a parameter for initial funding. This must be
+  // enough to cover the credit cost of the registration itself but may be
+  // larger. The caller must have previously authorized the ERC20 token transfer
+  // to the helper contract's address.
+  //
+  // Upon successful registration, the provided URL will be stored in a map
+  // indexed by its Endpoint Key (EK) which is keccak256(abi.encodePacked(url)).
+  // If a previous registration existed for that EK it will be overwritten.
+  // 
+  // The address which calls RegisterEndpoint() is registered as its owner, 
+  // and only that owner will be permitted to unregister it later.
+  
+  struct EndpointEntry {
+  	address Owner;
+	string URL;
+	mapping (address => bool) PermittedCallers;
+  }
+
+  mapping (bytes32 => EndpointEntry) public Endpoints;
+  
+  // Emitted on every attempt to register an endpoint, including failures
+  // which progressed far enough to send an offchain request. Boba credits
+  // are consumed per attempt, not per success.
+  event EndpointRegistered(bool Success, bytes32 EK, address Owner, string URL);
+
+  uint256 RegCredits = 100;
+
+  function RegisterEndpoint(string memory url, uint256 credits, bytes32 auth)
+    public returns (bool) {
+    
+    BobaHCHelper Self = BobaHCHelper(HelperAddr);
+    bytes32 EK = keccak256(abi.encodePacked(url));
+    bool success;
+
+    require(credits >= RegCredits, "Insufficient registration credit");
+    // FIXME - process the payment and require success
+    
+    // Future registration protocols may perform a 2-way exchange, but
+    // for now we only care about authenticating the endpoint to the Helper contract.
+    bytes memory request = abi.encodeWithSignature("RegisterV1()");
+    
+    bytes memory response = Self.GetResponse(1, url, request);
+    
+    if (response.length == 32 && keccak256(response) == auth) {
+      // Success
+      
+      // FIXME - if overwriting an old entry, emit an Unregistration and deal with credits.
+      
+      Endpoints[EK].Owner = msg.sender;
+      Endpoints[EK].URL = url;
+      success = true;
+    }
+
+    emit EndpointRegistered(success, EK, msg.sender, url);
+    return success;
+  }
+
+  function UnregisterEndpoint(bytes32 EK) public {
+    require(Endpoints[EK].Owner == msg.sender, "Only owner may unregister");
+    // FIXME refund any leftover credits to Owner
+    delete(Endpoints[EK]);
+  }
+
+  function CallOffchain(bytes32 EK, bytes memory payload) public returns (bytes memory) {
+    BobaHCHelper Self = BobaHCHelper(HelperAddr);
+    string memory URL = Endpoints[EK].URL;
+    require(bytes(URL).length > 0, "Endpoint not registered");
+
+    return GetResponse(1, URL, payload);
+  }
+
 /*
   function addPermittedCaller(address _callerAddress)
     public onlyOwner {

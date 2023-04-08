@@ -24,6 +24,7 @@ var (
 	UntouchablePredeploys = map[common.Address]bool{
 		predeploys.GovernanceTokenAddr: true,
 		predeploys.WETH9Addr:           true,
+		//predeploys.BobaHCHelperAddr:    true,
 	}
 
 	// UntouchableCodeHashes represent the bytecode hashes of contracts
