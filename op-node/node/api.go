@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/log"
 
+	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 	"github.com/ethereum-optimism/optimism/op-bindings/predeploys"
 	"github.com/ethereum-optimism/optimism/op-node/eth"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
@@ -99,6 +100,7 @@ func (n *nodeAPI) OutputAtBlock(ctx context.Context, number hexutil.Uint64) (*et
 	if head == nil {
 		return nil, ethereum.NotFound
 	}
+
 	proof, err := n.client.GetProof(ctx, predeploys.L2ToL1MessagePasserAddr, []common.Hash{}, ref.Hash.String())
 	n.log.Info("MMDBG GetProof for", "block", number, "err", err, "proof", proof)
 	if err != nil {
@@ -114,7 +116,16 @@ func (n *nodeAPI) OutputAtBlock(ctx context.Context, number hexutil.Uint64) (*et
 	}
 
 	var l2OutputRootVersion eth.Bytes32 // it's zero for now
-	l2OutputRoot := rollup.ComputeL2OutputRoot(l2OutputRootVersion, head.Hash(), head.Root(), proof.StorageHash)
+	l2OutputRoot, err := rollup.ComputeL2OutputRoot(&bindings.TypesOutputRootProof{
+		Version:                  l2OutputRootVersion,
+		StateRoot:                head.Root(),
+		MessagePasserStorageRoot: proof.StorageHash,
+		LatestBlockhash:          head.Hash(),
+	})
+	if err != nil {
+		n.log.Error("Error computing L2 output root, nil ptr passed to hashing function")
+		return nil, err
+	}
 
 	log.Info("MMDBG ComputeL2OutputRoot", "root", l2OutputRoot.String(), "ver", l2OutputRootVersion, "hash", head.Hash(), "root", head.Root(), "sh", proof.StorageHash)
 	return &eth.OutputResponse{
