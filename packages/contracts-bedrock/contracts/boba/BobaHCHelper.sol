@@ -9,12 +9,11 @@ import { Burn } from "../libraries/Burn.sol";
 contract BobaHCHelper /*is Ownable*/ {
 
   address immutable HelperAddr = 0x42000000000000000000000000000000000000Fd;
-
+  address immutable OffchainCaller = 0xdEAddEadDeaDDEaDDeadDeAddeadDEaddeaD9901;
 
   event OffchainRandom(uint version, uint256 random);
   event DBG(bytes b);
 
-  uint256 public NextSimpleRandom;
   mapping(bytes32 => bytes) OffchainResponses;
 
 /*
@@ -41,64 +40,34 @@ contract BobaHCHelper /*is Ownable*/ {
   constructor () {
    }
 
-  function Ping(uint32 a) public returns (uint32) {
-    BobaHCHelper Self = BobaHCHelper(HelperAddr);
+  // -------------------------------------------------------------------------
+  
+  /* Internal functions which provide the interface to core/vm/hybrid_compute.go. GetResponse()
+    is called from other functions in this contract while PutResponse() and ExpireResponse() are
+    called from Offchain transactions inserted by the sequencer node.
     
-    if (a==0) {
-      return 1;
-    } else {
-      return 2 * Self.Ping(a - 1);
-    }
-  }
+    The first time that GetResponse() is called, it will revert on a "missing cache entry". On a
+    successful interaction, the offchain interactions will take place in the background and then
+    the user transaction will be re-run. This second time it will find a cache entry and return
+    the result. On a failure, the user transaction will be re-run a second time without any special
+    logic, so that the "missing cache entry" is passed back to the caller.
+    
+    TODO - This could be re-written to provide an in-band error response by adding a success/failure
+    flag to the cache entry.
+  */
   
-  
-  // Return a random number which was previously deposited by the
-  // offchain interface. Note that this method theoretically allows
-  // a hostile Sequencer node to force a desired outcome. Use the
-  // enhanced commit/revel method for applications which need
-  // a stronger guarantee of randomness.
-  //
-  // Any application using random numbers should take care to ensure
-  // that gas usage is independent of the random result, or else it
-  // may be possible for users to cancel and resubmit transactions 
-  // repeatedly until a desired outcome is obtained.
-  
-  function GetSimpleRandom() public returns (uint256) {
-    require(NextSimpleRandom != 0, "Random number not generated");
-    uint256 result = NextSimpleRandom;
-    NextSimpleRandom = 0;
-    emit OffchainRandom(0, result);
-    return result;
-  }
-  
-  function PutSimpleRandom(uint256 val) public {
-  	//require (NextSimpleRandom == 0, "NextSimpleRandom already set");
-	NextSimpleRandom = val;
-  }
-  
-  function GetBounce(uint32 rType, string memory _url, bytes memory _payload)
-    public returns (bytes memory) {
-     emit DBG(_payload);
-    bytes32 z = 0;
-    return abi.encode(z);
-}
-
-
-  function GetResponse(uint32 rType, string memory _url, bytes memory _payload)
+  // Try to get a previously-populated response
+  function GetResponse(uint32 _rType, address _caller, string memory _url, bytes memory _payload)
     public returns (bytes memory) {
 
-    //require (msg.sender == address(this), "Turing:GetResponse:msg.sender != address(this)");
-    //require (_payload.length > 0, "Turing:GetResponse:no payload");
-    //require (rType == 2, string(GetErrorCode(rType))); // l2geth can pass values here to provide debug information
+    // This function may only be called from the Helper contract
+    require (msg.sender == address(this), "Invalid GetResponse() caller");
 
-    // This is for legacy support, TBD whether or not it will be implemented.
-    if (rType == 2) {
-      require (_payload.length > 0, "Turing:GetResponse:no payload");
-      return _payload;
-    }
-    
-    bytes32 cacheKey = keccak256(abi.encodePacked(_url, msg.sender, _payload));
-    require(OffchainResponses[cacheKey].length > 0, "Missing cache entry");
+    bytes32 cacheKey = keccak256(abi.encodePacked(_rType, _caller, _url,  _payload));
+
+    // This specific revert string triggers the offchain mechanism. Do not change.
+    require(OffchainResponses[cacheKey].length > 0, "GetResponse: Missing cache entry");
+
     bytes memory response = OffchainResponses[cacheKey];
 
     // We burn additional L2 gas here to reflect the cost of storing the Response data in the L1 rollup.
@@ -110,11 +79,10 @@ contract BobaHCHelper /*is Ownable*/ {
     return response;
   }
   
-  // This is called by a special Offchain transaction inserted ahead of one which is anticipated
-  // to call GetResponse. This will also transfer Boba tokens to pay for the offchain operation.
-  // Note that the token payment is separate from the extra gas burned in GetResponse to cover 
-  // L1 calldata storage.
+  // Populate the cache ahead of an anticipated GetResponse(), charging Boba tokens.
   function PutResponse(bytes32 cacheKey, bytes memory _payload) public {
+    // Reserved address for Offchain transactions (core/types/offchain_tx.go)
+    require(msg.sender == OffchainCaller, "Invalid PutResponse() caller");
     // Eventually this should just overwrite
     require(OffchainResponses[cacheKey].length == 0, "DEBUG - Already exists");
     OffchainResponses[cacheKey] = _payload;
@@ -127,15 +95,21 @@ contract BobaHCHelper /*is Ownable*/ {
   // it in the absence of a regular transaction.
   // Because there's no way to burn gas for the L1 calldata storage in this scenario, we
   // instead charge more Boba tokens than would be collected on a completed transaction.
-
   function ExpiredResponse(bytes32 cacheKey /*... + caller information */ ) public {
-    // consume tokens
+    // FIXME - consume tokens
+
+    // Reserved address for Offchain transactions (core/types/offchain_tx.go)
+    require(msg.sender == OffchainCaller, "Invalid PutResponse() caller");
 
     // This function can also be used to clean up the state after a reverted GetResponse transaction.
     // In this case we do not need to charge any additional Boba here because that was paid in the PutResponse.    
     delete(OffchainResponses[cacheKey]);
   }
-  
+
+  // -------------------------------------------------------------------------
+
+  /* These functions are called to manage endpoints */
+
   // This is called to register an offchain endpoint. Registration requires
   // that endpoint to respond to an RPC call from the Helper contract, to
   // prove that the endpoint is under the control of the person attempting to
@@ -183,7 +157,7 @@ contract BobaHCHelper /*is Ownable*/ {
     // for now we only care about authenticating the endpoint to the Helper contract.
     bytes memory request = abi.encodeWithSignature("RegisterV1()");
     
-    bytes memory response = Self.GetResponse(1, url, request);
+    bytes memory response = Self.GetResponse(1, address(this), url, request);
     
     if (response.length == 32 && keccak256(response) == auth) {
       // Success
@@ -204,14 +178,58 @@ contract BobaHCHelper /*is Ownable*/ {
     // FIXME refund any leftover credits to Owner
     delete(Endpoints[EK]);
   }
+  
+  // Add a user contract's address to the list of permitted callers for the 
+  // specified previously-registered endpoint.
+  // TODO - credit limits?
+  function AddPermittedCaller(bytes32 _EK, address _callerAddress) public {
+    require(Endpoints[_EK].Owner != address(0), "Endpoint is not registered");
+    require(Endpoints[_EK].Owner == msg.sender, "Not the Endpoint owner");
+    
+    Endpoints[_EK].PermittedCallers[_callerAddress] = true;
+  }
+  
+  // Remove a permited caller 
+  function RemovePermittedCaller(bytes32 _EK, address _callerAddress) public {
+    require(Endpoints[_EK].Owner != address(0), "Endpoint is not registered");
+    require(Endpoints[_EK].Owner == msg.sender, "Not the Endpoint owner");
+    
+    Endpoints[_EK].PermittedCallers[_callerAddress] = false;
+  }
+  
+  function CheckPermittedCaller(bytes32 _EK, address _callerAddress) public view returns (bool) {
+    require(Endpoints[_EK].Owner != address(0), "Endpoint is not registered");
+    return(Endpoints[_EK].PermittedCallers[_callerAddress]);
+  }
+
+  // -------------------------------------------------------------------------
+
+  /* The following functions are called by users */
 
   function CallOffchain(bytes32 EK, bytes memory payload) public returns (bytes memory) {
     BobaHCHelper Self = BobaHCHelper(HelperAddr);
     string memory URL = Endpoints[EK].URL;
     require(bytes(URL).length > 0, "Endpoint not registered");
 
-    return GetResponse(1, URL, payload);
+    require(Endpoints[EK].PermittedCallers[msg.sender], "Caller is not permitted");
+    return Self.GetResponse(1, msg.sender, URL, payload);
   }
+
+  function SimpleRandom() public returns (uint256) {
+    BobaHCHelper Self = BobaHCHelper(HelperAddr);
+
+    bytes memory response = Self.GetResponse(65537, msg.sender, "", "");
+    require(response.length == 32, "Bad response length");
+    
+    uint256 result = abi.decode(response,(uint256));
+    emit OffchainRandom(0, result);
+    return result;
+  }
+
+  // -------------------------------------------------------------------------
+
+
+  /* Legacy support */
 
 /*
   function addPermittedCaller(address _callerAddress)
