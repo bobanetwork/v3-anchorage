@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.15;
 
 //import '@openzeppelin/contracts/access/Ownable.sol';
 
@@ -14,7 +14,8 @@ contract BobaHCHelper /*is Ownable*/ {
   event OffchainRandom(uint version, uint256 random);
   event DBG(bytes b);
 
-  mapping(bytes32 => bytes) OffchainResponses;
+  mapping(bytes32 => uint32) OffchainResponseCode;
+  mapping(bytes32 => bytes)  OffchainResponseData;
 
 /*
   // This protects your own credits for this helper contract
@@ -58,34 +59,47 @@ contract BobaHCHelper /*is Ownable*/ {
   
   // Try to get a previously-populated response
   function GetResponse(uint32 _rType, address _caller, string memory _url, bytes memory _payload)
-    public returns (bytes memory) {
+    public returns (bool, bytes memory) {
+    bool success;
+    bytes memory responseData;
 
     // This function may only be called from the Helper contract
     require (msg.sender == address(this), "Invalid GetResponse() caller");
 
     bytes32 cacheKey = keccak256(abi.encodePacked(_rType, _caller, _url,  _payload));
 
-    // This specific revert string triggers the offchain mechanism. Do not change.
-    require(OffchainResponses[cacheKey].length > 0, "GetResponse: Missing cache entry");
-
-    bytes memory response = OffchainResponses[cacheKey];
-
-    // We burn additional L2 gas here to reflect the cost of storing the Response data in the L1 rollup.
-    // TODO - calculate (L1_Gas_per_byte * Length) * (L1_Gas_Price / L2_Gas_Price). 
-    uint256 gasToBurn = response.length;
-    Burn.gas (gasToBurn * 5000);
+    uint32 code = OffchainResponseCode[cacheKey];
+  
+    responseData = OffchainResponseData[cacheKey];
     
-    delete(OffchainResponses[cacheKey]);
-    return response;
+    if (code == 0) {
+      // This specific revert string triggers the offchain mechanism. Do not change.
+      require(responseData.length > 0, "GetResponse: Missing cache entry");
+
+      success = true;
+
+      // We burn additional L2 gas here to reflect the cost of storing the Response data in the L1 rollup.
+      // TODO - calculate (L1_Gas_per_byte * Length) * (L1_Gas_Price / L2_Gas_Price). 
+      uint256 gasToBurn = responseData.length;
+      Burn.gas (gasToBurn * 5000);
+    } else {
+      string memory errMsg = "HybridCompute Error";  // TODO - look up a string based on the code.
+      responseData = abi.encodeWithSignature("Error(string)", errMsg);
+    }
+
+    delete(OffchainResponseData[cacheKey]);
+    delete(OffchainResponseCode[cacheKey]);
+    return (success, responseData);
   }
   
   // Populate the cache ahead of an anticipated GetResponse(), charging Boba tokens.
-  function PutResponse(bytes32 cacheKey, bytes memory _payload) public {
+  function PutResponse(bytes32 cacheKey, uint32 _code, bytes memory _payload) public {
     // Reserved address for Offchain transactions (core/types/offchain_tx.go)
     require(msg.sender == OffchainCaller, "Invalid PutResponse() caller");
     // Eventually this should just overwrite
-    require(OffchainResponses[cacheKey].length == 0, "DEBUG - Already exists");
-    OffchainResponses[cacheKey] = _payload;
+    require(OffchainResponseData[cacheKey].length == 0, "DEBUG - Already exists");
+    OffchainResponseCode[cacheKey] = _code;
+    OffchainResponseData[cacheKey] = _payload;
   }
 
   // This function will transfer a Boba token payment but will not store the _payload.
@@ -103,7 +117,8 @@ contract BobaHCHelper /*is Ownable*/ {
 
     // This function can also be used to clean up the state after a reverted GetResponse transaction.
     // In this case we do not need to charge any additional Boba here because that was paid in the PutResponse.    
-    delete(OffchainResponses[cacheKey]);
+    delete(OffchainResponseCode[cacheKey]);
+    delete(OffchainResponseData[cacheKey]);
   }
 
   // -------------------------------------------------------------------------
@@ -156,10 +171,11 @@ contract BobaHCHelper /*is Ownable*/ {
     // Future registration protocols may perform a 2-way exchange, but
     // for now we only care about authenticating the endpoint to the Helper contract.
     bytes memory request = abi.encodeWithSignature("RegisterV1()");
+    bytes memory response; 
+
+    (success, response) = Self.GetResponse(1, address(this), url, request);
     
-    bytes memory response = Self.GetResponse(1, address(this), url, request);
-    
-    if (response.length == 32 && keccak256(response) == auth) {
+    if (success && response.length == 32 && keccak256(response) == auth) {
       // Success
       
       // FIXME - if overwriting an old entry, emit an Unregistration and deal with credits.
@@ -167,6 +183,8 @@ contract BobaHCHelper /*is Ownable*/ {
       Endpoints[EK].Owner = msg.sender;
       Endpoints[EK].URL = url;
       success = true;
+    } else {
+      success = false;
     }
 
     emit EndpointRegistered(success, EK, msg.sender, url);
@@ -206,19 +224,26 @@ contract BobaHCHelper /*is Ownable*/ {
 
   /* The following functions are called by users */
 
-  function CallOffchain(bytes32 EK, bytes memory payload) public returns (bytes memory) {
+  function CallOffchain(bytes32 EK, bytes memory payload) public returns (bool, bytes memory) {
     BobaHCHelper Self = BobaHCHelper(HelperAddr);
     string memory URL = Endpoints[EK].URL;
     require(bytes(URL).length > 0, "Endpoint not registered");
 
     require(Endpoints[EK].PermittedCallers[msg.sender], "Caller is not permitted");
-    return Self.GetResponse(1, msg.sender, URL, payload);
+    bool success;
+    bytes memory returnData;
+    
+    (success, returnData) = Self.GetResponse(1, msg.sender, URL, payload);
+    return (success, returnData);
   }
 
   function SimpleRandom() public returns (uint256) {
     BobaHCHelper Self = BobaHCHelper(HelperAddr);
-
-    bytes memory response = Self.GetResponse(65537, msg.sender, "", "");
+    bool success;
+    bytes memory response;
+    
+    (success, response) = Self.GetResponse(65537, msg.sender, "", "");
+    require(success, "Operation failed");
     require(response.length == 32, "Bad response length");
     
     uint256 result = abi.decode(response,(uint256));
