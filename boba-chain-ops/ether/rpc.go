@@ -2,21 +2,24 @@ package ether
 
 import (
 	"context"
+	"math/big"
 	"time"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type RPC struct{}
 
 type RPCMethods interface {
-	GetBlockNumber(rpcClient *rpc.Client, rpcTimeout time.Duration) (*hexutil.Big, error)
-	GetTransactionHash(rpcClient *rpc.Client, rpcTimeout time.Duration, blockNumber *hexutil.Big) (*types.Block, error)
+	GetBlockNumber(client *ethclient.Client, rpcTimeout time.Duration) (*big.Int, error)
+	GetTransactionHash(client *ethclient.Client, rpcTimeout time.Duration, blockNumber *big.Int) (*types.Block, error)
 	DebugTransaction(rpcClient *rpc.Client, rpcTimeout time.Duration, txHash *common.Hash) (*TraceTransaction, error)
+	GetLogs(client *ethclient.Client, rpcTimeout time.Duration, filter *ethereum.FilterQuery) ([]types.Log, error)
 }
 
 func (r *RPC) DebugTransaction(rpcClient *rpc.Client, rpcTimeout time.Duration, txHash *common.Hash) (*TraceTransaction, error) {
@@ -33,22 +36,32 @@ func (r *RPC) DebugTransaction(rpcClient *rpc.Client, rpcTimeout time.Duration, 
 	return &traceResult, nil
 }
 
-func (r *RPC) GetTransactionHash(rpcClient *rpc.Client, rpcTimeout time.Duration, blockNumber *hexutil.Big) (*types.Block, error) {
+func (r *RPC) GetTransactionHash(ethClient *ethclient.Client, rpcTimeout time.Duration, blockNumber *big.Int) (*types.Block, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
 	defer cancel()
-	var block *types.Block
-	if err := rpcClient.CallContext(ctx, &block, "eth_getBlockByNumber", blockNumber, true); err != nil {
+	block, err := ethClient.BlockByNumber(ctx, blockNumber)
+	if err != nil {
 		return nil, err
 	}
 	return block, nil
 }
 
-func (r *RPC) GetBlockNumber(rpcClient *rpc.Client, rpcTimeout time.Duration) (*hexutil.Big, error) {
+func (r *RPC) GetBlockNumber(ethClient *ethclient.Client, rpcTimeout time.Duration) (*big.Int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
 	defer cancel()
-	var height *hexutil.Big
-	if err := rpcClient.CallContext(ctx, &height, "eth_blockNumber"); err != nil {
+	height, err := ethClient.BlockNumber(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return height, nil
+	return big.NewInt(int64(height)), nil
+}
+
+func (r *RPC) GetLogs(ethClient *ethclient.Client, rpcTimeout time.Duration, filter *ethereum.FilterQuery) ([]types.Log, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
+	defer cancel()
+	logs, err := ethClient.FilterLogs(ctx, *filter)
+	if err != nil {
+		return nil, err
+	}
+	return logs, nil
 }

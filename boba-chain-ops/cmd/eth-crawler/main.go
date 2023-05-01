@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rpc"
 
@@ -59,8 +61,21 @@ func main() {
 			if err != nil {
 				return err
 			}
+			defer rpcClient.Close()
 
-			crawler := ether.NewEthCrawler(rpcClient, endBlock, rpcTimeout, rpcPollingInterval, out)
+			ethClient, err := ethclient.Dial(rpcURL)
+			if err != nil {
+				return err
+			}
+			defer ethClient.Close()
+
+			log.Info("starting crawler", "rpcURL", rpcURL, "endBlock", fmt.Sprintf("%d", endBlock), "rpcTimeout", rpcTimeout, "rpcPollingInterval", rpcPollingInterval, "out", out)
+			c := ether.NewEthCrawler(rpcClient, ethClient, endBlock, rpcTimeout, rpcPollingInterval, out)
+			if err := c.Start(); err != nil {
+				log.Error("error starting crawler", "err", err)
+				return err
+			}
+			c.Wait()
 
 			return nil
 		},
