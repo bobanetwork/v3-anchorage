@@ -13,6 +13,8 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/ethereum-optimism/optimism/boba-chain-ops/ether"
+	"github.com/ethereum-optimism/optimism/boba-chain-ops/genesis"
+	"github.com/ethereum-optimism/optimism/op-chain-ops/db"
 )
 
 func main() {
@@ -49,6 +51,26 @@ func main() {
 				Value: 1 * time.Second,
 				Usage: "Interval between RPC calls",
 			},
+			&cli.BoolFlag{
+				Name:     "post-check-only",
+				Usage:    "Only perform sanity checks",
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name:     "db-path",
+				Usage:    "Path to database",
+				Required: false,
+			},
+			&cli.IntFlag{
+				Name:  "db-cache",
+				Usage: "LevelDB cache size in mb",
+				Value: 1024,
+			},
+			&cli.IntFlag{
+				Name:  "db-handles",
+				Usage: "LevelDB number of handles",
+				Value: 60,
+			},
 		},
 		Action: func(ctx *cli.Context) error {
 			rpcURL := ctx.String("rpc-url")
@@ -56,6 +78,34 @@ func main() {
 			rpcTimeout := ctx.Duration("rpc-timeout")
 			rpcPollingInterval := ctx.Duration("rpc-poll-interval")
 			out := ctx.String("out")
+
+			// post check only
+			postCheckOnly := ctx.Bool("post-check-only")
+			dbPath := ctx.String("db-path")
+			fmt.Println("dbPath: ", dbPath)
+			if postCheckOnly {
+				if len(dbPath) == 0 {
+					return fmt.Errorf("Must specify a db-path if post-check-only is true")
+				}
+				if endBlock == 0 {
+					return fmt.Errorf("Must specify an end-block if post-check-only is true")
+				}
+
+				dbCache := ctx.Int("db-cache")
+				dbHandles := ctx.Int("db-handles")
+				db, err := db.Open(dbPath, dbCache, dbHandles)
+				if err != nil {
+					return err
+				}
+				defer db.Close()
+				log.Info("starting post check", "dbPath", dbPath, "eth addresses file", out)
+				postCheckcfg := genesis.NewEthAddressesCfg(out, db, endBlock)
+				if err := postCheckcfg.Check(); err != nil {
+					return err
+				}
+				log.Info("post check complete! all good!")
+				return nil
+			}
 
 			rpcClient, err := rpc.Dial(rpcURL)
 			if err != nil {
@@ -82,6 +132,6 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Crit("error fetching addresses", "err", err)
+		log.Crit("critical error exits", "err", err)
 	}
 }
