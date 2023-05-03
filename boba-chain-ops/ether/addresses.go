@@ -25,7 +25,7 @@ type EthCrawler struct {
 	EndBlock           int64
 	RpcTimeout         time.Duration
 	RpcPollingInterval time.Duration
-	Output             string
+	OutputPath         string
 	ctx                context.Context
 	stop               chan struct{}
 }
@@ -46,14 +46,14 @@ type TraceTransaction struct {
 	Calls   []*TraceTransaction `json:"calls,omitempty"`
 }
 
-func NewEthCrawler(rpcClient *rpc.Client, ethClient *ethclient.Client, endBlock int64, rpcTimeout, rpcPollingInterval time.Duration, output string) *EthCrawler {
+func NewEthCrawler(rpcClient *rpc.Client, ethClient *ethclient.Client, endBlock int64, rpcTimeout, rpcPollingInterval time.Duration, outputPath string) *EthCrawler {
 	return &EthCrawler{
 		RpcClient:          rpcClient,
 		EthClient:          ethClient,
 		EndBlock:           endBlock,
 		RpcTimeout:         rpcTimeout,
 		RpcPollingInterval: rpcPollingInterval,
-		Output:             output,
+		OutputPath:         outputPath,
 		ctx:                context.Background(),
 		stop:               make(chan struct{}),
 	}
@@ -138,7 +138,7 @@ func (e *EthCrawler) StartCrawler(rpc RPCMethods, currentBlock int64, mapAddress
 }
 
 func (e *EthCrawler) LoadAddresses() (int64, []*common.Address, error) {
-	file, err := os.Open(e.Output)
+	file, err := os.Open(e.OutputPath)
 	defer file.Close()
 	if err != nil {
 		return 1, nil, err
@@ -163,7 +163,7 @@ func (e *EthCrawler) SaveAddresses(blockNumber int64, addresses []*common.Addres
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(e.Output, byteValue, 0644); err != nil {
+	if err := ioutil.WriteFile(e.OutputPath, byteValue, 0644); err != nil {
 		return err
 	}
 	return nil

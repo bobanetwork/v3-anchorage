@@ -37,7 +37,7 @@ func main() {
 				EnvVars: []string{"END_BLOCK"},
 			},
 			&cli.StringFlag{
-				Name:  "out",
+				Name:  "output-path",
 				Value: "eth-account.json",
 				Usage: "Path to the output file",
 			},
@@ -77,12 +77,11 @@ func main() {
 			endBlock := ctx.Int64("end-block")
 			rpcTimeout := ctx.Duration("rpc-timeout")
 			rpcPollingInterval := ctx.Duration("rpc-poll-interval")
-			out := ctx.String("out")
+			outputPath := ctx.String("output-path")
 
 			// post check only
 			postCheckOnly := ctx.Bool("post-check-only")
 			dbPath := ctx.String("db-path")
-			fmt.Println("dbPath: ", dbPath)
 			if postCheckOnly {
 				if len(dbPath) == 0 {
 					return fmt.Errorf("Must specify a db-path if post-check-only is true")
@@ -98,8 +97,8 @@ func main() {
 					return err
 				}
 				defer db.Close()
-				log.Info("starting post check", "dbPath", dbPath, "eth addresses file", out)
-				postCheckcfg := genesis.NewEthAddressesCfg(out, db, endBlock)
+				log.Info("starting post check", "dbPath", dbPath, "eth addresses file", outputPath)
+				postCheckcfg := genesis.NewEthAddressesCfg(outputPath, db, endBlock)
 				if err := postCheckcfg.Check(); err != nil {
 					return err
 				}
@@ -119,8 +118,8 @@ func main() {
 			}
 			defer ethClient.Close()
 
-			log.Info("starting crawler", "rpcURL", rpcURL, "endBlock", fmt.Sprintf("%d", endBlock), "rpcTimeout", rpcTimeout, "rpcPollingInterval", rpcPollingInterval, "out", out)
-			c := ether.NewEthCrawler(rpcClient, ethClient, endBlock, rpcTimeout, rpcPollingInterval, out)
+			log.Info("starting crawler", "rpcURL", rpcURL, "endBlock", fmt.Sprintf("%d", endBlock), "rpcTimeout", rpcTimeout, "rpcPollingInterval", rpcPollingInterval, "out", outputPath)
+			c := ether.NewEthCrawler(rpcClient, ethClient, endBlock, rpcTimeout, rpcPollingInterval, outputPath)
 			if err := c.Start(); err != nil {
 				log.Error("error starting crawler", "err", err)
 				return err

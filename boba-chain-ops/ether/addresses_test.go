@@ -191,13 +191,13 @@ func TestLoadAddresses(t *testing.T) {
 		EndBlock:           100,
 		RpcTimeout:         10 * time.Second,
 		RpcPollingInterval: 1 * time.Second,
-		Output:             "invalid.json",
+		OutputPath:         "invalid.json",
 	}
 	_, _, err := ethCrawler.LoadAddresses()
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
-	ethCrawler.Output = "../testdata/ethaddresses.json"
+	ethCrawler.OutputPath = "../testdata/ethaddresses.json"
 	blockNumber, addresses, err := ethCrawler.LoadAddresses()
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
@@ -221,7 +221,7 @@ func TestSaveAddresses(t *testing.T) {
 		EndBlock:           100,
 		RpcTimeout:         10 * time.Second,
 		RpcPollingInterval: 1 * time.Second,
-		Output:             "../testdata/saveaddresses.json",
+		OutputPath:         "../testdata/saveaddresses.json",
 	}
 	address1, address2 := common.Address{1}, common.Address{2}
 	addresses := []*common.Address{&address1, &address2}
@@ -247,7 +247,7 @@ func TestGetTraceTransaction(t *testing.T) {
 		EndBlock:           100,
 		RpcTimeout:         10 * time.Second,
 		RpcPollingInterval: 1 * time.Second,
-		Output:             "invalid.json",
+		OutputPath:         "invalid.json",
 	}
 	traceTransaction := generateTraceTranscation(
 		common.HexToAddress("0x4200000000000000000000000000000000000001"),
@@ -470,7 +470,7 @@ func TestGetToFromEthMintLogs(t *testing.T) {
 		EndBlock:           100,
 		RpcTimeout:         10 * time.Second,
 		RpcPollingInterval: 1 * time.Second,
-		Output:             "invalid.json",
+		OutputPath:         "invalid.json",
 	}
 	mockRPC := &MockRPC{
 		traceTransaction:          &TraceTransaction{},
