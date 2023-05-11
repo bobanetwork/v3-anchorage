@@ -35,6 +35,8 @@ contract BobaHCHelper /*is Ownable*/ {
 
   // events 
   event DBG(bytes b);
+  event EndpointRegistered(string URL, address owner);
+  event EndpointUnregistered(string URL, address owner);
 
   constructor () {
    }
@@ -99,11 +101,23 @@ contract BobaHCHelper /*is Ownable*/ {
 
     if (success && response.length == 32 && keccak256(response) == _auth) {
       Endpoints[EK].Owner = msg.sender;
+      emit EndpointRegistered(_url, msg.sender);
     } else {
       success = false;
     }
 
     return success;
+  }
+
+  function UnregisterEndpoint(string calldata _url)
+    public {
+
+    bytes32 EK = keccak256(abi.encodePacked(_url));
+    require(Endpoints[EK].Owner != address(0), "Endpoint is not registered");
+    require(Endpoints[EK].Owner == msg.sender, "Not the Endpoint owner");
+
+    delete(Endpoints[EK]);
+    emit EndpointUnregistered(_url, msg.sender);
   }
 
   function AddPermittedCaller(string calldata _url, address _callerAddress) public {
