@@ -5,7 +5,7 @@ DATADIR=/db
 
 COMMON_FLAGS=" \
   --chain dev \
-  --datadir  ${DATADIR} \
+  --datadir ${DATADIR} \
   --log.console.verbosity dbug \
   "
 

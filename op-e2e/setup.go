@@ -45,7 +45,10 @@ import (
 
 var testingJWTSecret = [32]byte{123}
 
-var erigonL2Nodes bool
+var (
+	erigonL2Nodes bool
+	erigonBinPath string
+)
 
 func newTxMgrConfig(l1Addr string, privKey *ecdsa.PrivateKey) txmgr.CLIConfig {
 	return txmgr.CLIConfig{
@@ -277,6 +280,7 @@ type System struct {
 	// Connections to running nodes
 	EthInstances      map[string]*EthInstance
 	Clients           map[string]*ethclient.Client
+	RawClients        map[string]*rpc.Client
 	RollupNodes       map[string]*rollupNode.OpNode
 	L2OutputSubmitter *l2os.L2OutputSubmitter
 	BatchSubmitter    *bss.BatchSubmitter
@@ -343,6 +347,7 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 		cfg:          cfg,
 		EthInstances: make(map[string]*EthInstance),
 		Clients:      make(map[string]*ethclient.Client),
+		RawClients:   make(map[string]*rpc.Client),
 		RollupNodes:  make(map[string]*rollupNode.OpNode),
 	}
 	didErrAfterStart := false
@@ -456,6 +461,7 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 		} else {
 			ei := (&ErigonRunner{
 				Name:    name,
+				BinPath: erigonBinPath,
 				ChainID: cfg.DeployConfig.L2ChainID,
 				Genesis: l2Genesis,
 				JWTPath: cfg.JWTFilePath,
@@ -509,14 +515,18 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 		didErrAfterStart = true
 		return nil, err
 	}
-	l1Client := ethclient.NewClient(rpc.DialInProc(l1Srv))
+	rawL1Client := rpc.DialInProc(l1Srv)
+	l1Client := ethclient.NewClient(rawL1Client)
 	sys.Clients["l1"] = l1Client
+	sys.RawClients["l1"] = rawL1Client
 	for name, ethInst := range sys.EthInstances {
-		client, err := ethclient.DialContext(ctx, ethInst.WSEndpoint())
+		rawClient, err := rpc.DialContext(ctx, ethInst.WSEndpoint())
 		if err != nil {
 			didErrAfterStart = true
 			return nil, err
 		}
+		client := ethclient.NewClient(rawClient)
+		sys.RawClients[name] = rawClient
 		sys.Clients[name] = client
 	}
 
