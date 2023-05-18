@@ -2,13 +2,13 @@ package op_e2e
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -21,17 +21,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func BuildErigon(t *testing.T) string {
-	buildPath := filepath.Join(t.TempDir(), "erigon")
-
-	gt := gomega.NewWithT(t)
+func BuildErigon(buildPath string) error {
 	cmd := exec.Command("go", "build", "-o", buildPath, "github.com/ledgerwatch/erigon/cmd/erigon")
-	cmd.Dir = filepath.Join(".", "erigon-build-hack")
+	cmd.Dir = filepath.Join("..", "op-erigon")
 	sess, err := gexec.Start(cmd, os.Stdout, os.Stderr)
-	gt.Expect(err).NotTo(gomega.HaveOccurred())
-	gt.Eventually(sess, time.Minute).Should(gexec.Exit(0))
+	if err != nil {
+		return err
+	}
+	gm := gomega.NewGomega(func(msg string, callerSkip ...int) {
+		err = errors.New(msg)
+	})
+	gm.Eventually(sess, time.Minute).Should(gexec.Exit(0))
+	if err != nil {
+		return err
+	}
 
-	return buildPath
+	return nil
 }
 
 type ErigonRunner struct {
@@ -46,7 +51,7 @@ type ErigonRunner struct {
 
 func (er *ErigonRunner) Run(t *testing.T) ErigonInstance {
 	if er.BinPath == "" {
-		er.BinPath = BuildErigon(t)
+		t.Error("no erigon bin path set")
 	}
 
 	if er.DataDir == "" {
@@ -96,7 +101,7 @@ func (er *ErigonRunner) Run(t *testing.T) ErigonInstance {
 		"--chain", "dev",
 		"--datadir", er.DataDir,
 		"--log.console.verbosity", "dbug",
-		"--externalcl",
+		// "--internalcl", "false",
 		"--ws",
 		"--mine",
 		// "--miner.etherbase=0x123463a4B065722E99115D6c222f267d9cABb524",
@@ -109,13 +114,7 @@ func (er *ErigonRunner) Run(t *testing.T) ErigonInstance {
 		"--allow-insecure-unlock",
 		"--authrpc.addr=127.0.0.1",
 		"--nat", "none",
-		"--p2p.allowed-ports", func() string {
-			res := make([]string, 1000)
-			for i := range res {
-				res[i] = strconv.Itoa(i + 30000)
-			}
-			return strings.Join(res, ", ")
-		}(),
+		"--p2p.allowed-ports", "0",
 		"--authrpc.port=0",
 		"--authrpc.vhosts=*",
 		"--authrpc.jwtsecret", er.JWTPath,
