@@ -24,8 +24,11 @@ type RPCMethods interface {
 
 func (r *RPC) DebugTransaction(rpcClient *rpc.Client, rpcTimeout time.Duration, txHash *common.Hash) (*TraceTransaction, error) {
 	tracerType := "callTracer"
+	tracerTimeout := rpcTimeout.String()
+
 	config := &tracers.TraceConfig{
 		Tracer: &tracerType,
+		Timeout: &tracerTimeout,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
 	defer cancel()
