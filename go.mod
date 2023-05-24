@@ -190,4 +190,4 @@ require (
 	nhooyr.io/websocket v1.8.7 // indirect
 )
 
-replace github.com/ethereum/go-ethereum v1.11.5 => github.com/bobanetwork/v3-op-geth v0.0.0-20230411191508-e4e84d07bfb2
+replace github.com/ethereum/go-ethereum v1.11.5 => github.com/bobanetwork/v3-op-geth v0.0.0-20230412060540-dfc1a266b7e7
