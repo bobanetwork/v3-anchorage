@@ -176,5 +176,39 @@ contract BobaHCHelper /*is Ownable*/ {
     OffchainResponses[_cacheKey] = abi.encode(_success, _returndata);
   }
 
+  // -------------------------------------------------------------------------
+  // Legacy interface
+
+  function GetResponse(uint32 rType, string memory _url, bytes memory _payload)
+    public returns (bytes memory) {
+    require (rType == 1 || rType == 0x02000001, "TURING: Geth intercept failure");
+    uint32 method = 0x7d93616c; // GetResponse(uint32,string,bytes)
+    
+    bytes32 key = keccak256(abi.encodePacked(method, msg.sender, abi.encodePacked(_url), _payload));
+    bool success;
+    bytes memory responsedata;
+   
+    (success,responsedata) = GetResponse(key, msg.sender, CallCost);
+    require(success, "TURING: Legacy GetResponse() failure");
+
+    return responsedata;
+  }
+
+  function GetRandom(uint32 rType, uint256 _random)
+    public returns (uint256) {
+    require (rType == 1, "TURING: Geth intercept failure");
+
+    uint32 method = 0x493d57d6; // GetRandom(uint32,uint256)
+    bool success;
+    bytes memory responsedata;
+    bytes32 key = keccak256(abi.encodePacked(method, msg.sender));
+    (success, responsedata) = GetResponse(key, msg.sender, RNGCost);
+    require(success && (responsedata.length == 32), "Random number generation failed");
+
+    uint256 result = abi.decode(responsedata,(uint256));
+    
+    return result;
+  }
+  
   
 }

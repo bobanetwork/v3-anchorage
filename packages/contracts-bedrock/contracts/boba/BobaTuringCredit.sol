@@ -24,8 +24,8 @@ contract BobaTuringCredit {
 
     mapping(address => uint256) public prepaidBalance;
 
-    address public turingToken;
-    uint256 public turingPrice;
+    address public immutable turingToken =0x42000000000000000000000000000000000000FE;
+    uint256 public immutable turingPrice = 17;
     uint256 public ownerRevenue;
 
     /********************
@@ -62,7 +62,7 @@ contract BobaTuringCredit {
      ********************/
 
     constructor(uint256 _turingPrice) {
-        turingPrice = _turingPrice;
+       // turingPrice = _turingPrice;
     }
 
     /********************
@@ -75,7 +75,7 @@ contract BobaTuringCredit {
      * @param _turingToken credit token address
      */
     function updateTuringToken(address _turingToken) public onlyOwner onlyNotInitialized {
-        turingToken = _turingToken;
+       // turingToken = _turingToken;
     }
 
     /**
@@ -95,7 +95,7 @@ contract BobaTuringCredit {
      * @param _turingPrice turing price for each off-chain computation
      */
     function updateTuringPrice(uint256 _turingPrice) public onlyOwner {
-        turingPrice = _turingPrice;
+        // turingPrice = _turingPrice;
     }
 
     /**
