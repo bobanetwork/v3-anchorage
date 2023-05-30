@@ -98,6 +98,7 @@ func ValidAddressInStorage(storage map[common.Hash]string, addresses []*common.A
 		common.BytesToHash([]byte{2}),
 		common.BytesToHash([]byte{3}),
 		common.BytesToHash([]byte{4}),
+		common.BytesToHash([]byte{5}),
 		common.BytesToHash([]byte{6}),
 	}
 	for _, key := range dataStorageKey {
