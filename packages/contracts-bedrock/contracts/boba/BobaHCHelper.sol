@@ -34,7 +34,6 @@ contract BobaHCHelper /*is Ownable*/ {
 
 
   // events 
-  event DBG(bytes b);
   event EndpointRegistered(string URL, address owner);
   event EndpointUnregistered(string URL, address owner);
 
