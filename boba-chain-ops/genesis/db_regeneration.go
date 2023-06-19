@@ -98,10 +98,18 @@ func (b *BuilderEngine) BlockGenerationLoop() {
 }
 
 func (b *BuilderEngine) RegenerateBlock() error {
-	latestBlock, err := b.l2PublicClient.GetLatestBlock()
+	var err error
+	var legacyBlock,latestBlock *node.Block
+	var loopCount int
+
+	latestBlock, err = b.l2PublicClient.GetLatestBlock()
 	if err != nil {
 		return err
 	}
+	unsafeHash := latestBlock.Hash
+	prevHash := latestBlock.Hash
+	log.Info("Starting at", "latestBlock", uint64(latestBlock.Number), "hash", unsafeHash)
+
 	nextBlockNumber := uint64(latestBlock.Number) + 1
 
 	if b.hardforkBlockNumber != 0 && nextBlockNumber > uint64(b.hardforkBlockNumber) {
@@ -110,99 +118,120 @@ func (b *BuilderEngine) RegenerateBlock() error {
 		return nil
 	}
 
-	legacyBlock, err := b.l2LegacyClient.GetBlockByNumber(big.NewInt(int64(nextBlockNumber)))
-	if err != nil {
-		return err
-	}
-	gasLimit := legacyBlock.GasLimit
-	txHash := legacyBlock.Transactions[0]
+	start := time.Now()
+	for loopCount < 1000 && nextBlockNumber <= uint64(b.hardforkBlockNumber) {
+		legacyBlock, err = b.l2LegacyClient.GetBlockByNumber(big.NewInt(int64(nextBlockNumber)))
+		if err != nil {
+			return err
+		}
+		gasLimit := legacyBlock.GasLimit
+		txHash := legacyBlock.Transactions[0]
+		log.Debug("Got legacyBlock", "num", legacyBlock.Number, "hash", legacyBlock.Hash, "txHash", txHash)
 
-	legacyTransaction, err := b.l2LegacyClient.GetTransactionByHash(txHash)
-	if err != nil {
-		return err
-	}
+		legacyTransaction, err := b.l2LegacyClient.GetTransactionByHash(txHash)
+		if err != nil {
+			return err
+		}
 
-	// Verify that legacy transaction has the same txHash
-	if legacyTransaction.Hash() != *txHash {
-		return fmt.Errorf("transaction hashs from legacy endpoint do not match")
-	}
+		// Verify that legacy transaction has the same txHash
+		if legacyTransaction.Hash() != *txHash {
+			return fmt.Errorf("transaction hashs from legacy endpoint do not match")
+		}
 
-	// Build binary transaction input
-	var buf bytes.Buffer
-	err = legacyTransaction.MarshalBinary(&buf)
-	if err != nil {
-		return err
-	}
-	transactions := make([]hexutility.Bytes, 1)
-	transactions[0] = hexutility.Bytes(buf.Bytes())
+		// Build binary transaction input
+		var buf bytes.Buffer
+		err = legacyTransaction.MarshalBinary(&buf)
+		if err != nil {
+			return err
+		}
+		transactions := make([]hexutility.Bytes, 1)
+		transactions[0] = hexutility.Bytes(buf.Bytes())
 
-	// Step 1: Get new payloadID
-	// engine_forkchoiceUpdatedV1 -> Get payloadID
-	fc := &commands.ForkChoiceState{
-		HeadHash:           latestBlock.Hash,
-		SafeBlockHash:      latestBlock.Hash,
-		FinalizedBlockHash: latestBlock.Hash,
-	}
-	attributes := &commands.PayloadAttributes{
-		Timestamp:             hexutil.Uint64(legacyBlock.Time),
-		PrevRandao:            [32]byte{},
-		SuggestedFeeRecipient: libcommon.HexToAddress("0x4200000000000000000000000000000000000011"),
-		Transactions:          transactions,
-		NoTxPool:              true,
-		GasLimit:              &gasLimit,
-	}
+		log.Debug("Before ForkChoice", "unsafe", unsafeHash, "safe", prevHash)
+		// Step 1: Get new payloadID
+		// engine_forkchoiceUpdatedV1 -> Get payloadID
+		fc := &commands.ForkChoiceState{
+			HeadHash:           unsafeHash,
+			SafeBlockHash:      prevHash,
+			FinalizedBlockHash: prevHash,
+		}
+		attributes := &commands.PayloadAttributes{
+			Timestamp:             hexutil.Uint64(legacyBlock.Time),
+			PrevRandao:            [32]byte{},
+			SuggestedFeeRecipient: libcommon.HexToAddress("0x4200000000000000000000000000000000000011"),
+			Transactions:          transactions,
+			NoTxPool:              true,
+			GasLimit:              &gasLimit,
+		}
 
-	fcUpdateRes, err := b.l2PrivateClient.ForkchoiceUpdateV1(fc, attributes)
-	if err != nil {
-		return err
-	}
-	log.Info("Got forkchoice update", "status", fcUpdateRes.PayloadStatus.Status, "payloadID", fcUpdateRes.PayloadID)
+		fcUpdateRes, err := b.l2PrivateClient.ForkchoiceUpdateV1(fc, attributes)
+		if err != nil {
+			return err
+		}
+		log.Debug("Got forkchoice update", "status", fcUpdateRes.PayloadStatus.Status, "payloadID", fcUpdateRes.PayloadID)
 
-	// Step 2: Get next block information
-	// engine_getPayloadV1 -> Get executionPayload
-	executionPayload, err := b.l2PrivateClient.GetPayloadV1(fcUpdateRes.PayloadID)
-	if err != nil {
-		return err
-	}
-	if len(executionPayload.Transactions) != 1 {
-		log.Warn("Pending transaction length is not 1", "length", len(executionPayload.Transactions))
-		return fmt.Errorf("pending transaction length is not 1")
-	}
-	tx, err := types.UnmarshalTransactionFromBinary(executionPayload.Transactions[0])
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal transaction: %w", err)
-	}
-	if tx.Hash() != *txHash {
-		log.Warn("Pending transaction hash is not correct", "pending", tx.Hash(), "latest", txHash)
-		return fmt.Errorf("pending transaction hash is not correct")
-	}
-	if executionPayload.BlockHash != legacyBlock.Hash {
-		log.Warn("Pending block hash is not correct", "pending", executionPayload.BlockHash, "latest", legacyBlock.Hash)
-		return fmt.Errorf("pending block hash is not correct")
-	}
-	log.Info("Got execution payload", "blockNumber", uint64(executionPayload.BlockNumber))
+		// Step 2: Get next block information
+		// engine_getPayloadV1 -> Get executionPayload
+		executionPayload, err := b.l2PrivateClient.GetPayloadV1(fcUpdateRes.PayloadID)
+		if err != nil {
+			return err
+		}
+		if len(executionPayload.Transactions) != 1 {
+			log.Warn("Pending transaction length is not 1", "length", len(executionPayload.Transactions))
+			return fmt.Errorf("pending transaction length is not 1")
+		}
+		tx, err := types.UnmarshalTransactionFromBinary(executionPayload.Transactions[0])
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal transaction: %w", err)
+		}
+		if tx.Hash() != *txHash {
+			log.Warn("Pending transaction hash is not correct", "pending", tx.Hash(), "latest", txHash)
+			return fmt.Errorf("pending transaction hash is not correct")
+		}
 
-	// Step 3: Process new block
-	// engine_newPayloadV1 -> Execute payload
-	payloadStatus, err := b.l2PrivateClient.NewPayloadV1(executionPayload)
-	if err != nil {
-		return err
+		if executionPayload.BlockHash != legacyBlock.Hash {
+			log.Warn("Pending block hash is not correct", "pending", executionPayload.BlockHash, "latest", legacyBlock.Hash)
+			return fmt.Errorf("pending block hash is not correct")
+		}
+		log.Debug("Got execution payload", "blockNumber", uint64(executionPayload.BlockNumber))
+
+		// Step 3: Process new block
+		// engine_newPayloadV1 -> Execute payload
+		payloadStatus, err := b.l2PrivateClient.NewPayloadV1(executionPayload)
+		if err != nil {
+			return err
+		}
+		if payloadStatus.Status != "VALID" {
+			log.Warn("Payload is invalid", "status", payloadStatus.Status)
+			return fmt.Errorf("payload is invalid")
+		}
+
+		if *payloadStatus.LatestValidHash != executionPayload.BlockHash {
+			log.Warn("Latest valid hash is not correct", "pending", executionPayload.BlockHash, "latest", payloadStatus.LatestValidHash)
+			return fmt.Errorf("latest valid hash is not correct")
+		}
+
+		if nextBlockNumber % 100 == 0 {
+			log.Info("Now at", "block", nextBlockNumber, "unsafe", unsafeHash, "safe", prevHash)
+			prevHash = unsafeHash
+		}
+		unsafeHash = executionPayload.BlockHash
+
+		log.Debug("Done with block", "num", nextBlockNumber)
+		nextBlockNumber += 1
+		loopCount += 1
+		//time.Sleep(5 * time.Second)
+
 	}
-	if payloadStatus.Status != "VALID" {
-		log.Warn("Payload is invalid", "status", payloadStatus.Status)
-		return fmt.Errorf("payload is invalid")
-	}
-	if *payloadStatus.LatestValidHash != executionPayload.BlockHash {
-		log.Warn("Latest valid hash is not correct", "pending", executionPayload.BlockHash, "latest", payloadStatus.LatestValidHash)
-		return fmt.Errorf("latest valid hash is not correct")
-	}
+	elapsed := time.Since(start)
+	log.Info("Checkpoint at", "num", nextBlockNumber-1, "hash", unsafeHash, "t", elapsed, "rate", 1000.0 / elapsed.Seconds())
 
 	// Step 4: Submit block
 	// engine_executePayloadV1 -> Submit block
 	updatedFc := &commands.ForkChoiceState{
-		HeadHash:           executionPayload.BlockHash,
-		SafeBlockHash:      executionPayload.BlockHash,
-		FinalizedBlockHash: executionPayload.BlockHash,
+		HeadHash:           unsafeHash,
+		SafeBlockHash:      unsafeHash,
+		FinalizedBlockHash: unsafeHash,
 	}
 	fcFinalRes, err := b.l2PrivateClient.ForkchoiceUpdateV1(updatedFc, nil)
 	if err != nil {
@@ -231,8 +260,6 @@ func (b *BuilderEngine) RegenerateBlock() error {
 		return fmt.Errorf("Receipt hash is not correct")
 	}
 
-	log.Info("Block mined", "blockNumber", uint64(executionPayload.BlockNumber))
-	log.Info("Waiting for next block to be mined", "blockNumber", uint64(executionPayload.BlockNumber+1))
-
+	log.Info("Checkpoint OK")
 	return nil
 }

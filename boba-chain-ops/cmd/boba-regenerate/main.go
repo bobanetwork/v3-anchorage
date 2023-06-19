@@ -50,7 +50,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "polling-interval",
 				Usage:   "Interval between sending a request to the L2 node to build a new block",
-				Value:   "100ms",
+				Value:   "1s",
 				EnvVars: []string{"POLLING_INTERVAL"},
 			},
 			&cli.Int64Flag{
@@ -58,6 +58,7 @@ func main() {
 				Usage:   "Block number at which the hard fork will happen",
 				Value:   0,
 				EnvVars: []string{"HARD_FORK_BLOCK_NUMBER"},
+				Required: true,
 			},
 			&cli.StringFlag{
 				Name:  "log-level",
