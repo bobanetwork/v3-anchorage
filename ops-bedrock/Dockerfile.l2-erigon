@@ -8,11 +8,13 @@ FROM docker.io/library/golang:1.20-alpine3.17 AS builder
 RUN apk --no-cache add build-base linux-headers git bash ca-certificates libstdc++
 
 WORKDIR /app
-ADD ../op-erigon/go.mod go.mod
-ADD ../op-erigon/go.sum go.sum
 
-RUN go mod download
 ADD ../op-erigon/ .
+
+RUN --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/tmp/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 RUN --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/tmp/go-build \
