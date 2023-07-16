@@ -16,11 +16,17 @@ COPY ./.git /app/.git
 
 WORKDIR /app/op-program
 
-RUN go mod download
+RUN --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/tmp/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 ARG TARGETOS TARGETARCH
 
-RUN make op-program VERSION="$VERSION" GOOS=$TARGETOS GOARCH=$TARGETARCH
+RUN --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/tmp/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    make op-program VERSION="$VERSION" GOOS=$TARGETOS GOARCH=$TARGETARCH
 
 FROM alpine:3.16
 
