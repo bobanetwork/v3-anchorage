@@ -36,8 +36,8 @@ github.com/benbjohnson/clock v1.3.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZx
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/bobanetwork/v3-op-geth v0.0.0-20230525192029-7dbc9c6bd022 h1:3QoGGksNFNt9JAd+fy+95MFJPy2IjVNtId8wSTgD6XE=
-github.com/bobanetwork/v3-op-geth v0.0.0-20230525192029-7dbc9c6bd022/go.mod h1:X9t7oeerFMU9/zMIjZKT/jbIca+O05QqtBTLjL+XVeA=
+github.com/bobanetwork/v3-op-geth v0.0.0-20230713232652-e702d4f5ae48 h1:pheZ2jz+3mcCypTDsqPoz1olb3PrcTbkjGi9Xblvc/8=
+github.com/bobanetwork/v3-op-geth v0.0.0-20230713232652-e702d4f5ae48/go.mod h1:X9t7oeerFMU9/zMIjZKT/jbIca+O05QqtBTLjL+XVeA=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btcd v0.22.0-beta.0.20220111032746-97732e52810c/go.mod h1:tjmYdS6MLJ5/s0Fj4DbLgSbDHbEqLJrtnHecBFkdz5M=
