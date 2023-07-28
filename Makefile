@@ -1,6 +1,8 @@
 COMPOSEFLAGS=-d
 ITESTS_L2_HOST=http://localhost:9545
 BEDROCK_TAGS_REMOTE?=origin
+# Requires at least Python v3.9; specify a minor version below if needed
+PYTHON=python3
 
 build: build-go build-ts
 .PHONY: build
@@ -82,15 +84,15 @@ nuke: clean devnet-clean
 .PHONY: nuke
 
 devnet-up:
-	PYTHONPATH=./bedrock-devnet python3 ./bedrock-devnet/main.py --monorepo-dir=.
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/main.py --monorepo-dir=.
 .PHONY: devnet-up
 
 devnet-up-deploy:
-	PYTHONPATH=./bedrock-devnet python3 ./bedrock-devnet/main.py --monorepo-dir=. --deploy
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/main.py --monorepo-dir=. --deploy
 .PHONY: devnet-up-deploy
 
 devnet-test:
-	PYTHONPATH=./bedrock-devnet python3 ./bedrock-devnet/main.py --monorepo-dir=. --test
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/main.py --monorepo-dir=. --test
 .PHONY: devnet-test
 
 devnet-down:
