@@ -4,44 +4,58 @@
 package bindings
 
 import (
+	"errors"
 	"math/big"
 	"strings"
 
-	ethereum "github.com/ledgerwatch/erigon"
-	libcommon "github.com/ledgerwatch/erigon-lib/common"
-	"github.com/ledgerwatch/erigon/accounts/abi"
-	"github.com/ledgerwatch/erigon/accounts/abi/bind"
-	"github.com/ledgerwatch/erigon/core/types"
-	"github.com/ledgerwatch/erigon/event"
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
+	_ = errors.New
 	_ = big.NewInt
 	_ = strings.NewReader
 	_ = ethereum.NotFound
 	_ = bind.Bind
-	_ = libcommon.Big1
+	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
 )
 
+// LegacyMessagePasserMetaData contains all meta data concerning the LegacyMessagePasser contract.
+var LegacyMessagePasserMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"passMessageToL1\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"sentMessages\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	Bin: "0x60e060405234801561001057600080fd5b5060016080819052600060a081905260c082905281610698610048833960006101050152600060dc0152600060b301526106986000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c806354fd4d501461004657806382e3702d14610064578063cafa81dc14610097575b600080fd5b61004e6100ac565b60405161005b9190610347565b60405180910390f35b610087610072366004610398565b60006020819052908152604090205460ff1681565b604051901515815260200161005b565b6100aa6100a53660046103e0565b61014f565b005b60606100d77f00000000000000000000000000000000000000000000000000000000000000006101da565b6101007f00000000000000000000000000000000000000000000000000000000000000006101da565b6101297f00000000000000000000000000000000000000000000000000000000000000006101da565b60405160200161013b939291906104af565b604051602081830303815290604052905090565b60016000808333604051602001610167929190610525565b604080518083037fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe001815291815281516020928301208352908201929092520160002080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff001691151591909117905550565b60608160000361021d57505060408051808201909152600181527f3000000000000000000000000000000000000000000000000000000000000000602082015290565b8160005b811561024757806102318161059e565b91506102409050600a83610605565b9150610221565b60008167ffffffffffffffff811115610262576102626103b1565b6040519080825280601f01601f19166020018201604052801561028c576020820181803683370190505b5090505b841561030f576102a1600183610619565b91506102ae600a86610630565b6102b9906030610644565b60f81b8183815181106102ce576102ce61065c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916908160001a905350610308600a86610605565b9450610290565b949350505050565b60005b8381101561033257818101518382015260200161031a565b83811115610341576000848401525b50505050565b6020815260008251806020840152610366816040850160208701610317565b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0169190910160400192915050565b6000602082840312156103aa57600080fd5b5035919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6000602082840312156103f257600080fd5b813567ffffffffffffffff8082111561040a57600080fd5b818401915084601f83011261041e57600080fd5b813581811115610430576104306103b1565b604051601f82017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0908116603f01168101908382118183101715610476576104766103b1565b8160405282815287602084870101111561048f57600080fd5b826020860160208301376000928101602001929092525095945050505050565b600084516104c1818460208901610317565b80830190507f2e0000000000000000000000000000000000000000000000000000000000000080825285516104fd816001850160208a01610317565b60019201918201528351610518816002840160208801610317565b0160020195945050505050565b60008351610537818460208801610317565b60609390931b7fffffffffffffffffffffffffffffffffffffffff000000000000000000000000169190920190815260140192915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82036105cf576105cf61056f565b5060010190565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b600082610614576106146105d6565b500490565b60008282101561062b5761062b61056f565b500390565b60008261063f5761063f6105d6565b500690565b600082198211156106575761065761056f565b500190565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fdfea164736f6c634300080f000a",
+}
+
 // LegacyMessagePasserABI is the input ABI used to generate the binding from.
-const LegacyMessagePasserABI = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"passMessageToL1\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"sentMessages\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
+// Deprecated: Use LegacyMessagePasserMetaData.ABI instead.
+var LegacyMessagePasserABI = LegacyMessagePasserMetaData.ABI
 
 // LegacyMessagePasserBin is the compiled bytecode used for deploying new contracts.
-var LegacyMessagePasserBin = "0x60e060405234801561001057600080fd5b5060016080819052600060a081905260c082905281610698610048833960006101050152600060dc0152600060b301526106986000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c806354fd4d501461004657806382e3702d14610064578063cafa81dc14610097575b600080fd5b61004e6100ac565b60405161005b9190610347565b60405180910390f35b610087610072366004610398565b60006020819052908152604090205460ff1681565b604051901515815260200161005b565b6100aa6100a53660046103e0565b61014f565b005b60606100d77f00000000000000000000000000000000000000000000000000000000000000006101da565b6101007f00000000000000000000000000000000000000000000000000000000000000006101da565b6101297f00000000000000000000000000000000000000000000000000000000000000006101da565b60405160200161013b939291906104af565b604051602081830303815290604052905090565b60016000808333604051602001610167929190610525565b604080518083037fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe001815291815281516020928301208352908201929092520160002080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff001691151591909117905550565b60608160000361021d57505060408051808201909152600181527f3000000000000000000000000000000000000000000000000000000000000000602082015290565b8160005b811561024757806102318161059e565b91506102409050600a83610605565b9150610221565b60008167ffffffffffffffff811115610262576102626103b1565b6040519080825280601f01601f19166020018201604052801561028c576020820181803683370190505b5090505b841561030f576102a1600183610619565b91506102ae600a86610630565b6102b9906030610644565b60f81b8183815181106102ce576102ce61065c565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916908160001a905350610308600a86610605565b9450610290565b949350505050565b60005b8381101561033257818101518382015260200161031a565b83811115610341576000848401525b50505050565b6020815260008251806020840152610366816040850160208701610317565b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0169190910160400192915050565b6000602082840312156103aa57600080fd5b5035919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6000602082840312156103f257600080fd5b813567ffffffffffffffff8082111561040a57600080fd5b818401915084601f83011261041e57600080fd5b813581811115610430576104306103b1565b604051601f82017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0908116603f01168101908382118183101715610476576104766103b1565b8160405282815287602084870101111561048f57600080fd5b826020860160208301376000928101602001929092525095945050505050565b600084516104c1818460208901610317565b80830190507f2e0000000000000000000000000000000000000000000000000000000000000080825285516104fd816001850160208a01610317565b60019201918201528351610518816002840160208801610317565b0160020195945050505050565b60008351610537818460208801610317565b60609390931b7fffffffffffffffffffffffffffffffffffffffff000000000000000000000000169190920190815260140192915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82036105cf576105cf61056f565b5060010190565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b600082610614576106146105d6565b500490565b60008282101561062b5761062b61056f565b500390565b60008261063f5761063f6105d6565b500690565b600082198211156106575761065761056f565b500190565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fdfea164736f6c634300080f000a"
+// Deprecated: Use LegacyMessagePasserMetaData.Bin instead.
+var LegacyMessagePasserBin = LegacyMessagePasserMetaData.Bin
 
 // DeployLegacyMessagePasser deploys a new Ethereum contract, binding an instance of LegacyMessagePasser to it.
-func DeployLegacyMessagePasser(auth *bind.TransactOpts, backend bind.ContractBackend) (libcommon.Address, types.Transaction, *LegacyMessagePasser, error) {
-	parsed, err := abi.JSON(strings.NewReader(LegacyMessagePasserABI))
+func DeployLegacyMessagePasser(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *LegacyMessagePasser, error) {
+	parsed, err := LegacyMessagePasserMetaData.GetAbi()
 	if err != nil {
-		return libcommon.Address{}, nil, nil, err
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, parsed, libcommon.FromHex(LegacyMessagePasserBin), backend)
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(LegacyMessagePasserBin), backend)
 	if err != nil {
-		return libcommon.Address{}, nil, nil, err
+		return common.Address{}, nil, nil, err
 	}
 	return address, tx, &LegacyMessagePasser{LegacyMessagePasserCaller: LegacyMessagePasserCaller{contract: contract}, LegacyMessagePasserTransactor: LegacyMessagePasserTransactor{contract: contract}, LegacyMessagePasserFilterer: LegacyMessagePasserFilterer{contract: contract}}, nil
 }
@@ -106,7 +120,7 @@ type LegacyMessagePasserTransactorRaw struct {
 }
 
 // NewLegacyMessagePasser creates a new instance of LegacyMessagePasser, bound to a specific deployed contract.
-func NewLegacyMessagePasser(address libcommon.Address, backend bind.ContractBackend) (*LegacyMessagePasser, error) {
+func NewLegacyMessagePasser(address common.Address, backend bind.ContractBackend) (*LegacyMessagePasser, error) {
 	contract, err := bindLegacyMessagePasser(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
@@ -115,7 +129,7 @@ func NewLegacyMessagePasser(address libcommon.Address, backend bind.ContractBack
 }
 
 // NewLegacyMessagePasserCaller creates a new read-only instance of LegacyMessagePasser, bound to a specific deployed contract.
-func NewLegacyMessagePasserCaller(address libcommon.Address, caller bind.ContractCaller) (*LegacyMessagePasserCaller, error) {
+func NewLegacyMessagePasserCaller(address common.Address, caller bind.ContractCaller) (*LegacyMessagePasserCaller, error) {
 	contract, err := bindLegacyMessagePasser(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
@@ -124,7 +138,7 @@ func NewLegacyMessagePasserCaller(address libcommon.Address, caller bind.Contrac
 }
 
 // NewLegacyMessagePasserTransactor creates a new write-only instance of LegacyMessagePasser, bound to a specific deployed contract.
-func NewLegacyMessagePasserTransactor(address libcommon.Address, transactor bind.ContractTransactor) (*LegacyMessagePasserTransactor, error) {
+func NewLegacyMessagePasserTransactor(address common.Address, transactor bind.ContractTransactor) (*LegacyMessagePasserTransactor, error) {
 	contract, err := bindLegacyMessagePasser(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
@@ -133,7 +147,7 @@ func NewLegacyMessagePasserTransactor(address libcommon.Address, transactor bind
 }
 
 // NewLegacyMessagePasserFilterer creates a new log filterer instance of LegacyMessagePasser, bound to a specific deployed contract.
-func NewLegacyMessagePasserFilterer(address libcommon.Address, filterer bind.ContractFilterer) (*LegacyMessagePasserFilterer, error) {
+func NewLegacyMessagePasserFilterer(address common.Address, filterer bind.ContractFilterer) (*LegacyMessagePasserFilterer, error) {
 	contract, err := bindLegacyMessagePasser(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
@@ -142,12 +156,12 @@ func NewLegacyMessagePasserFilterer(address libcommon.Address, filterer bind.Con
 }
 
 // bindLegacyMessagePasser binds a generic wrapper to an already deployed contract.
-func bindLegacyMessagePasser(address libcommon.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(LegacyMessagePasserABI))
+func bindLegacyMessagePasser(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := LegacyMessagePasserMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -160,12 +174,12 @@ func (_LegacyMessagePasser *LegacyMessagePasserRaw) Call(opts *bind.CallOpts, re
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_LegacyMessagePasser *LegacyMessagePasserRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_LegacyMessagePasser *LegacyMessagePasserRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _LegacyMessagePasser.Contract.LegacyMessagePasserTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_LegacyMessagePasser *LegacyMessagePasserRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_LegacyMessagePasser *LegacyMessagePasserRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _LegacyMessagePasser.Contract.LegacyMessagePasserTransactor.contract.Transact(opts, method, params...)
 }
 
@@ -179,12 +193,12 @@ func (_LegacyMessagePasser *LegacyMessagePasserCallerRaw) Call(opts *bind.CallOp
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_LegacyMessagePasser *LegacyMessagePasserTransactorRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_LegacyMessagePasser *LegacyMessagePasserTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _LegacyMessagePasser.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_LegacyMessagePasser *LegacyMessagePasserTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_LegacyMessagePasser *LegacyMessagePasserTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _LegacyMessagePasser.Contract.contract.Transact(opts, method, params...)
 }
 
@@ -253,20 +267,20 @@ func (_LegacyMessagePasser *LegacyMessagePasserCallerSession) Version() (string,
 // PassMessageToL1 is a paid mutator transaction binding the contract method 0xcafa81dc.
 //
 // Solidity: function passMessageToL1(bytes _message) returns()
-func (_LegacyMessagePasser *LegacyMessagePasserTransactor) PassMessageToL1(opts *bind.TransactOpts, _message []byte) (types.Transaction, error) {
+func (_LegacyMessagePasser *LegacyMessagePasserTransactor) PassMessageToL1(opts *bind.TransactOpts, _message []byte) (*types.Transaction, error) {
 	return _LegacyMessagePasser.contract.Transact(opts, "passMessageToL1", _message)
 }
 
 // PassMessageToL1 is a paid mutator transaction binding the contract method 0xcafa81dc.
 //
 // Solidity: function passMessageToL1(bytes _message) returns()
-func (_LegacyMessagePasser *LegacyMessagePasserSession) PassMessageToL1(_message []byte) (types.Transaction, error) {
+func (_LegacyMessagePasser *LegacyMessagePasserSession) PassMessageToL1(_message []byte) (*types.Transaction, error) {
 	return _LegacyMessagePasser.Contract.PassMessageToL1(&_LegacyMessagePasser.TransactOpts, _message)
 }
 
 // PassMessageToL1 is a paid mutator transaction binding the contract method 0xcafa81dc.
 //
 // Solidity: function passMessageToL1(bytes _message) returns()
-func (_LegacyMessagePasser *LegacyMessagePasserTransactorSession) PassMessageToL1(_message []byte) (types.Transaction, error) {
+func (_LegacyMessagePasser *LegacyMessagePasserTransactorSession) PassMessageToL1(_message []byte) (*types.Transaction, error) {
 	return _LegacyMessagePasser.Contract.PassMessageToL1(&_LegacyMessagePasser.TransactOpts, _message)
 }

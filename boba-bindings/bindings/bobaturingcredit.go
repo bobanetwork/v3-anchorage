@@ -4,44 +4,58 @@
 package bindings
 
 import (
+	"errors"
 	"math/big"
 	"strings"
 
-	ethereum "github.com/ledgerwatch/erigon"
-	libcommon "github.com/ledgerwatch/erigon-lib/common"
-	"github.com/ledgerwatch/erigon/accounts/abi"
-	"github.com/ledgerwatch/erigon/accounts/abi/bind"
-	"github.com/ledgerwatch/erigon/core/types"
-	"github.com/ledgerwatch/erigon/event"
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
+	_ = errors.New
 	_ = big.NewInt
 	_ = strings.NewReader
 	_ = ethereum.NotFound
 	_ = bind.Bind
-	_ = libcommon.Big1
+	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
 )
 
+// BobaTuringCreditMetaData contains all meta data concerning the BobaTuringCredit contract.
+var BobaTuringCreditMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_turingPrice\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"balanceAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"helperContractAddress\",\"type\":\"address\"}],\"name\":\"AddBalanceTo\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldOwner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"TransferOwnership\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"withdrawAmount\",\"type\":\"uint256\"}],\"name\":\"WithdrawRevenue\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_addBalanceAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_helperContractAddress\",\"type\":\"address\"}],\"name\":\"addBalanceTo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_helperContractAddress\",\"type\":\"address\"}],\"name\":\"getCreditAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ownerRevenue\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"prepaidBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"turingPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"turingToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_turingPrice\",\"type\":\"uint256\"}],\"name\":\"updateTuringPrice\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_turingToken\",\"type\":\"address\"}],\"name\":\"updateTuringToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_withdrawAmount\",\"type\":\"uint256\"}],\"name\":\"withdrawRevenue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561001057600080fd5b506040516112c03803806112c083398101604081905261002f91610037565b600355610050565b60006020828403121561004957600080fd5b5051919050565b6112618061005f6000396000f3fe608060405234801561001057600080fd5b50600436106100c85760003560e01c80638da5cb5b11610081578063f2fde38b1161005b578063f2fde38b146101b2578063f7cd3be8146101c5578063fd892278146101d857600080fd5b80638da5cb5b14610176578063a52b962d14610196578063e24dfcde146101a957600080fd5b80630ceff204116100b25780630ceff2041461010957806335d6eac41461011e578063853383921461013157600080fd5b8062292526146100cd57806309da3981146100e9575b600080fd5b6100d660045481565b6040519081526020015b60405180910390f35b6100d66100f73660046110b1565b60016020526000908152604090205481565b61011c6101173660046110cc565b6101eb565b005b61011c61012c3660046110b1565b610420565b6002546101519073ffffffffffffffffffffffffffffffffffffffff1681565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020016100e0565b6000546101519073ffffffffffffffffffffffffffffffffffffffff1681565b6100d66101a43660046110b1565b610589565b6100d660035481565b61011c6101c03660046110b1565b61062f565b61011c6101d33660046110cc565b610771565b61011c6101e63660046110e5565b610818565b60005473ffffffffffffffffffffffffffffffffffffffff16331480610227575060005473ffffffffffffffffffffffffffffffffffffffff16155b610292576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e657200000000000000000060448201526064015b60405180910390fd5b60025473ffffffffffffffffffffffffffffffffffffffff16610337576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602560248201527f436f6e747261637420686173206e6f7420796574206265656e20696e6974696160448201527f6c697a65640000000000000000000000000000000000000000000000000000006064820152608401610289565b6004548111156103a3576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f496e76616c696420416d6f756e740000000000000000000000000000000000006044820152606401610289565b80600460008282546103b59190611140565b909155505060408051338152602081018390527f447d53be88e315476bdbe2e63cef309461f6305d09aada67641c29e6b897e301910160405180910390a160005460025461041d9173ffffffffffffffffffffffffffffffffffffffff918216911683610aed565b50565b60005473ffffffffffffffffffffffffffffffffffffffff1633148061045c575060005473ffffffffffffffffffffffffffffffffffffffff16155b6104c2576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e65720000000000000000006044820152606401610289565b60025473ffffffffffffffffffffffffffffffffffffffff1615610542576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601d60248201527f436f6e747261637420686173206265656e20696e697469616c697a65640000006044820152606401610289565b600280547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff92909216919091179055565b60006003546000036105f7576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601060248201527f556e6c696d6974656420637265646974000000000000000000000000000000006044820152606401610289565b60035473ffffffffffffffffffffffffffffffffffffffff831660009081526001602052604090205461062991610bc6565b92915050565b60005473ffffffffffffffffffffffffffffffffffffffff1633148061066b575060005473ffffffffffffffffffffffffffffffffffffffff16155b6106d1576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e65720000000000000000006044820152606401610289565b73ffffffffffffffffffffffffffffffffffffffff81166106f157600080fd5b600080547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff83169081179091556040805133815260208101929092527f5c486528ec3e3f0ea91181cff8116f02bfa350e03b8b6f12e00765adbb5af85c910160405180910390a150565b60005473ffffffffffffffffffffffffffffffffffffffff163314806107ad575060005473ffffffffffffffffffffffffffffffffffffffff16155b610813576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e65720000000000000000006044820152606401610289565b600355565b60025473ffffffffffffffffffffffffffffffffffffffff166108bd576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602560248201527f436f6e747261637420686173206e6f7420796574206265656e20696e6974696160448201527f6c697a65640000000000000000000000000000000000000000000000000000006064820152608401610289565b81600003610927576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f496e76616c696420616d6f756e740000000000000000000000000000000000006044820152606401610289565b73ffffffffffffffffffffffffffffffffffffffff81163b6109a5576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f4164647265737320697320454f410000000000000000000000000000000000006044820152606401610289565b6109cf817f2f7adf4300000000000000000000000000000000000000000000000000000000610bd9565b610a35576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f496e76616c69642048656c70657220436f6e74726163740000000000000000006044820152606401610289565b73ffffffffffffffffffffffffffffffffffffffff811660009081526001602052604081208054849290610a6a908490611153565b9091555050604080513381526020810184905273ffffffffffffffffffffffffffffffffffffffff83168183015290517f63611f4b2e0fff4acd8e17bd95ebb62a3bc834c76cf85e7a972a502990b6257a9181900360600190a1600254610ae99073ffffffffffffffffffffffffffffffffffffffff16333085610bf5565b5050565b60405173ffffffffffffffffffffffffffffffffffffffff8316602482015260448101829052610bc19084907fa9059cbb00000000000000000000000000000000000000000000000000000000906064015b604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe08184030181529190526020810180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff167fffffffff0000000000000000000000000000000000000000000000000000000090931692909217909152610c59565b505050565b6000610bd28284611166565b9392505050565b6000610be483610d65565b8015610bd25750610bd28383610dc9565b60405173ffffffffffffffffffffffffffffffffffffffff80851660248301528316604482015260648101829052610c539085907f23b872dd0000000000000000000000000000000000000000000000000000000090608401610b3f565b50505050565b6000610cbb826040518060400160405280602081526020017f5361666545524332303a206c6f772d6c6576656c2063616c6c206661696c65648152508573ffffffffffffffffffffffffffffffffffffffff16610e989092919063ffffffff16565b805190915015610bc15780806020019051810190610cd991906111a1565b610bc1576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602a60248201527f5361666545524332303a204552433230206f7065726174696f6e20646964206e60448201527f6f742073756363656564000000000000000000000000000000000000000000006064820152608401610289565b6000610d91827f01ffc9a700000000000000000000000000000000000000000000000000000000610dc9565b80156106295750610dc2827fffffffff00000000000000000000000000000000000000000000000000000000610dc9565b1592915050565b604080517fffffffff000000000000000000000000000000000000000000000000000000008316602480830191909152825180830390910181526044909101909152602080820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff167f01ffc9a700000000000000000000000000000000000000000000000000000000178152825160009392849283928392918391908a617530fa92503d91506000519050828015610e81575060208210155b8015610e8d5750600081115b979650505050505050565b6060610ea78484600085610eaf565b949350505050565b606082471015610f41576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602660248201527f416464726573733a20696e73756666696369656e742062616c616e636520666f60448201527f722063616c6c00000000000000000000000000000000000000000000000000006064820152608401610289565b73ffffffffffffffffffffffffffffffffffffffff85163b610fbf576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601d60248201527f416464726573733a2063616c6c20746f206e6f6e2d636f6e74726163740000006044820152606401610289565b6000808673ffffffffffffffffffffffffffffffffffffffff168587604051610fe891906111e7565b60006040518083038185875af1925050503d8060008114611025576040519150601f19603f3d011682016040523d82523d6000602084013e61102a565b606091505b5091509150610e8d82828660608315611044575081610bd2565b8251156110545782518084602001fd5b816040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016102899190611203565b803573ffffffffffffffffffffffffffffffffffffffff811681146110ac57600080fd5b919050565b6000602082840312156110c357600080fd5b610bd282611088565b6000602082840312156110de57600080fd5b5035919050565b600080604083850312156110f857600080fd5b8235915061110860208401611088565b90509250929050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b8181038181111561062957610629611111565b8082018082111561062957610629611111565b60008261119c577f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b500490565b6000602082840312156111b357600080fd5b81518015158114610bd257600080fd5b60005b838110156111de5781810151838201526020016111c6565b50506000910152565b600082516111f98184602087016111c3565b9190910192915050565b60208152600082518060208401526112228160408501602087016111c3565b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016919091016040019291505056fea164736f6c6343000813000a",
+}
+
 // BobaTuringCreditABI is the input ABI used to generate the binding from.
-const BobaTuringCreditABI = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_turingPrice\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"balanceAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"helperContractAddress\",\"type\":\"address\"}],\"name\":\"AddBalanceTo\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldOwner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"TransferOwnership\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"withdrawAmount\",\"type\":\"uint256\"}],\"name\":\"WithdrawRevenue\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_addBalanceAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_helperContractAddress\",\"type\":\"address\"}],\"name\":\"addBalanceTo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_helperContractAddress\",\"type\":\"address\"}],\"name\":\"getCreditAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ownerRevenue\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"prepaidBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"turingPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"turingToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_turingPrice\",\"type\":\"uint256\"}],\"name\":\"updateTuringPrice\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_turingToken\",\"type\":\"address\"}],\"name\":\"updateTuringToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_withdrawAmount\",\"type\":\"uint256\"}],\"name\":\"withdrawRevenue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+// Deprecated: Use BobaTuringCreditMetaData.ABI instead.
+var BobaTuringCreditABI = BobaTuringCreditMetaData.ABI
 
 // BobaTuringCreditBin is the compiled bytecode used for deploying new contracts.
-var BobaTuringCreditBin = "0x608060405234801561001057600080fd5b506040516112c03803806112c083398101604081905261002f91610037565b600355610050565b60006020828403121561004957600080fd5b5051919050565b6112618061005f6000396000f3fe608060405234801561001057600080fd5b50600436106100c85760003560e01c80638da5cb5b11610081578063f2fde38b1161005b578063f2fde38b146101b2578063f7cd3be8146101c5578063fd892278146101d857600080fd5b80638da5cb5b14610176578063a52b962d14610196578063e24dfcde146101a957600080fd5b80630ceff204116100b25780630ceff2041461010957806335d6eac41461011e578063853383921461013157600080fd5b8062292526146100cd57806309da3981146100e9575b600080fd5b6100d660045481565b6040519081526020015b60405180910390f35b6100d66100f73660046110b1565b60016020526000908152604090205481565b61011c6101173660046110cc565b6101eb565b005b61011c61012c3660046110b1565b610420565b6002546101519073ffffffffffffffffffffffffffffffffffffffff1681565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020016100e0565b6000546101519073ffffffffffffffffffffffffffffffffffffffff1681565b6100d66101a43660046110b1565b610589565b6100d660035481565b61011c6101c03660046110b1565b61062f565b61011c6101d33660046110cc565b610771565b61011c6101e63660046110e5565b610818565b60005473ffffffffffffffffffffffffffffffffffffffff16331480610227575060005473ffffffffffffffffffffffffffffffffffffffff16155b610292576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e657200000000000000000060448201526064015b60405180910390fd5b60025473ffffffffffffffffffffffffffffffffffffffff16610337576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602560248201527f436f6e747261637420686173206e6f7420796574206265656e20696e6974696160448201527f6c697a65640000000000000000000000000000000000000000000000000000006064820152608401610289565b6004548111156103a3576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f496e76616c696420416d6f756e740000000000000000000000000000000000006044820152606401610289565b80600460008282546103b59190611140565b909155505060408051338152602081018390527f447d53be88e315476bdbe2e63cef309461f6305d09aada67641c29e6b897e301910160405180910390a160005460025461041d9173ffffffffffffffffffffffffffffffffffffffff918216911683610aed565b50565b60005473ffffffffffffffffffffffffffffffffffffffff1633148061045c575060005473ffffffffffffffffffffffffffffffffffffffff16155b6104c2576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e65720000000000000000006044820152606401610289565b60025473ffffffffffffffffffffffffffffffffffffffff1615610542576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601d60248201527f436f6e747261637420686173206265656e20696e697469616c697a65640000006044820152606401610289565b600280547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff92909216919091179055565b60006003546000036105f7576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601060248201527f556e6c696d6974656420637265646974000000000000000000000000000000006044820152606401610289565b60035473ffffffffffffffffffffffffffffffffffffffff831660009081526001602052604090205461062991610bc6565b92915050565b60005473ffffffffffffffffffffffffffffffffffffffff1633148061066b575060005473ffffffffffffffffffffffffffffffffffffffff16155b6106d1576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e65720000000000000000006044820152606401610289565b73ffffffffffffffffffffffffffffffffffffffff81166106f157600080fd5b600080547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff83169081179091556040805133815260208101929092527f5c486528ec3e3f0ea91181cff8116f02bfa350e03b8b6f12e00765adbb5af85c910160405180910390a150565b60005473ffffffffffffffffffffffffffffffffffffffff163314806107ad575060005473ffffffffffffffffffffffffffffffffffffffff16155b610813576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f63616c6c6572206973206e6f7420746865206f776e65720000000000000000006044820152606401610289565b600355565b60025473ffffffffffffffffffffffffffffffffffffffff166108bd576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602560248201527f436f6e747261637420686173206e6f7420796574206265656e20696e6974696160448201527f6c697a65640000000000000000000000000000000000000000000000000000006064820152608401610289565b81600003610927576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f496e76616c696420616d6f756e740000000000000000000000000000000000006044820152606401610289565b73ffffffffffffffffffffffffffffffffffffffff81163b6109a5576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f4164647265737320697320454f410000000000000000000000000000000000006044820152606401610289565b6109cf817f2f7adf4300000000000000000000000000000000000000000000000000000000610bd9565b610a35576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601760248201527f496e76616c69642048656c70657220436f6e74726163740000000000000000006044820152606401610289565b73ffffffffffffffffffffffffffffffffffffffff811660009081526001602052604081208054849290610a6a908490611153565b9091555050604080513381526020810184905273ffffffffffffffffffffffffffffffffffffffff83168183015290517f63611f4b2e0fff4acd8e17bd95ebb62a3bc834c76cf85e7a972a502990b6257a9181900360600190a1600254610ae99073ffffffffffffffffffffffffffffffffffffffff16333085610bf5565b5050565b60405173ffffffffffffffffffffffffffffffffffffffff8316602482015260448101829052610bc19084907fa9059cbb00000000000000000000000000000000000000000000000000000000906064015b604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe08184030181529190526020810180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff167fffffffff0000000000000000000000000000000000000000000000000000000090931692909217909152610c59565b505050565b6000610bd28284611166565b9392505050565b6000610be483610d65565b8015610bd25750610bd28383610dc9565b60405173ffffffffffffffffffffffffffffffffffffffff80851660248301528316604482015260648101829052610c539085907f23b872dd0000000000000000000000000000000000000000000000000000000090608401610b3f565b50505050565b6000610cbb826040518060400160405280602081526020017f5361666545524332303a206c6f772d6c6576656c2063616c6c206661696c65648152508573ffffffffffffffffffffffffffffffffffffffff16610e989092919063ffffffff16565b805190915015610bc15780806020019051810190610cd991906111a1565b610bc1576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602a60248201527f5361666545524332303a204552433230206f7065726174696f6e20646964206e60448201527f6f742073756363656564000000000000000000000000000000000000000000006064820152608401610289565b6000610d91827f01ffc9a700000000000000000000000000000000000000000000000000000000610dc9565b80156106295750610dc2827fffffffff00000000000000000000000000000000000000000000000000000000610dc9565b1592915050565b604080517fffffffff000000000000000000000000000000000000000000000000000000008316602480830191909152825180830390910181526044909101909152602080820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff167f01ffc9a700000000000000000000000000000000000000000000000000000000178152825160009392849283928392918391908a617530fa92503d91506000519050828015610e81575060208210155b8015610e8d5750600081115b979650505050505050565b6060610ea78484600085610eaf565b949350505050565b606082471015610f41576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602660248201527f416464726573733a20696e73756666696369656e742062616c616e636520666f60448201527f722063616c6c00000000000000000000000000000000000000000000000000006064820152608401610289565b73ffffffffffffffffffffffffffffffffffffffff85163b610fbf576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601d60248201527f416464726573733a2063616c6c20746f206e6f6e2d636f6e74726163740000006044820152606401610289565b6000808673ffffffffffffffffffffffffffffffffffffffff168587604051610fe891906111e7565b60006040518083038185875af1925050503d8060008114611025576040519150601f19603f3d011682016040523d82523d6000602084013e61102a565b606091505b5091509150610e8d82828660608315611044575081610bd2565b8251156110545782518084602001fd5b816040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016102899190611203565b803573ffffffffffffffffffffffffffffffffffffffff811681146110ac57600080fd5b919050565b6000602082840312156110c357600080fd5b610bd282611088565b6000602082840312156110de57600080fd5b5035919050565b600080604083850312156110f857600080fd5b8235915061110860208401611088565b90509250929050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b8181038181111561062957610629611111565b8082018082111561062957610629611111565b60008261119c577f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b500490565b6000602082840312156111b357600080fd5b81518015158114610bd257600080fd5b60005b838110156111de5781810151838201526020016111c6565b50506000910152565b600082516111f98184602087016111c3565b9190910192915050565b60208152600082518060208401526112228160408501602087016111c3565b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016919091016040019291505056fea164736f6c6343000813000a"
+// Deprecated: Use BobaTuringCreditMetaData.Bin instead.
+var BobaTuringCreditBin = BobaTuringCreditMetaData.Bin
 
 // DeployBobaTuringCredit deploys a new Ethereum contract, binding an instance of BobaTuringCredit to it.
-func DeployBobaTuringCredit(auth *bind.TransactOpts, backend bind.ContractBackend, _turingPrice *big.Int) (libcommon.Address, types.Transaction, *BobaTuringCredit, error) {
-	parsed, err := abi.JSON(strings.NewReader(BobaTuringCreditABI))
+func DeployBobaTuringCredit(auth *bind.TransactOpts, backend bind.ContractBackend, _turingPrice *big.Int) (common.Address, *types.Transaction, *BobaTuringCredit, error) {
+	parsed, err := BobaTuringCreditMetaData.GetAbi()
 	if err != nil {
-		return libcommon.Address{}, nil, nil, err
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, parsed, libcommon.FromHex(BobaTuringCreditBin), backend, _turingPrice)
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(BobaTuringCreditBin), backend, _turingPrice)
 	if err != nil {
-		return libcommon.Address{}, nil, nil, err
+		return common.Address{}, nil, nil, err
 	}
 	return address, tx, &BobaTuringCredit{BobaTuringCreditCaller: BobaTuringCreditCaller{contract: contract}, BobaTuringCreditTransactor: BobaTuringCreditTransactor{contract: contract}, BobaTuringCreditFilterer: BobaTuringCreditFilterer{contract: contract}}, nil
 }
@@ -106,7 +120,7 @@ type BobaTuringCreditTransactorRaw struct {
 }
 
 // NewBobaTuringCredit creates a new instance of BobaTuringCredit, bound to a specific deployed contract.
-func NewBobaTuringCredit(address libcommon.Address, backend bind.ContractBackend) (*BobaTuringCredit, error) {
+func NewBobaTuringCredit(address common.Address, backend bind.ContractBackend) (*BobaTuringCredit, error) {
 	contract, err := bindBobaTuringCredit(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
@@ -115,7 +129,7 @@ func NewBobaTuringCredit(address libcommon.Address, backend bind.ContractBackend
 }
 
 // NewBobaTuringCreditCaller creates a new read-only instance of BobaTuringCredit, bound to a specific deployed contract.
-func NewBobaTuringCreditCaller(address libcommon.Address, caller bind.ContractCaller) (*BobaTuringCreditCaller, error) {
+func NewBobaTuringCreditCaller(address common.Address, caller bind.ContractCaller) (*BobaTuringCreditCaller, error) {
 	contract, err := bindBobaTuringCredit(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
@@ -124,7 +138,7 @@ func NewBobaTuringCreditCaller(address libcommon.Address, caller bind.ContractCa
 }
 
 // NewBobaTuringCreditTransactor creates a new write-only instance of BobaTuringCredit, bound to a specific deployed contract.
-func NewBobaTuringCreditTransactor(address libcommon.Address, transactor bind.ContractTransactor) (*BobaTuringCreditTransactor, error) {
+func NewBobaTuringCreditTransactor(address common.Address, transactor bind.ContractTransactor) (*BobaTuringCreditTransactor, error) {
 	contract, err := bindBobaTuringCredit(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
@@ -133,7 +147,7 @@ func NewBobaTuringCreditTransactor(address libcommon.Address, transactor bind.Co
 }
 
 // NewBobaTuringCreditFilterer creates a new log filterer instance of BobaTuringCredit, bound to a specific deployed contract.
-func NewBobaTuringCreditFilterer(address libcommon.Address, filterer bind.ContractFilterer) (*BobaTuringCreditFilterer, error) {
+func NewBobaTuringCreditFilterer(address common.Address, filterer bind.ContractFilterer) (*BobaTuringCreditFilterer, error) {
 	contract, err := bindBobaTuringCredit(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
@@ -142,12 +156,12 @@ func NewBobaTuringCreditFilterer(address libcommon.Address, filterer bind.Contra
 }
 
 // bindBobaTuringCredit binds a generic wrapper to an already deployed contract.
-func bindBobaTuringCredit(address libcommon.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(BobaTuringCreditABI))
+func bindBobaTuringCredit(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := BobaTuringCreditMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -160,12 +174,12 @@ func (_BobaTuringCredit *BobaTuringCreditRaw) Call(opts *bind.CallOpts, result *
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_BobaTuringCredit *BobaTuringCreditRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.BobaTuringCreditTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_BobaTuringCredit *BobaTuringCreditRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.BobaTuringCreditTransactor.contract.Transact(opts, method, params...)
 }
 
@@ -179,19 +193,19 @@ func (_BobaTuringCredit *BobaTuringCreditCallerRaw) Call(opts *bind.CallOpts, re
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_BobaTuringCredit *BobaTuringCreditTransactorRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_BobaTuringCredit *BobaTuringCreditTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.contract.Transact(opts, method, params...)
 }
 
 // GetCreditAmount is a free data retrieval call binding the contract method 0xa52b962d.
 //
 // Solidity: function getCreditAmount(address _helperContractAddress) view returns(uint256)
-func (_BobaTuringCredit *BobaTuringCreditCaller) GetCreditAmount(opts *bind.CallOpts, _helperContractAddress libcommon.Address) (*big.Int, error) {
+func (_BobaTuringCredit *BobaTuringCreditCaller) GetCreditAmount(opts *bind.CallOpts, _helperContractAddress common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _BobaTuringCredit.contract.Call(opts, &out, "getCreditAmount", _helperContractAddress)
 
@@ -208,29 +222,29 @@ func (_BobaTuringCredit *BobaTuringCreditCaller) GetCreditAmount(opts *bind.Call
 // GetCreditAmount is a free data retrieval call binding the contract method 0xa52b962d.
 //
 // Solidity: function getCreditAmount(address _helperContractAddress) view returns(uint256)
-func (_BobaTuringCredit *BobaTuringCreditSession) GetCreditAmount(_helperContractAddress libcommon.Address) (*big.Int, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) GetCreditAmount(_helperContractAddress common.Address) (*big.Int, error) {
 	return _BobaTuringCredit.Contract.GetCreditAmount(&_BobaTuringCredit.CallOpts, _helperContractAddress)
 }
 
 // GetCreditAmount is a free data retrieval call binding the contract method 0xa52b962d.
 //
 // Solidity: function getCreditAmount(address _helperContractAddress) view returns(uint256)
-func (_BobaTuringCredit *BobaTuringCreditCallerSession) GetCreditAmount(_helperContractAddress libcommon.Address) (*big.Int, error) {
+func (_BobaTuringCredit *BobaTuringCreditCallerSession) GetCreditAmount(_helperContractAddress common.Address) (*big.Int, error) {
 	return _BobaTuringCredit.Contract.GetCreditAmount(&_BobaTuringCredit.CallOpts, _helperContractAddress)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_BobaTuringCredit *BobaTuringCreditCaller) Owner(opts *bind.CallOpts) (libcommon.Address, error) {
+func (_BobaTuringCredit *BobaTuringCreditCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _BobaTuringCredit.contract.Call(opts, &out, "owner")
 
 	if err != nil {
-		return *new(libcommon.Address), err
+		return *new(common.Address), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
 
@@ -239,14 +253,14 @@ func (_BobaTuringCredit *BobaTuringCreditCaller) Owner(opts *bind.CallOpts) (lib
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_BobaTuringCredit *BobaTuringCreditSession) Owner() (libcommon.Address, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) Owner() (common.Address, error) {
 	return _BobaTuringCredit.Contract.Owner(&_BobaTuringCredit.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_BobaTuringCredit *BobaTuringCreditCallerSession) Owner() (libcommon.Address, error) {
+func (_BobaTuringCredit *BobaTuringCreditCallerSession) Owner() (common.Address, error) {
 	return _BobaTuringCredit.Contract.Owner(&_BobaTuringCredit.CallOpts)
 }
 
@@ -284,7 +298,7 @@ func (_BobaTuringCredit *BobaTuringCreditCallerSession) OwnerRevenue() (*big.Int
 // PrepaidBalance is a free data retrieval call binding the contract method 0x09da3981.
 //
 // Solidity: function prepaidBalance(address ) view returns(uint256)
-func (_BobaTuringCredit *BobaTuringCreditCaller) PrepaidBalance(opts *bind.CallOpts, arg0 libcommon.Address) (*big.Int, error) {
+func (_BobaTuringCredit *BobaTuringCreditCaller) PrepaidBalance(opts *bind.CallOpts, arg0 common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _BobaTuringCredit.contract.Call(opts, &out, "prepaidBalance", arg0)
 
@@ -301,14 +315,14 @@ func (_BobaTuringCredit *BobaTuringCreditCaller) PrepaidBalance(opts *bind.CallO
 // PrepaidBalance is a free data retrieval call binding the contract method 0x09da3981.
 //
 // Solidity: function prepaidBalance(address ) view returns(uint256)
-func (_BobaTuringCredit *BobaTuringCreditSession) PrepaidBalance(arg0 libcommon.Address) (*big.Int, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) PrepaidBalance(arg0 common.Address) (*big.Int, error) {
 	return _BobaTuringCredit.Contract.PrepaidBalance(&_BobaTuringCredit.CallOpts, arg0)
 }
 
 // PrepaidBalance is a free data retrieval call binding the contract method 0x09da3981.
 //
 // Solidity: function prepaidBalance(address ) view returns(uint256)
-func (_BobaTuringCredit *BobaTuringCreditCallerSession) PrepaidBalance(arg0 libcommon.Address) (*big.Int, error) {
+func (_BobaTuringCredit *BobaTuringCreditCallerSession) PrepaidBalance(arg0 common.Address) (*big.Int, error) {
 	return _BobaTuringCredit.Contract.PrepaidBalance(&_BobaTuringCredit.CallOpts, arg0)
 }
 
@@ -346,15 +360,15 @@ func (_BobaTuringCredit *BobaTuringCreditCallerSession) TuringPrice() (*big.Int,
 // TuringToken is a free data retrieval call binding the contract method 0x85338392.
 //
 // Solidity: function turingToken() view returns(address)
-func (_BobaTuringCredit *BobaTuringCreditCaller) TuringToken(opts *bind.CallOpts) (libcommon.Address, error) {
+func (_BobaTuringCredit *BobaTuringCreditCaller) TuringToken(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _BobaTuringCredit.contract.Call(opts, &out, "turingToken")
 
 	if err != nil {
-		return *new(libcommon.Address), err
+		return *new(common.Address), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
 
@@ -363,119 +377,119 @@ func (_BobaTuringCredit *BobaTuringCreditCaller) TuringToken(opts *bind.CallOpts
 // TuringToken is a free data retrieval call binding the contract method 0x85338392.
 //
 // Solidity: function turingToken() view returns(address)
-func (_BobaTuringCredit *BobaTuringCreditSession) TuringToken() (libcommon.Address, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) TuringToken() (common.Address, error) {
 	return _BobaTuringCredit.Contract.TuringToken(&_BobaTuringCredit.CallOpts)
 }
 
 // TuringToken is a free data retrieval call binding the contract method 0x85338392.
 //
 // Solidity: function turingToken() view returns(address)
-func (_BobaTuringCredit *BobaTuringCreditCallerSession) TuringToken() (libcommon.Address, error) {
+func (_BobaTuringCredit *BobaTuringCreditCallerSession) TuringToken() (common.Address, error) {
 	return _BobaTuringCredit.Contract.TuringToken(&_BobaTuringCredit.CallOpts)
 }
 
 // AddBalanceTo is a paid mutator transaction binding the contract method 0xfd892278.
 //
 // Solidity: function addBalanceTo(uint256 _addBalanceAmount, address _helperContractAddress) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactor) AddBalanceTo(opts *bind.TransactOpts, _addBalanceAmount *big.Int, _helperContractAddress libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactor) AddBalanceTo(opts *bind.TransactOpts, _addBalanceAmount *big.Int, _helperContractAddress common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.contract.Transact(opts, "addBalanceTo", _addBalanceAmount, _helperContractAddress)
 }
 
 // AddBalanceTo is a paid mutator transaction binding the contract method 0xfd892278.
 //
 // Solidity: function addBalanceTo(uint256 _addBalanceAmount, address _helperContractAddress) returns()
-func (_BobaTuringCredit *BobaTuringCreditSession) AddBalanceTo(_addBalanceAmount *big.Int, _helperContractAddress libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) AddBalanceTo(_addBalanceAmount *big.Int, _helperContractAddress common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.AddBalanceTo(&_BobaTuringCredit.TransactOpts, _addBalanceAmount, _helperContractAddress)
 }
 
 // AddBalanceTo is a paid mutator transaction binding the contract method 0xfd892278.
 //
 // Solidity: function addBalanceTo(uint256 _addBalanceAmount, address _helperContractAddress) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactorSession) AddBalanceTo(_addBalanceAmount *big.Int, _helperContractAddress libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactorSession) AddBalanceTo(_addBalanceAmount *big.Int, _helperContractAddress common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.AddBalanceTo(&_BobaTuringCredit.TransactOpts, _addBalanceAmount, _helperContractAddress)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address _newOwner) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactor) TransferOwnership(opts *bind.TransactOpts, _newOwner libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactor) TransferOwnership(opts *bind.TransactOpts, _newOwner common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.contract.Transact(opts, "transferOwnership", _newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address _newOwner) returns()
-func (_BobaTuringCredit *BobaTuringCreditSession) TransferOwnership(_newOwner libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) TransferOwnership(_newOwner common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.TransferOwnership(&_BobaTuringCredit.TransactOpts, _newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address _newOwner) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactorSession) TransferOwnership(_newOwner libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactorSession) TransferOwnership(_newOwner common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.TransferOwnership(&_BobaTuringCredit.TransactOpts, _newOwner)
 }
 
 // UpdateTuringPrice is a paid mutator transaction binding the contract method 0xf7cd3be8.
 //
 // Solidity: function updateTuringPrice(uint256 _turingPrice) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactor) UpdateTuringPrice(opts *bind.TransactOpts, _turingPrice *big.Int) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactor) UpdateTuringPrice(opts *bind.TransactOpts, _turingPrice *big.Int) (*types.Transaction, error) {
 	return _BobaTuringCredit.contract.Transact(opts, "updateTuringPrice", _turingPrice)
 }
 
 // UpdateTuringPrice is a paid mutator transaction binding the contract method 0xf7cd3be8.
 //
 // Solidity: function updateTuringPrice(uint256 _turingPrice) returns()
-func (_BobaTuringCredit *BobaTuringCreditSession) UpdateTuringPrice(_turingPrice *big.Int) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) UpdateTuringPrice(_turingPrice *big.Int) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.UpdateTuringPrice(&_BobaTuringCredit.TransactOpts, _turingPrice)
 }
 
 // UpdateTuringPrice is a paid mutator transaction binding the contract method 0xf7cd3be8.
 //
 // Solidity: function updateTuringPrice(uint256 _turingPrice) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactorSession) UpdateTuringPrice(_turingPrice *big.Int) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactorSession) UpdateTuringPrice(_turingPrice *big.Int) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.UpdateTuringPrice(&_BobaTuringCredit.TransactOpts, _turingPrice)
 }
 
 // UpdateTuringToken is a paid mutator transaction binding the contract method 0x35d6eac4.
 //
 // Solidity: function updateTuringToken(address _turingToken) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactor) UpdateTuringToken(opts *bind.TransactOpts, _turingToken libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactor) UpdateTuringToken(opts *bind.TransactOpts, _turingToken common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.contract.Transact(opts, "updateTuringToken", _turingToken)
 }
 
 // UpdateTuringToken is a paid mutator transaction binding the contract method 0x35d6eac4.
 //
 // Solidity: function updateTuringToken(address _turingToken) returns()
-func (_BobaTuringCredit *BobaTuringCreditSession) UpdateTuringToken(_turingToken libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) UpdateTuringToken(_turingToken common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.UpdateTuringToken(&_BobaTuringCredit.TransactOpts, _turingToken)
 }
 
 // UpdateTuringToken is a paid mutator transaction binding the contract method 0x35d6eac4.
 //
 // Solidity: function updateTuringToken(address _turingToken) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactorSession) UpdateTuringToken(_turingToken libcommon.Address) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactorSession) UpdateTuringToken(_turingToken common.Address) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.UpdateTuringToken(&_BobaTuringCredit.TransactOpts, _turingToken)
 }
 
 // WithdrawRevenue is a paid mutator transaction binding the contract method 0x0ceff204.
 //
 // Solidity: function withdrawRevenue(uint256 _withdrawAmount) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactor) WithdrawRevenue(opts *bind.TransactOpts, _withdrawAmount *big.Int) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactor) WithdrawRevenue(opts *bind.TransactOpts, _withdrawAmount *big.Int) (*types.Transaction, error) {
 	return _BobaTuringCredit.contract.Transact(opts, "withdrawRevenue", _withdrawAmount)
 }
 
 // WithdrawRevenue is a paid mutator transaction binding the contract method 0x0ceff204.
 //
 // Solidity: function withdrawRevenue(uint256 _withdrawAmount) returns()
-func (_BobaTuringCredit *BobaTuringCreditSession) WithdrawRevenue(_withdrawAmount *big.Int) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditSession) WithdrawRevenue(_withdrawAmount *big.Int) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.WithdrawRevenue(&_BobaTuringCredit.TransactOpts, _withdrawAmount)
 }
 
 // WithdrawRevenue is a paid mutator transaction binding the contract method 0x0ceff204.
 //
 // Solidity: function withdrawRevenue(uint256 _withdrawAmount) returns()
-func (_BobaTuringCredit *BobaTuringCreditTransactorSession) WithdrawRevenue(_withdrawAmount *big.Int) (types.Transaction, error) {
+func (_BobaTuringCredit *BobaTuringCreditTransactorSession) WithdrawRevenue(_withdrawAmount *big.Int) (*types.Transaction, error) {
 	return _BobaTuringCredit.Contract.WithdrawRevenue(&_BobaTuringCredit.TransactOpts, _withdrawAmount)
 }
 
@@ -548,9 +562,9 @@ func (it *BobaTuringCreditAddBalanceToIterator) Close() error {
 
 // BobaTuringCreditAddBalanceTo represents a AddBalanceTo event raised by the BobaTuringCredit contract.
 type BobaTuringCreditAddBalanceTo struct {
-	Sender                libcommon.Address
+	Sender                common.Address
 	BalanceAmount         *big.Int
-	HelperContractAddress libcommon.Address
+	HelperContractAddress common.Address
 	Raw                   types.Log // Blockchain specific contextual infos
 }
 
@@ -684,8 +698,8 @@ func (it *BobaTuringCreditTransferOwnershipIterator) Close() error {
 
 // BobaTuringCreditTransferOwnership represents a TransferOwnership event raised by the BobaTuringCredit contract.
 type BobaTuringCreditTransferOwnership struct {
-	OldOwner libcommon.Address
-	NewOwner libcommon.Address
+	OldOwner common.Address
+	NewOwner common.Address
 	Raw      types.Log // Blockchain specific contextual infos
 }
 
@@ -819,7 +833,7 @@ func (it *BobaTuringCreditWithdrawRevenueIterator) Close() error {
 
 // BobaTuringCreditWithdrawRevenue represents a WithdrawRevenue event raised by the BobaTuringCredit contract.
 type BobaTuringCreditWithdrawRevenue struct {
-	Sender         libcommon.Address
+	Sender         common.Address
 	WithdrawAmount *big.Int
 	Raw            types.Log // Blockchain specific contextual infos
 }

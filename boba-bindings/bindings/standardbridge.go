@@ -4,30 +4,39 @@
 package bindings
 
 import (
+	"errors"
 	"math/big"
 	"strings"
 
-	ethereum "github.com/ledgerwatch/erigon"
-	libcommon "github.com/ledgerwatch/erigon-lib/common"
-	"github.com/ledgerwatch/erigon/accounts/abi"
-	"github.com/ledgerwatch/erigon/accounts/abi/bind"
-	"github.com/ledgerwatch/erigon/core/types"
-	"github.com/ledgerwatch/erigon/event"
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
+	_ = errors.New
 	_ = big.NewInt
 	_ = strings.NewReader
 	_ = ethereum.NotFound
 	_ = bind.Bind
-	_ = libcommon.Big1
+	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
 )
 
+// StandardBridgeMetaData contains all meta data concerning the StandardBridge contract.
+var StandardBridgeMetaData = &bind.MetaData{
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"localToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ERC20BridgeFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"localToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ERC20BridgeInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ETHBridgeFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ETHBridgeInitiated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MESSENGER\",\"outputs\":[{\"internalType\":\"contractCrossDomainMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OTHER_BRIDGE\",\"outputs\":[{\"internalType\":\"contractStandardBridge\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_localToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_remoteToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeERC20\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_localToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_remoteToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeERC20To\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeETH\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeETHTo\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"deposits\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_localToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_remoteToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"finalizeBridgeERC20\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"finalizeBridgeETH\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"messenger\",\"outputs\":[{\"internalType\":\"contractCrossDomainMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]",
+}
+
 // StandardBridgeABI is the input ABI used to generate the binding from.
-const StandardBridgeABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"localToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ERC20BridgeFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"localToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ERC20BridgeInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ETHBridgeFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"extraData\",\"type\":\"bytes\"}],\"name\":\"ETHBridgeInitiated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MESSENGER\",\"outputs\":[{\"internalType\":\"contractCrossDomainMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OTHER_BRIDGE\",\"outputs\":[{\"internalType\":\"contractStandardBridge\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_localToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_remoteToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeERC20\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_localToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_remoteToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeERC20To\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeETH\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"bridgeETHTo\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"deposits\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_localToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_remoteToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"finalizeBridgeERC20\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_extraData\",\"type\":\"bytes\"}],\"name\":\"finalizeBridgeETH\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"messenger\",\"outputs\":[{\"internalType\":\"contractCrossDomainMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]"
+// Deprecated: Use StandardBridgeMetaData.ABI instead.
+var StandardBridgeABI = StandardBridgeMetaData.ABI
 
 // StandardBridge is an auto generated Go binding around an Ethereum contract.
 type StandardBridge struct {
@@ -89,7 +98,7 @@ type StandardBridgeTransactorRaw struct {
 }
 
 // NewStandardBridge creates a new instance of StandardBridge, bound to a specific deployed contract.
-func NewStandardBridge(address libcommon.Address, backend bind.ContractBackend) (*StandardBridge, error) {
+func NewStandardBridge(address common.Address, backend bind.ContractBackend) (*StandardBridge, error) {
 	contract, err := bindStandardBridge(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
@@ -98,7 +107,7 @@ func NewStandardBridge(address libcommon.Address, backend bind.ContractBackend) 
 }
 
 // NewStandardBridgeCaller creates a new read-only instance of StandardBridge, bound to a specific deployed contract.
-func NewStandardBridgeCaller(address libcommon.Address, caller bind.ContractCaller) (*StandardBridgeCaller, error) {
+func NewStandardBridgeCaller(address common.Address, caller bind.ContractCaller) (*StandardBridgeCaller, error) {
 	contract, err := bindStandardBridge(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
@@ -107,7 +116,7 @@ func NewStandardBridgeCaller(address libcommon.Address, caller bind.ContractCall
 }
 
 // NewStandardBridgeTransactor creates a new write-only instance of StandardBridge, bound to a specific deployed contract.
-func NewStandardBridgeTransactor(address libcommon.Address, transactor bind.ContractTransactor) (*StandardBridgeTransactor, error) {
+func NewStandardBridgeTransactor(address common.Address, transactor bind.ContractTransactor) (*StandardBridgeTransactor, error) {
 	contract, err := bindStandardBridge(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
@@ -116,7 +125,7 @@ func NewStandardBridgeTransactor(address libcommon.Address, transactor bind.Cont
 }
 
 // NewStandardBridgeFilterer creates a new log filterer instance of StandardBridge, bound to a specific deployed contract.
-func NewStandardBridgeFilterer(address libcommon.Address, filterer bind.ContractFilterer) (*StandardBridgeFilterer, error) {
+func NewStandardBridgeFilterer(address common.Address, filterer bind.ContractFilterer) (*StandardBridgeFilterer, error) {
 	contract, err := bindStandardBridge(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
@@ -125,12 +134,12 @@ func NewStandardBridgeFilterer(address libcommon.Address, filterer bind.Contract
 }
 
 // bindStandardBridge binds a generic wrapper to an already deployed contract.
-func bindStandardBridge(address libcommon.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(StandardBridgeABI))
+func bindStandardBridge(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := StandardBridgeMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -143,12 +152,12 @@ func (_StandardBridge *StandardBridgeRaw) Call(opts *bind.CallOpts, result *[]in
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_StandardBridge *StandardBridgeRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _StandardBridge.Contract.StandardBridgeTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_StandardBridge *StandardBridgeRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _StandardBridge.Contract.StandardBridgeTransactor.contract.Transact(opts, method, params...)
 }
 
@@ -162,27 +171,27 @@ func (_StandardBridge *StandardBridgeCallerRaw) Call(opts *bind.CallOpts, result
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_StandardBridge *StandardBridgeTransactorRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _StandardBridge.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_StandardBridge *StandardBridgeTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _StandardBridge.Contract.contract.Transact(opts, method, params...)
 }
 
 // MESSENGER is a free data retrieval call binding the contract method 0x927ede2d.
 //
 // Solidity: function MESSENGER() view returns(address)
-func (_StandardBridge *StandardBridgeCaller) MESSENGER(opts *bind.CallOpts) (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeCaller) MESSENGER(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _StandardBridge.contract.Call(opts, &out, "MESSENGER")
 
 	if err != nil {
-		return *new(libcommon.Address), err
+		return *new(common.Address), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
 
@@ -191,29 +200,29 @@ func (_StandardBridge *StandardBridgeCaller) MESSENGER(opts *bind.CallOpts) (lib
 // MESSENGER is a free data retrieval call binding the contract method 0x927ede2d.
 //
 // Solidity: function MESSENGER() view returns(address)
-func (_StandardBridge *StandardBridgeSession) MESSENGER() (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeSession) MESSENGER() (common.Address, error) {
 	return _StandardBridge.Contract.MESSENGER(&_StandardBridge.CallOpts)
 }
 
 // MESSENGER is a free data retrieval call binding the contract method 0x927ede2d.
 //
 // Solidity: function MESSENGER() view returns(address)
-func (_StandardBridge *StandardBridgeCallerSession) MESSENGER() (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeCallerSession) MESSENGER() (common.Address, error) {
 	return _StandardBridge.Contract.MESSENGER(&_StandardBridge.CallOpts)
 }
 
 // OTHERBRIDGE is a free data retrieval call binding the contract method 0x7f46ddb2.
 //
 // Solidity: function OTHER_BRIDGE() view returns(address)
-func (_StandardBridge *StandardBridgeCaller) OTHERBRIDGE(opts *bind.CallOpts) (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeCaller) OTHERBRIDGE(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _StandardBridge.contract.Call(opts, &out, "OTHER_BRIDGE")
 
 	if err != nil {
-		return *new(libcommon.Address), err
+		return *new(common.Address), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
 
@@ -222,21 +231,21 @@ func (_StandardBridge *StandardBridgeCaller) OTHERBRIDGE(opts *bind.CallOpts) (l
 // OTHERBRIDGE is a free data retrieval call binding the contract method 0x7f46ddb2.
 //
 // Solidity: function OTHER_BRIDGE() view returns(address)
-func (_StandardBridge *StandardBridgeSession) OTHERBRIDGE() (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeSession) OTHERBRIDGE() (common.Address, error) {
 	return _StandardBridge.Contract.OTHERBRIDGE(&_StandardBridge.CallOpts)
 }
 
 // OTHERBRIDGE is a free data retrieval call binding the contract method 0x7f46ddb2.
 //
 // Solidity: function OTHER_BRIDGE() view returns(address)
-func (_StandardBridge *StandardBridgeCallerSession) OTHERBRIDGE() (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeCallerSession) OTHERBRIDGE() (common.Address, error) {
 	return _StandardBridge.Contract.OTHERBRIDGE(&_StandardBridge.CallOpts)
 }
 
 // Deposits is a free data retrieval call binding the contract method 0x8f601f66.
 //
 // Solidity: function deposits(address , address ) view returns(uint256)
-func (_StandardBridge *StandardBridgeCaller) Deposits(opts *bind.CallOpts, arg0 libcommon.Address, arg1 libcommon.Address) (*big.Int, error) {
+func (_StandardBridge *StandardBridgeCaller) Deposits(opts *bind.CallOpts, arg0 common.Address, arg1 common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _StandardBridge.contract.Call(opts, &out, "deposits", arg0, arg1)
 
@@ -253,29 +262,29 @@ func (_StandardBridge *StandardBridgeCaller) Deposits(opts *bind.CallOpts, arg0 
 // Deposits is a free data retrieval call binding the contract method 0x8f601f66.
 //
 // Solidity: function deposits(address , address ) view returns(uint256)
-func (_StandardBridge *StandardBridgeSession) Deposits(arg0 libcommon.Address, arg1 libcommon.Address) (*big.Int, error) {
+func (_StandardBridge *StandardBridgeSession) Deposits(arg0 common.Address, arg1 common.Address) (*big.Int, error) {
 	return _StandardBridge.Contract.Deposits(&_StandardBridge.CallOpts, arg0, arg1)
 }
 
 // Deposits is a free data retrieval call binding the contract method 0x8f601f66.
 //
 // Solidity: function deposits(address , address ) view returns(uint256)
-func (_StandardBridge *StandardBridgeCallerSession) Deposits(arg0 libcommon.Address, arg1 libcommon.Address) (*big.Int, error) {
+func (_StandardBridge *StandardBridgeCallerSession) Deposits(arg0 common.Address, arg1 common.Address) (*big.Int, error) {
 	return _StandardBridge.Contract.Deposits(&_StandardBridge.CallOpts, arg0, arg1)
 }
 
 // Messenger is a free data retrieval call binding the contract method 0x3cb747bf.
 //
 // Solidity: function messenger() view returns(address)
-func (_StandardBridge *StandardBridgeCaller) Messenger(opts *bind.CallOpts) (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeCaller) Messenger(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _StandardBridge.contract.Call(opts, &out, "messenger")
 
 	if err != nil {
-		return *new(libcommon.Address), err
+		return *new(common.Address), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
 
@@ -284,161 +293,161 @@ func (_StandardBridge *StandardBridgeCaller) Messenger(opts *bind.CallOpts) (lib
 // Messenger is a free data retrieval call binding the contract method 0x3cb747bf.
 //
 // Solidity: function messenger() view returns(address)
-func (_StandardBridge *StandardBridgeSession) Messenger() (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeSession) Messenger() (common.Address, error) {
 	return _StandardBridge.Contract.Messenger(&_StandardBridge.CallOpts)
 }
 
 // Messenger is a free data retrieval call binding the contract method 0x3cb747bf.
 //
 // Solidity: function messenger() view returns(address)
-func (_StandardBridge *StandardBridgeCallerSession) Messenger() (libcommon.Address, error) {
+func (_StandardBridge *StandardBridgeCallerSession) Messenger() (common.Address, error) {
 	return _StandardBridge.Contract.Messenger(&_StandardBridge.CallOpts)
 }
 
 // BridgeERC20 is a paid mutator transaction binding the contract method 0x87087623.
 //
 // Solidity: function bridgeERC20(address _localToken, address _remoteToken, uint256 _amount, uint32 _minGasLimit, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeTransactor) BridgeERC20(opts *bind.TransactOpts, _localToken libcommon.Address, _remoteToken libcommon.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactor) BridgeERC20(opts *bind.TransactOpts, _localToken common.Address, _remoteToken common.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.contract.Transact(opts, "bridgeERC20", _localToken, _remoteToken, _amount, _minGasLimit, _extraData)
 }
 
 // BridgeERC20 is a paid mutator transaction binding the contract method 0x87087623.
 //
 // Solidity: function bridgeERC20(address _localToken, address _remoteToken, uint256 _amount, uint32 _minGasLimit, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeSession) BridgeERC20(_localToken libcommon.Address, _remoteToken libcommon.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeSession) BridgeERC20(_localToken common.Address, _remoteToken common.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeERC20(&_StandardBridge.TransactOpts, _localToken, _remoteToken, _amount, _minGasLimit, _extraData)
 }
 
 // BridgeERC20 is a paid mutator transaction binding the contract method 0x87087623.
 //
 // Solidity: function bridgeERC20(address _localToken, address _remoteToken, uint256 _amount, uint32 _minGasLimit, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeTransactorSession) BridgeERC20(_localToken libcommon.Address, _remoteToken libcommon.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorSession) BridgeERC20(_localToken common.Address, _remoteToken common.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeERC20(&_StandardBridge.TransactOpts, _localToken, _remoteToken, _amount, _minGasLimit, _extraData)
 }
 
 // BridgeERC20To is a paid mutator transaction binding the contract method 0x540abf73.
 //
 // Solidity: function bridgeERC20To(address _localToken, address _remoteToken, address _to, uint256 _amount, uint32 _minGasLimit, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeTransactor) BridgeERC20To(opts *bind.TransactOpts, _localToken libcommon.Address, _remoteToken libcommon.Address, _to libcommon.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactor) BridgeERC20To(opts *bind.TransactOpts, _localToken common.Address, _remoteToken common.Address, _to common.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.contract.Transact(opts, "bridgeERC20To", _localToken, _remoteToken, _to, _amount, _minGasLimit, _extraData)
 }
 
 // BridgeERC20To is a paid mutator transaction binding the contract method 0x540abf73.
 //
 // Solidity: function bridgeERC20To(address _localToken, address _remoteToken, address _to, uint256 _amount, uint32 _minGasLimit, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeSession) BridgeERC20To(_localToken libcommon.Address, _remoteToken libcommon.Address, _to libcommon.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeSession) BridgeERC20To(_localToken common.Address, _remoteToken common.Address, _to common.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeERC20To(&_StandardBridge.TransactOpts, _localToken, _remoteToken, _to, _amount, _minGasLimit, _extraData)
 }
 
 // BridgeERC20To is a paid mutator transaction binding the contract method 0x540abf73.
 //
 // Solidity: function bridgeERC20To(address _localToken, address _remoteToken, address _to, uint256 _amount, uint32 _minGasLimit, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeTransactorSession) BridgeERC20To(_localToken libcommon.Address, _remoteToken libcommon.Address, _to libcommon.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorSession) BridgeERC20To(_localToken common.Address, _remoteToken common.Address, _to common.Address, _amount *big.Int, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeERC20To(&_StandardBridge.TransactOpts, _localToken, _remoteToken, _to, _amount, _minGasLimit, _extraData)
 }
 
 // BridgeETH is a paid mutator transaction binding the contract method 0x09fc8843.
 //
 // Solidity: function bridgeETH(uint32 _minGasLimit, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeTransactor) BridgeETH(opts *bind.TransactOpts, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactor) BridgeETH(opts *bind.TransactOpts, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.contract.Transact(opts, "bridgeETH", _minGasLimit, _extraData)
 }
 
 // BridgeETH is a paid mutator transaction binding the contract method 0x09fc8843.
 //
 // Solidity: function bridgeETH(uint32 _minGasLimit, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeSession) BridgeETH(_minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeSession) BridgeETH(_minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeETH(&_StandardBridge.TransactOpts, _minGasLimit, _extraData)
 }
 
 // BridgeETH is a paid mutator transaction binding the contract method 0x09fc8843.
 //
 // Solidity: function bridgeETH(uint32 _minGasLimit, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeTransactorSession) BridgeETH(_minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorSession) BridgeETH(_minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeETH(&_StandardBridge.TransactOpts, _minGasLimit, _extraData)
 }
 
 // BridgeETHTo is a paid mutator transaction binding the contract method 0xe11013dd.
 //
 // Solidity: function bridgeETHTo(address _to, uint32 _minGasLimit, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeTransactor) BridgeETHTo(opts *bind.TransactOpts, _to libcommon.Address, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactor) BridgeETHTo(opts *bind.TransactOpts, _to common.Address, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.contract.Transact(opts, "bridgeETHTo", _to, _minGasLimit, _extraData)
 }
 
 // BridgeETHTo is a paid mutator transaction binding the contract method 0xe11013dd.
 //
 // Solidity: function bridgeETHTo(address _to, uint32 _minGasLimit, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeSession) BridgeETHTo(_to libcommon.Address, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeSession) BridgeETHTo(_to common.Address, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeETHTo(&_StandardBridge.TransactOpts, _to, _minGasLimit, _extraData)
 }
 
 // BridgeETHTo is a paid mutator transaction binding the contract method 0xe11013dd.
 //
 // Solidity: function bridgeETHTo(address _to, uint32 _minGasLimit, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeTransactorSession) BridgeETHTo(_to libcommon.Address, _minGasLimit uint32, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorSession) BridgeETHTo(_to common.Address, _minGasLimit uint32, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.BridgeETHTo(&_StandardBridge.TransactOpts, _to, _minGasLimit, _extraData)
 }
 
 // FinalizeBridgeERC20 is a paid mutator transaction binding the contract method 0x0166a07a.
 //
 // Solidity: function finalizeBridgeERC20(address _localToken, address _remoteToken, address _from, address _to, uint256 _amount, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeTransactor) FinalizeBridgeERC20(opts *bind.TransactOpts, _localToken libcommon.Address, _remoteToken libcommon.Address, _from libcommon.Address, _to libcommon.Address, _amount *big.Int, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactor) FinalizeBridgeERC20(opts *bind.TransactOpts, _localToken common.Address, _remoteToken common.Address, _from common.Address, _to common.Address, _amount *big.Int, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.contract.Transact(opts, "finalizeBridgeERC20", _localToken, _remoteToken, _from, _to, _amount, _extraData)
 }
 
 // FinalizeBridgeERC20 is a paid mutator transaction binding the contract method 0x0166a07a.
 //
 // Solidity: function finalizeBridgeERC20(address _localToken, address _remoteToken, address _from, address _to, uint256 _amount, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeSession) FinalizeBridgeERC20(_localToken libcommon.Address, _remoteToken libcommon.Address, _from libcommon.Address, _to libcommon.Address, _amount *big.Int, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeSession) FinalizeBridgeERC20(_localToken common.Address, _remoteToken common.Address, _from common.Address, _to common.Address, _amount *big.Int, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.FinalizeBridgeERC20(&_StandardBridge.TransactOpts, _localToken, _remoteToken, _from, _to, _amount, _extraData)
 }
 
 // FinalizeBridgeERC20 is a paid mutator transaction binding the contract method 0x0166a07a.
 //
 // Solidity: function finalizeBridgeERC20(address _localToken, address _remoteToken, address _from, address _to, uint256 _amount, bytes _extraData) returns()
-func (_StandardBridge *StandardBridgeTransactorSession) FinalizeBridgeERC20(_localToken libcommon.Address, _remoteToken libcommon.Address, _from libcommon.Address, _to libcommon.Address, _amount *big.Int, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorSession) FinalizeBridgeERC20(_localToken common.Address, _remoteToken common.Address, _from common.Address, _to common.Address, _amount *big.Int, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.FinalizeBridgeERC20(&_StandardBridge.TransactOpts, _localToken, _remoteToken, _from, _to, _amount, _extraData)
 }
 
 // FinalizeBridgeETH is a paid mutator transaction binding the contract method 0x1635f5fd.
 //
 // Solidity: function finalizeBridgeETH(address _from, address _to, uint256 _amount, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeTransactor) FinalizeBridgeETH(opts *bind.TransactOpts, _from libcommon.Address, _to libcommon.Address, _amount *big.Int, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactor) FinalizeBridgeETH(opts *bind.TransactOpts, _from common.Address, _to common.Address, _amount *big.Int, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.contract.Transact(opts, "finalizeBridgeETH", _from, _to, _amount, _extraData)
 }
 
 // FinalizeBridgeETH is a paid mutator transaction binding the contract method 0x1635f5fd.
 //
 // Solidity: function finalizeBridgeETH(address _from, address _to, uint256 _amount, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeSession) FinalizeBridgeETH(_from libcommon.Address, _to libcommon.Address, _amount *big.Int, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeSession) FinalizeBridgeETH(_from common.Address, _to common.Address, _amount *big.Int, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.FinalizeBridgeETH(&_StandardBridge.TransactOpts, _from, _to, _amount, _extraData)
 }
 
 // FinalizeBridgeETH is a paid mutator transaction binding the contract method 0x1635f5fd.
 //
 // Solidity: function finalizeBridgeETH(address _from, address _to, uint256 _amount, bytes _extraData) payable returns()
-func (_StandardBridge *StandardBridgeTransactorSession) FinalizeBridgeETH(_from libcommon.Address, _to libcommon.Address, _amount *big.Int, _extraData []byte) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorSession) FinalizeBridgeETH(_from common.Address, _to common.Address, _amount *big.Int, _extraData []byte) (*types.Transaction, error) {
 	return _StandardBridge.Contract.FinalizeBridgeETH(&_StandardBridge.TransactOpts, _from, _to, _amount, _extraData)
 }
 
 // Receive is a paid mutator transaction binding the contract receive function.
 //
 // Solidity: receive() payable returns()
-func (_StandardBridge *StandardBridgeTransactor) Receive(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactor) Receive(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _StandardBridge.contract.RawTransact(opts, nil) // calldata is disallowed for receive function
 }
 
 // Receive is a paid mutator transaction binding the contract receive function.
 //
 // Solidity: receive() payable returns()
-func (_StandardBridge *StandardBridgeSession) Receive() (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeSession) Receive() (*types.Transaction, error) {
 	return _StandardBridge.Contract.Receive(&_StandardBridge.TransactOpts)
 }
 
 // Receive is a paid mutator transaction binding the contract receive function.
 //
 // Solidity: receive() payable returns()
-func (_StandardBridge *StandardBridgeTransactorSession) Receive() (types.Transaction, error) {
+func (_StandardBridge *StandardBridgeTransactorSession) Receive() (*types.Transaction, error) {
 	return _StandardBridge.Contract.Receive(&_StandardBridge.TransactOpts)
 }
 
@@ -511,10 +520,10 @@ func (it *StandardBridgeERC20BridgeFinalizedIterator) Close() error {
 
 // StandardBridgeERC20BridgeFinalized represents a ERC20BridgeFinalized event raised by the StandardBridge contract.
 type StandardBridgeERC20BridgeFinalized struct {
-	LocalToken  libcommon.Address
-	RemoteToken libcommon.Address
-	From        libcommon.Address
-	To          libcommon.Address
+	LocalToken  common.Address
+	RemoteToken common.Address
+	From        common.Address
+	To          common.Address
 	Amount      *big.Int
 	ExtraData   []byte
 	Raw         types.Log // Blockchain specific contextual infos
@@ -523,7 +532,7 @@ type StandardBridgeERC20BridgeFinalized struct {
 // FilterERC20BridgeFinalized is a free log retrieval operation binding the contract event 0xd59c65b35445225835c83f50b6ede06a7be047d22e357073e250d9af537518cd.
 //
 // Solidity: event ERC20BridgeFinalized(address indexed localToken, address indexed remoteToken, address indexed from, address to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) FilterERC20BridgeFinalized(opts *bind.FilterOpts, localToken []libcommon.Address, remoteToken []libcommon.Address, from []libcommon.Address) (*StandardBridgeERC20BridgeFinalizedIterator, error) {
+func (_StandardBridge *StandardBridgeFilterer) FilterERC20BridgeFinalized(opts *bind.FilterOpts, localToken []common.Address, remoteToken []common.Address, from []common.Address) (*StandardBridgeERC20BridgeFinalizedIterator, error) {
 
 	var localTokenRule []interface{}
 	for _, localTokenItem := range localToken {
@@ -548,7 +557,7 @@ func (_StandardBridge *StandardBridgeFilterer) FilterERC20BridgeFinalized(opts *
 // WatchERC20BridgeFinalized is a free log subscription operation binding the contract event 0xd59c65b35445225835c83f50b6ede06a7be047d22e357073e250d9af537518cd.
 //
 // Solidity: event ERC20BridgeFinalized(address indexed localToken, address indexed remoteToken, address indexed from, address to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) WatchERC20BridgeFinalized(opts *bind.WatchOpts, sink chan<- *StandardBridgeERC20BridgeFinalized, localToken []libcommon.Address, remoteToken []libcommon.Address, from []libcommon.Address) (event.Subscription, error) {
+func (_StandardBridge *StandardBridgeFilterer) WatchERC20BridgeFinalized(opts *bind.WatchOpts, sink chan<- *StandardBridgeERC20BridgeFinalized, localToken []common.Address, remoteToken []common.Address, from []common.Address) (event.Subscription, error) {
 
 	var localTokenRule []interface{}
 	for _, localTokenItem := range localToken {
@@ -676,10 +685,10 @@ func (it *StandardBridgeERC20BridgeInitiatedIterator) Close() error {
 
 // StandardBridgeERC20BridgeInitiated represents a ERC20BridgeInitiated event raised by the StandardBridge contract.
 type StandardBridgeERC20BridgeInitiated struct {
-	LocalToken  libcommon.Address
-	RemoteToken libcommon.Address
-	From        libcommon.Address
-	To          libcommon.Address
+	LocalToken  common.Address
+	RemoteToken common.Address
+	From        common.Address
+	To          common.Address
 	Amount      *big.Int
 	ExtraData   []byte
 	Raw         types.Log // Blockchain specific contextual infos
@@ -688,7 +697,7 @@ type StandardBridgeERC20BridgeInitiated struct {
 // FilterERC20BridgeInitiated is a free log retrieval operation binding the contract event 0x7ff126db8024424bbfd9826e8ab82ff59136289ea440b04b39a0df1b03b9cabf.
 //
 // Solidity: event ERC20BridgeInitiated(address indexed localToken, address indexed remoteToken, address indexed from, address to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) FilterERC20BridgeInitiated(opts *bind.FilterOpts, localToken []libcommon.Address, remoteToken []libcommon.Address, from []libcommon.Address) (*StandardBridgeERC20BridgeInitiatedIterator, error) {
+func (_StandardBridge *StandardBridgeFilterer) FilterERC20BridgeInitiated(opts *bind.FilterOpts, localToken []common.Address, remoteToken []common.Address, from []common.Address) (*StandardBridgeERC20BridgeInitiatedIterator, error) {
 
 	var localTokenRule []interface{}
 	for _, localTokenItem := range localToken {
@@ -713,7 +722,7 @@ func (_StandardBridge *StandardBridgeFilterer) FilterERC20BridgeInitiated(opts *
 // WatchERC20BridgeInitiated is a free log subscription operation binding the contract event 0x7ff126db8024424bbfd9826e8ab82ff59136289ea440b04b39a0df1b03b9cabf.
 //
 // Solidity: event ERC20BridgeInitiated(address indexed localToken, address indexed remoteToken, address indexed from, address to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) WatchERC20BridgeInitiated(opts *bind.WatchOpts, sink chan<- *StandardBridgeERC20BridgeInitiated, localToken []libcommon.Address, remoteToken []libcommon.Address, from []libcommon.Address) (event.Subscription, error) {
+func (_StandardBridge *StandardBridgeFilterer) WatchERC20BridgeInitiated(opts *bind.WatchOpts, sink chan<- *StandardBridgeERC20BridgeInitiated, localToken []common.Address, remoteToken []common.Address, from []common.Address) (event.Subscription, error) {
 
 	var localTokenRule []interface{}
 	for _, localTokenItem := range localToken {
@@ -841,8 +850,8 @@ func (it *StandardBridgeETHBridgeFinalizedIterator) Close() error {
 
 // StandardBridgeETHBridgeFinalized represents a ETHBridgeFinalized event raised by the StandardBridge contract.
 type StandardBridgeETHBridgeFinalized struct {
-	From      libcommon.Address
-	To        libcommon.Address
+	From      common.Address
+	To        common.Address
 	Amount    *big.Int
 	ExtraData []byte
 	Raw       types.Log // Blockchain specific contextual infos
@@ -851,7 +860,7 @@ type StandardBridgeETHBridgeFinalized struct {
 // FilterETHBridgeFinalized is a free log retrieval operation binding the contract event 0x31b2166ff604fc5672ea5df08a78081d2bc6d746cadce880747f3643d819e83d.
 //
 // Solidity: event ETHBridgeFinalized(address indexed from, address indexed to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) FilterETHBridgeFinalized(opts *bind.FilterOpts, from []libcommon.Address, to []libcommon.Address) (*StandardBridgeETHBridgeFinalizedIterator, error) {
+func (_StandardBridge *StandardBridgeFilterer) FilterETHBridgeFinalized(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*StandardBridgeETHBridgeFinalizedIterator, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -872,7 +881,7 @@ func (_StandardBridge *StandardBridgeFilterer) FilterETHBridgeFinalized(opts *bi
 // WatchETHBridgeFinalized is a free log subscription operation binding the contract event 0x31b2166ff604fc5672ea5df08a78081d2bc6d746cadce880747f3643d819e83d.
 //
 // Solidity: event ETHBridgeFinalized(address indexed from, address indexed to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) WatchETHBridgeFinalized(opts *bind.WatchOpts, sink chan<- *StandardBridgeETHBridgeFinalized, from []libcommon.Address, to []libcommon.Address) (event.Subscription, error) {
+func (_StandardBridge *StandardBridgeFilterer) WatchETHBridgeFinalized(opts *bind.WatchOpts, sink chan<- *StandardBridgeETHBridgeFinalized, from []common.Address, to []common.Address) (event.Subscription, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -996,8 +1005,8 @@ func (it *StandardBridgeETHBridgeInitiatedIterator) Close() error {
 
 // StandardBridgeETHBridgeInitiated represents a ETHBridgeInitiated event raised by the StandardBridge contract.
 type StandardBridgeETHBridgeInitiated struct {
-	From      libcommon.Address
-	To        libcommon.Address
+	From      common.Address
+	To        common.Address
 	Amount    *big.Int
 	ExtraData []byte
 	Raw       types.Log // Blockchain specific contextual infos
@@ -1006,7 +1015,7 @@ type StandardBridgeETHBridgeInitiated struct {
 // FilterETHBridgeInitiated is a free log retrieval operation binding the contract event 0x2849b43074093a05396b6f2a937dee8565b15a48a7b3d4bffb732a5017380af5.
 //
 // Solidity: event ETHBridgeInitiated(address indexed from, address indexed to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) FilterETHBridgeInitiated(opts *bind.FilterOpts, from []libcommon.Address, to []libcommon.Address) (*StandardBridgeETHBridgeInitiatedIterator, error) {
+func (_StandardBridge *StandardBridgeFilterer) FilterETHBridgeInitiated(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*StandardBridgeETHBridgeInitiatedIterator, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -1027,7 +1036,7 @@ func (_StandardBridge *StandardBridgeFilterer) FilterETHBridgeInitiated(opts *bi
 // WatchETHBridgeInitiated is a free log subscription operation binding the contract event 0x2849b43074093a05396b6f2a937dee8565b15a48a7b3d4bffb732a5017380af5.
 //
 // Solidity: event ETHBridgeInitiated(address indexed from, address indexed to, uint256 amount, bytes extraData)
-func (_StandardBridge *StandardBridgeFilterer) WatchETHBridgeInitiated(opts *bind.WatchOpts, sink chan<- *StandardBridgeETHBridgeInitiated, from []libcommon.Address, to []libcommon.Address) (event.Subscription, error) {
+func (_StandardBridge *StandardBridgeFilterer) WatchETHBridgeInitiated(opts *bind.WatchOpts, sink chan<- *StandardBridgeETHBridgeInitiated, from []common.Address, to []common.Address) (event.Subscription, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {

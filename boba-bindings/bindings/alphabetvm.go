@@ -4,44 +4,58 @@
 package bindings
 
 import (
+	"errors"
 	"math/big"
 	"strings"
 
-	ethereum "github.com/ledgerwatch/erigon"
-	libcommon "github.com/ledgerwatch/erigon-lib/common"
-	"github.com/ledgerwatch/erigon/accounts/abi"
-	"github.com/ledgerwatch/erigon/accounts/abi/bind"
-	"github.com/ledgerwatch/erigon/core/types"
-	"github.com/ledgerwatch/erigon/event"
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
+	_ = errors.New
 	_ = big.NewInt
 	_ = strings.NewReader
 	_ = ethereum.NotFound
 	_ = bind.Bind
-	_ = libcommon.Big1
+	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
 )
 
+// AlphabetVMMetaData contains all meta data concerning the AlphabetVM contract.
+var AlphabetVMMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[{\"internalType\":\"Claim\",\"name\":\"_absolutePrestate\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_stateData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"step\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"postState_\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	Bin: "0x60a060405234801561001057600080fd5b5060405161030438038061030483398101604081905261002f91610037565b608052610050565b60006020828403121561004957600080fd5b5051919050565b60805161029a61006a6000396000605c015261029a6000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c8063f8e0cb9614610030575b600080fd5b61004361003e366004610157565b610055565b60405190815260200160405180910390f35b60008060007f0000000000000000000000000000000000000000000000000000000000000000878760405161008b9291906101c3565b6040518091039020036100af57600091506100a8868801886101d3565b90506100ce565b6100bb868801886101ec565b9092509050816100ca8161023d565b9250505b816100da826001610275565b6040805160208101939093528201526060016040516020818303038152906040528051906020012092505050949350505050565b60008083601f84011261012057600080fd5b50813567ffffffffffffffff81111561013857600080fd5b60208301915083602082850101111561015057600080fd5b9250929050565b6000806000806040858703121561016d57600080fd5b843567ffffffffffffffff8082111561018557600080fd5b6101918883890161010e565b909650945060208701359150808211156101aa57600080fd5b506101b78782880161010e565b95989497509550505050565b8183823760009101908152919050565b6000602082840312156101e557600080fd5b5035919050565b600080604083850312156101ff57600080fd5b50508035926020909101359150565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff820361026e5761026e61020e565b5060010190565b600082198211156102885761028861020e565b50019056fea164736f6c634300080f000a",
+}
+
 // AlphabetVMABI is the input ABI used to generate the binding from.
-const AlphabetVMABI = "[{\"inputs\":[{\"internalType\":\"Claim\",\"name\":\"_absolutePrestate\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_stateData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"step\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"postState_\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
+// Deprecated: Use AlphabetVMMetaData.ABI instead.
+var AlphabetVMABI = AlphabetVMMetaData.ABI
 
 // AlphabetVMBin is the compiled bytecode used for deploying new contracts.
-var AlphabetVMBin = "0x60a060405234801561001057600080fd5b5060405161030438038061030483398101604081905261002f91610037565b608052610050565b60006020828403121561004957600080fd5b5051919050565b60805161029a61006a6000396000605c015261029a6000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c8063f8e0cb9614610030575b600080fd5b61004361003e366004610157565b610055565b60405190815260200160405180910390f35b60008060007f0000000000000000000000000000000000000000000000000000000000000000878760405161008b9291906101c3565b6040518091039020036100af57600091506100a8868801886101d3565b90506100ce565b6100bb868801886101ec565b9092509050816100ca8161023d565b9250505b816100da826001610275565b6040805160208101939093528201526060016040516020818303038152906040528051906020012092505050949350505050565b60008083601f84011261012057600080fd5b50813567ffffffffffffffff81111561013857600080fd5b60208301915083602082850101111561015057600080fd5b9250929050565b6000806000806040858703121561016d57600080fd5b843567ffffffffffffffff8082111561018557600080fd5b6101918883890161010e565b909650945060208701359150808211156101aa57600080fd5b506101b78782880161010e565b95989497509550505050565b8183823760009101908152919050565b6000602082840312156101e557600080fd5b5035919050565b600080604083850312156101ff57600080fd5b50508035926020909101359150565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff820361026e5761026e61020e565b5060010190565b600082198211156102885761028861020e565b50019056fea164736f6c634300080f000a"
+// Deprecated: Use AlphabetVMMetaData.Bin instead.
+var AlphabetVMBin = AlphabetVMMetaData.Bin
 
 // DeployAlphabetVM deploys a new Ethereum contract, binding an instance of AlphabetVM to it.
-func DeployAlphabetVM(auth *bind.TransactOpts, backend bind.ContractBackend, _absolutePrestate [32]byte) (libcommon.Address, types.Transaction, *AlphabetVM, error) {
-	parsed, err := abi.JSON(strings.NewReader(AlphabetVMABI))
+func DeployAlphabetVM(auth *bind.TransactOpts, backend bind.ContractBackend, _absolutePrestate [32]byte) (common.Address, *types.Transaction, *AlphabetVM, error) {
+	parsed, err := AlphabetVMMetaData.GetAbi()
 	if err != nil {
-		return libcommon.Address{}, nil, nil, err
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, parsed, libcommon.FromHex(AlphabetVMBin), backend, _absolutePrestate)
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(AlphabetVMBin), backend, _absolutePrestate)
 	if err != nil {
-		return libcommon.Address{}, nil, nil, err
+		return common.Address{}, nil, nil, err
 	}
 	return address, tx, &AlphabetVM{AlphabetVMCaller: AlphabetVMCaller{contract: contract}, AlphabetVMTransactor: AlphabetVMTransactor{contract: contract}, AlphabetVMFilterer: AlphabetVMFilterer{contract: contract}}, nil
 }
@@ -106,7 +120,7 @@ type AlphabetVMTransactorRaw struct {
 }
 
 // NewAlphabetVM creates a new instance of AlphabetVM, bound to a specific deployed contract.
-func NewAlphabetVM(address libcommon.Address, backend bind.ContractBackend) (*AlphabetVM, error) {
+func NewAlphabetVM(address common.Address, backend bind.ContractBackend) (*AlphabetVM, error) {
 	contract, err := bindAlphabetVM(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
@@ -115,7 +129,7 @@ func NewAlphabetVM(address libcommon.Address, backend bind.ContractBackend) (*Al
 }
 
 // NewAlphabetVMCaller creates a new read-only instance of AlphabetVM, bound to a specific deployed contract.
-func NewAlphabetVMCaller(address libcommon.Address, caller bind.ContractCaller) (*AlphabetVMCaller, error) {
+func NewAlphabetVMCaller(address common.Address, caller bind.ContractCaller) (*AlphabetVMCaller, error) {
 	contract, err := bindAlphabetVM(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
@@ -124,7 +138,7 @@ func NewAlphabetVMCaller(address libcommon.Address, caller bind.ContractCaller) 
 }
 
 // NewAlphabetVMTransactor creates a new write-only instance of AlphabetVM, bound to a specific deployed contract.
-func NewAlphabetVMTransactor(address libcommon.Address, transactor bind.ContractTransactor) (*AlphabetVMTransactor, error) {
+func NewAlphabetVMTransactor(address common.Address, transactor bind.ContractTransactor) (*AlphabetVMTransactor, error) {
 	contract, err := bindAlphabetVM(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
@@ -133,7 +147,7 @@ func NewAlphabetVMTransactor(address libcommon.Address, transactor bind.Contract
 }
 
 // NewAlphabetVMFilterer creates a new log filterer instance of AlphabetVM, bound to a specific deployed contract.
-func NewAlphabetVMFilterer(address libcommon.Address, filterer bind.ContractFilterer) (*AlphabetVMFilterer, error) {
+func NewAlphabetVMFilterer(address common.Address, filterer bind.ContractFilterer) (*AlphabetVMFilterer, error) {
 	contract, err := bindAlphabetVM(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
@@ -142,12 +156,12 @@ func NewAlphabetVMFilterer(address libcommon.Address, filterer bind.ContractFilt
 }
 
 // bindAlphabetVM binds a generic wrapper to an already deployed contract.
-func bindAlphabetVM(address libcommon.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(AlphabetVMABI))
+func bindAlphabetVM(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := AlphabetVMMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -160,12 +174,12 @@ func (_AlphabetVM *AlphabetVMRaw) Call(opts *bind.CallOpts, result *[]interface{
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_AlphabetVM *AlphabetVMRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_AlphabetVM *AlphabetVMRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _AlphabetVM.Contract.AlphabetVMTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_AlphabetVM *AlphabetVMRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_AlphabetVM *AlphabetVMRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _AlphabetVM.Contract.AlphabetVMTransactor.contract.Transact(opts, method, params...)
 }
 
@@ -179,12 +193,12 @@ func (_AlphabetVM *AlphabetVMCallerRaw) Call(opts *bind.CallOpts, result *[]inte
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_AlphabetVM *AlphabetVMTransactorRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_AlphabetVM *AlphabetVMTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _AlphabetVM.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_AlphabetVM *AlphabetVMTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_AlphabetVM *AlphabetVMTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _AlphabetVM.Contract.contract.Transact(opts, method, params...)
 }
 

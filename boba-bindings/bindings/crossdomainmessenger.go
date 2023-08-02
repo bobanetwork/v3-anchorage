@@ -4,30 +4,39 @@
 package bindings
 
 import (
+	"errors"
 	"math/big"
 	"strings"
 
-	ethereum "github.com/ledgerwatch/erigon"
-	libcommon "github.com/ledgerwatch/erigon-lib/common"
-	"github.com/ledgerwatch/erigon/accounts/abi"
-	"github.com/ledgerwatch/erigon/accounts/abi/bind"
-	"github.com/ledgerwatch/erigon/core/types"
-	"github.com/ledgerwatch/erigon/event"
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
+	_ = errors.New
 	_ = big.NewInt
 	_ = strings.NewReader
 	_ = ethereum.NotFound
 	_ = bind.Bind
-	_ = libcommon.Big1
+	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
 )
 
+// CrossDomainMessengerMetaData contains all meta data concerning the CrossDomainMessenger contract.
+var CrossDomainMessengerMetaData = &bind.MetaData{
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"msgHash\",\"type\":\"bytes32\"}],\"name\":\"FailedRelayedMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"msgHash\",\"type\":\"bytes32\"}],\"name\":\"RelayedMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"messageNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"}],\"name\":\"SentMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"SentMessageExtension1\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MESSAGE_VERSION\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MIN_GAS_CALLDATA_OVERHEAD\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MIN_GAS_DYNAMIC_OVERHEAD_DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MIN_GAS_DYNAMIC_OVERHEAD_NUMERATOR\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OTHER_MESSENGER\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_CALL_OVERHEAD\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_CONSTANT_OVERHEAD\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_GAS_CHECK_BUFFER\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_RESERVED_GAS\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"}],\"name\":\"baseGas\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"failedMessages\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"messageNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_nonce\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_minGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"relayMessage\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"}],\"name\":\"sendMessage\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"successfulMessages\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"xDomainMessageSender\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+}
+
 // CrossDomainMessengerABI is the input ABI used to generate the binding from.
-const CrossDomainMessengerABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"msgHash\",\"type\":\"bytes32\"}],\"name\":\"FailedRelayedMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"msgHash\",\"type\":\"bytes32\"}],\"name\":\"RelayedMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"messageNonce\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"}],\"name\":\"SentMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"SentMessageExtension1\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MESSAGE_VERSION\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MIN_GAS_CALLDATA_OVERHEAD\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MIN_GAS_DYNAMIC_OVERHEAD_DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MIN_GAS_DYNAMIC_OVERHEAD_NUMERATOR\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OTHER_MESSENGER\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_CALL_OVERHEAD\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_CONSTANT_OVERHEAD\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_GAS_CHECK_BUFFER\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RELAY_RESERVED_GAS\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"}],\"name\":\"baseGas\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"failedMessages\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"messageNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_nonce\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_minGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"relayMessage\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"uint32\",\"name\":\"_minGasLimit\",\"type\":\"uint32\"}],\"name\":\"sendMessage\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"successfulMessages\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"xDomainMessageSender\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
+// Deprecated: Use CrossDomainMessengerMetaData.ABI instead.
+var CrossDomainMessengerABI = CrossDomainMessengerMetaData.ABI
 
 // CrossDomainMessenger is an auto generated Go binding around an Ethereum contract.
 type CrossDomainMessenger struct {
@@ -89,7 +98,7 @@ type CrossDomainMessengerTransactorRaw struct {
 }
 
 // NewCrossDomainMessenger creates a new instance of CrossDomainMessenger, bound to a specific deployed contract.
-func NewCrossDomainMessenger(address libcommon.Address, backend bind.ContractBackend) (*CrossDomainMessenger, error) {
+func NewCrossDomainMessenger(address common.Address, backend bind.ContractBackend) (*CrossDomainMessenger, error) {
 	contract, err := bindCrossDomainMessenger(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
@@ -98,7 +107,7 @@ func NewCrossDomainMessenger(address libcommon.Address, backend bind.ContractBac
 }
 
 // NewCrossDomainMessengerCaller creates a new read-only instance of CrossDomainMessenger, bound to a specific deployed contract.
-func NewCrossDomainMessengerCaller(address libcommon.Address, caller bind.ContractCaller) (*CrossDomainMessengerCaller, error) {
+func NewCrossDomainMessengerCaller(address common.Address, caller bind.ContractCaller) (*CrossDomainMessengerCaller, error) {
 	contract, err := bindCrossDomainMessenger(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
@@ -107,7 +116,7 @@ func NewCrossDomainMessengerCaller(address libcommon.Address, caller bind.Contra
 }
 
 // NewCrossDomainMessengerTransactor creates a new write-only instance of CrossDomainMessenger, bound to a specific deployed contract.
-func NewCrossDomainMessengerTransactor(address libcommon.Address, transactor bind.ContractTransactor) (*CrossDomainMessengerTransactor, error) {
+func NewCrossDomainMessengerTransactor(address common.Address, transactor bind.ContractTransactor) (*CrossDomainMessengerTransactor, error) {
 	contract, err := bindCrossDomainMessenger(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
@@ -116,7 +125,7 @@ func NewCrossDomainMessengerTransactor(address libcommon.Address, transactor bin
 }
 
 // NewCrossDomainMessengerFilterer creates a new log filterer instance of CrossDomainMessenger, bound to a specific deployed contract.
-func NewCrossDomainMessengerFilterer(address libcommon.Address, filterer bind.ContractFilterer) (*CrossDomainMessengerFilterer, error) {
+func NewCrossDomainMessengerFilterer(address common.Address, filterer bind.ContractFilterer) (*CrossDomainMessengerFilterer, error) {
 	contract, err := bindCrossDomainMessenger(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
@@ -125,12 +134,12 @@ func NewCrossDomainMessengerFilterer(address libcommon.Address, filterer bind.Co
 }
 
 // bindCrossDomainMessenger binds a generic wrapper to an already deployed contract.
-func bindCrossDomainMessenger(address libcommon.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(CrossDomainMessengerABI))
+func bindCrossDomainMessenger(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := CrossDomainMessengerMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -143,12 +152,12 @@ func (_CrossDomainMessenger *CrossDomainMessengerRaw) Call(opts *bind.CallOpts, 
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_CrossDomainMessenger *CrossDomainMessengerRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.CrossDomainMessengerTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_CrossDomainMessenger *CrossDomainMessengerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.CrossDomainMessengerTransactor.contract.Transact(opts, method, params...)
 }
 
@@ -162,12 +171,12 @@ func (_CrossDomainMessenger *CrossDomainMessengerCallerRaw) Call(opts *bind.Call
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_CrossDomainMessenger *CrossDomainMessengerTransactorRaw) Transfer(opts *bind.TransactOpts) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_CrossDomainMessenger *CrossDomainMessengerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.contract.Transact(opts, method, params...)
 }
 
@@ -298,15 +307,15 @@ func (_CrossDomainMessenger *CrossDomainMessengerCallerSession) MINGASDYNAMICOVE
 // OTHERMESSENGER is a free data retrieval call binding the contract method 0x9fce812c.
 //
 // Solidity: function OTHER_MESSENGER() view returns(address)
-func (_CrossDomainMessenger *CrossDomainMessengerCaller) OTHERMESSENGER(opts *bind.CallOpts) (libcommon.Address, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerCaller) OTHERMESSENGER(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _CrossDomainMessenger.contract.Call(opts, &out, "OTHER_MESSENGER")
 
 	if err != nil {
-		return *new(libcommon.Address), err
+		return *new(common.Address), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
 
@@ -315,14 +324,14 @@ func (_CrossDomainMessenger *CrossDomainMessengerCaller) OTHERMESSENGER(opts *bi
 // OTHERMESSENGER is a free data retrieval call binding the contract method 0x9fce812c.
 //
 // Solidity: function OTHER_MESSENGER() view returns(address)
-func (_CrossDomainMessenger *CrossDomainMessengerSession) OTHERMESSENGER() (libcommon.Address, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerSession) OTHERMESSENGER() (common.Address, error) {
 	return _CrossDomainMessenger.Contract.OTHERMESSENGER(&_CrossDomainMessenger.CallOpts)
 }
 
 // OTHERMESSENGER is a free data retrieval call binding the contract method 0x9fce812c.
 //
 // Solidity: function OTHER_MESSENGER() view returns(address)
-func (_CrossDomainMessenger *CrossDomainMessengerCallerSession) OTHERMESSENGER() (libcommon.Address, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerCallerSession) OTHERMESSENGER() (common.Address, error) {
 	return _CrossDomainMessenger.Contract.OTHERMESSENGER(&_CrossDomainMessenger.CallOpts)
 }
 
@@ -577,15 +586,15 @@ func (_CrossDomainMessenger *CrossDomainMessengerCallerSession) SuccessfulMessag
 // XDomainMessageSender is a free data retrieval call binding the contract method 0x6e296e45.
 //
 // Solidity: function xDomainMessageSender() view returns(address)
-func (_CrossDomainMessenger *CrossDomainMessengerCaller) XDomainMessageSender(opts *bind.CallOpts) (libcommon.Address, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerCaller) XDomainMessageSender(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _CrossDomainMessenger.contract.Call(opts, &out, "xDomainMessageSender")
 
 	if err != nil {
-		return *new(libcommon.Address), err
+		return *new(common.Address), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
 
@@ -594,56 +603,56 @@ func (_CrossDomainMessenger *CrossDomainMessengerCaller) XDomainMessageSender(op
 // XDomainMessageSender is a free data retrieval call binding the contract method 0x6e296e45.
 //
 // Solidity: function xDomainMessageSender() view returns(address)
-func (_CrossDomainMessenger *CrossDomainMessengerSession) XDomainMessageSender() (libcommon.Address, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerSession) XDomainMessageSender() (common.Address, error) {
 	return _CrossDomainMessenger.Contract.XDomainMessageSender(&_CrossDomainMessenger.CallOpts)
 }
 
 // XDomainMessageSender is a free data retrieval call binding the contract method 0x6e296e45.
 //
 // Solidity: function xDomainMessageSender() view returns(address)
-func (_CrossDomainMessenger *CrossDomainMessengerCallerSession) XDomainMessageSender() (libcommon.Address, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerCallerSession) XDomainMessageSender() (common.Address, error) {
 	return _CrossDomainMessenger.Contract.XDomainMessageSender(&_CrossDomainMessenger.CallOpts)
 }
 
 // RelayMessage is a paid mutator transaction binding the contract method 0xd764ad0b.
 //
 // Solidity: function relayMessage(uint256 _nonce, address _sender, address _target, uint256 _value, uint256 _minGasLimit, bytes _message) payable returns()
-func (_CrossDomainMessenger *CrossDomainMessengerTransactor) RelayMessage(opts *bind.TransactOpts, _nonce *big.Int, _sender libcommon.Address, _target libcommon.Address, _value *big.Int, _minGasLimit *big.Int, _message []byte) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerTransactor) RelayMessage(opts *bind.TransactOpts, _nonce *big.Int, _sender common.Address, _target common.Address, _value *big.Int, _minGasLimit *big.Int, _message []byte) (*types.Transaction, error) {
 	return _CrossDomainMessenger.contract.Transact(opts, "relayMessage", _nonce, _sender, _target, _value, _minGasLimit, _message)
 }
 
 // RelayMessage is a paid mutator transaction binding the contract method 0xd764ad0b.
 //
 // Solidity: function relayMessage(uint256 _nonce, address _sender, address _target, uint256 _value, uint256 _minGasLimit, bytes _message) payable returns()
-func (_CrossDomainMessenger *CrossDomainMessengerSession) RelayMessage(_nonce *big.Int, _sender libcommon.Address, _target libcommon.Address, _value *big.Int, _minGasLimit *big.Int, _message []byte) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerSession) RelayMessage(_nonce *big.Int, _sender common.Address, _target common.Address, _value *big.Int, _minGasLimit *big.Int, _message []byte) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.RelayMessage(&_CrossDomainMessenger.TransactOpts, _nonce, _sender, _target, _value, _minGasLimit, _message)
 }
 
 // RelayMessage is a paid mutator transaction binding the contract method 0xd764ad0b.
 //
 // Solidity: function relayMessage(uint256 _nonce, address _sender, address _target, uint256 _value, uint256 _minGasLimit, bytes _message) payable returns()
-func (_CrossDomainMessenger *CrossDomainMessengerTransactorSession) RelayMessage(_nonce *big.Int, _sender libcommon.Address, _target libcommon.Address, _value *big.Int, _minGasLimit *big.Int, _message []byte) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerTransactorSession) RelayMessage(_nonce *big.Int, _sender common.Address, _target common.Address, _value *big.Int, _minGasLimit *big.Int, _message []byte) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.RelayMessage(&_CrossDomainMessenger.TransactOpts, _nonce, _sender, _target, _value, _minGasLimit, _message)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0x3dbb202b.
 //
 // Solidity: function sendMessage(address _target, bytes _message, uint32 _minGasLimit) payable returns()
-func (_CrossDomainMessenger *CrossDomainMessengerTransactor) SendMessage(opts *bind.TransactOpts, _target libcommon.Address, _message []byte, _minGasLimit uint32) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerTransactor) SendMessage(opts *bind.TransactOpts, _target common.Address, _message []byte, _minGasLimit uint32) (*types.Transaction, error) {
 	return _CrossDomainMessenger.contract.Transact(opts, "sendMessage", _target, _message, _minGasLimit)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0x3dbb202b.
 //
 // Solidity: function sendMessage(address _target, bytes _message, uint32 _minGasLimit) payable returns()
-func (_CrossDomainMessenger *CrossDomainMessengerSession) SendMessage(_target libcommon.Address, _message []byte, _minGasLimit uint32) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerSession) SendMessage(_target common.Address, _message []byte, _minGasLimit uint32) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.SendMessage(&_CrossDomainMessenger.TransactOpts, _target, _message, _minGasLimit)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0x3dbb202b.
 //
 // Solidity: function sendMessage(address _target, bytes _message, uint32 _minGasLimit) payable returns()
-func (_CrossDomainMessenger *CrossDomainMessengerTransactorSession) SendMessage(_target libcommon.Address, _message []byte, _minGasLimit uint32) (types.Transaction, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerTransactorSession) SendMessage(_target common.Address, _message []byte, _minGasLimit uint32) (*types.Transaction, error) {
 	return _CrossDomainMessenger.Contract.SendMessage(&_CrossDomainMessenger.TransactOpts, _target, _message, _minGasLimit)
 }
 
@@ -1138,8 +1147,8 @@ func (it *CrossDomainMessengerSentMessageIterator) Close() error {
 
 // CrossDomainMessengerSentMessage represents a SentMessage event raised by the CrossDomainMessenger contract.
 type CrossDomainMessengerSentMessage struct {
-	Target       libcommon.Address
-	Sender       libcommon.Address
+	Target       common.Address
+	Sender       common.Address
 	Message      []byte
 	MessageNonce *big.Int
 	GasLimit     *big.Int
@@ -1149,7 +1158,7 @@ type CrossDomainMessengerSentMessage struct {
 // FilterSentMessage is a free log retrieval operation binding the contract event 0xcb0f7ffd78f9aee47a248fae8db181db6eee833039123e026dcbff529522e52a.
 //
 // Solidity: event SentMessage(address indexed target, address sender, bytes message, uint256 messageNonce, uint256 gasLimit)
-func (_CrossDomainMessenger *CrossDomainMessengerFilterer) FilterSentMessage(opts *bind.FilterOpts, target []libcommon.Address) (*CrossDomainMessengerSentMessageIterator, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerFilterer) FilterSentMessage(opts *bind.FilterOpts, target []common.Address) (*CrossDomainMessengerSentMessageIterator, error) {
 
 	var targetRule []interface{}
 	for _, targetItem := range target {
@@ -1166,7 +1175,7 @@ func (_CrossDomainMessenger *CrossDomainMessengerFilterer) FilterSentMessage(opt
 // WatchSentMessage is a free log subscription operation binding the contract event 0xcb0f7ffd78f9aee47a248fae8db181db6eee833039123e026dcbff529522e52a.
 //
 // Solidity: event SentMessage(address indexed target, address sender, bytes message, uint256 messageNonce, uint256 gasLimit)
-func (_CrossDomainMessenger *CrossDomainMessengerFilterer) WatchSentMessage(opts *bind.WatchOpts, sink chan<- *CrossDomainMessengerSentMessage, target []libcommon.Address) (event.Subscription, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerFilterer) WatchSentMessage(opts *bind.WatchOpts, sink chan<- *CrossDomainMessengerSentMessage, target []common.Address) (event.Subscription, error) {
 
 	var targetRule []interface{}
 	for _, targetItem := range target {
@@ -1286,7 +1295,7 @@ func (it *CrossDomainMessengerSentMessageExtension1Iterator) Close() error {
 
 // CrossDomainMessengerSentMessageExtension1 represents a SentMessageExtension1 event raised by the CrossDomainMessenger contract.
 type CrossDomainMessengerSentMessageExtension1 struct {
-	Sender libcommon.Address
+	Sender common.Address
 	Value  *big.Int
 	Raw    types.Log // Blockchain specific contextual infos
 }
@@ -1294,7 +1303,7 @@ type CrossDomainMessengerSentMessageExtension1 struct {
 // FilterSentMessageExtension1 is a free log retrieval operation binding the contract event 0x8ebb2ec2465bdb2a06a66fc37a0963af8a2a6a1479d81d56fdb8cbb98096d546.
 //
 // Solidity: event SentMessageExtension1(address indexed sender, uint256 value)
-func (_CrossDomainMessenger *CrossDomainMessengerFilterer) FilterSentMessageExtension1(opts *bind.FilterOpts, sender []libcommon.Address) (*CrossDomainMessengerSentMessageExtension1Iterator, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerFilterer) FilterSentMessageExtension1(opts *bind.FilterOpts, sender []common.Address) (*CrossDomainMessengerSentMessageExtension1Iterator, error) {
 
 	var senderRule []interface{}
 	for _, senderItem := range sender {
@@ -1311,7 +1320,7 @@ func (_CrossDomainMessenger *CrossDomainMessengerFilterer) FilterSentMessageExte
 // WatchSentMessageExtension1 is a free log subscription operation binding the contract event 0x8ebb2ec2465bdb2a06a66fc37a0963af8a2a6a1479d81d56fdb8cbb98096d546.
 //
 // Solidity: event SentMessageExtension1(address indexed sender, uint256 value)
-func (_CrossDomainMessenger *CrossDomainMessengerFilterer) WatchSentMessageExtension1(opts *bind.WatchOpts, sink chan<- *CrossDomainMessengerSentMessageExtension1, sender []libcommon.Address) (event.Subscription, error) {
+func (_CrossDomainMessenger *CrossDomainMessengerFilterer) WatchSentMessageExtension1(opts *bind.WatchOpts, sink chan<- *CrossDomainMessengerSentMessageExtension1, sender []common.Address) (event.Subscription, error) {
 
 	var senderRule []interface{}
 	for _, senderItem := range sender {
