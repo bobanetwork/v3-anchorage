@@ -58,12 +58,8 @@ const config: HardhatUserConfig = {
       },
     ],
     deployments: {
-      local: [
-        '../contracts/deployments/local',
-      ],
-      'boba-devnet': [
-        '../contracts/deployments/boba-devnet',
-      ],
+      local: ['../contracts/deployments/local'],
+      'boba-devnet': ['../contracts/deployments/boba-devnet'],
     },
   },
   solidity: {
