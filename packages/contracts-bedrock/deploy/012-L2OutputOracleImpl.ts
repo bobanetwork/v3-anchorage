@@ -2,7 +2,7 @@ import { DeployFunction } from 'hardhat-deploy/dist/types'
 import '@eth-optimism/hardhat-deploy-config'
 import '@nomiclabs/hardhat-ethers'
 
-import { assertContractVariable, deploy } from '../src/deploy-utils'
+import { assertContractVariable, deploy } from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   if (hre.deployConfig.l2BlockTime === 0) {

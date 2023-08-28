@@ -4,7 +4,7 @@ import {
   assertContractVariable,
   deploy,
   getDeploymentAddress,
-} from '../src/deploy-utils'
+} from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const proxyAdmin = await getDeploymentAddress(hre, 'ProxyAdmin')

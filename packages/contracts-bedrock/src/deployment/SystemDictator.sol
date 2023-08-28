@@ -69,6 +69,20 @@ contract SystemDictator is OwnableUpgradeable {
     struct L2OutputOracleDynamicConfig {
         uint256 l2OutputOracleStartingBlockNumber;
         uint256 l2OutputOracleStartingTimestamp;
+        address l2OutputOracleProposer;
+        address l2OutputOracleChallenger;
+    }
+
+    /**
+     * notice SystemConfig Address config.
+     */
+    struct SystemConfigAddressConfig {
+        address l1CrossDomainMessenger;
+        address l1ERC721Bridge;
+        address l1StandardBridge;
+        address l2OutputOracle;
+        address optimismPortal;
+        address optimismMintableERC20Factory;
     }
 
     /**
@@ -82,6 +96,9 @@ contract SystemDictator is OwnableUpgradeable {
         uint64 gasLimit;
         address unsafeBlockSigner;
         ResourceMetering.ResourceConfig resourceConfig;
+        uint256 opnodeStartBlock;
+        address batchInbox;
+        SystemConfig.Addresses systemConfigAddressConfig;
     }
 
     /**
@@ -92,6 +109,16 @@ contract SystemDictator is OwnableUpgradeable {
         ProxyAddressConfig proxyAddressConfig;
         ImplementationAddressConfig implementationAddressConfig;
         SystemConfigConfig systemConfigConfig;
+    }
+
+    /**
+     * @notice OptimismPortal configuration.
+     */
+    struct OptimismPortalDynamicConfig {
+        address l2OutputOracle;
+        address portalGuardian;
+        address systemConfig;
+        bool paused;
     }
 
     /**
@@ -118,7 +145,7 @@ contract SystemDictator is OwnableUpgradeable {
      * @notice Dynamic configuration for the OptimismPortal. Determines
      *         if the system should be paused when initialized.
      */
-    bool public optimismPortalDynamicConfig;
+    OptimismPortalDynamicConfig public optimismPortalDynamicConfig;
 
     /**
      * @notice Current step;
@@ -182,7 +209,16 @@ contract SystemDictator is OwnableUpgradeable {
                     PortalSender(zero),
                     SystemConfig(zero)
                 ),
-                SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg)
+                SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg, type(uint256).max, zero,
+                    SystemConfig.Addresses({
+                        l1CrossDomainMessenger: zero,
+                        l1ERC721Bridge: zero,
+                        l1StandardBridge: zero,
+                        l2OutputOracle: zero,
+                        optimismPortal: zero,
+                        optimismMintableERC20Factory: zero
+                    })
+                )
             )
         );
     }
@@ -205,7 +241,7 @@ contract SystemDictator is OwnableUpgradeable {
      */
     function updateDynamicConfig(
         L2OutputOracleDynamicConfig memory _l2OutputOracleDynamicConfig,
-        bool _optimismPortalDynamicConfig
+        OptimismPortalDynamicConfig memory _optimismPortalDynamicConfig
     ) external onlyOwner {
         l2OutputOracleDynamicConfig = _l2OutputOracleDynamicConfig;
         optimismPortalDynamicConfig = _optimismPortalDynamicConfig;
@@ -250,7 +286,10 @@ contract SystemDictator is OwnableUpgradeable {
                     config.systemConfigConfig.batcherHash,
                     config.systemConfigConfig.gasLimit,
                     config.systemConfigConfig.unsafeBlockSigner,
-                    config.systemConfigConfig.resourceConfig
+                    config.systemConfigConfig.resourceConfig,
+                    config.systemConfigConfig.opnodeStartBlock,
+                    config.systemConfigConfig.batchInbox,
+                    config.systemConfigConfig.systemConfigAddressConfig
                 )
             )
         );
@@ -347,7 +386,9 @@ contract SystemDictator is OwnableUpgradeable {
                 L2OutputOracle.initialize,
                 (
                     l2OutputOracleDynamicConfig.l2OutputOracleStartingBlockNumber,
-                    l2OutputOracleDynamicConfig.l2OutputOracleStartingTimestamp
+                    l2OutputOracleDynamicConfig.l2OutputOracleStartingTimestamp,
+                    l2OutputOracleDynamicConfig.l2OutputOracleProposer,
+                    l2OutputOracleDynamicConfig.l2OutputOracleChallenger
                 )
             )
         );
@@ -356,7 +397,15 @@ contract SystemDictator is OwnableUpgradeable {
         config.globalConfig.proxyAdmin.upgradeAndCall(
             payable(config.proxyAddressConfig.optimismPortalProxy),
             address(config.implementationAddressConfig.optimismPortalImpl),
-            abi.encodeCall(OptimismPortal.initialize, (optimismPortalDynamicConfig))
+            abi.encodeCall(
+                OptimismPortal.initialize,
+                (
+                    L2OutputOracle(optimismPortalDynamicConfig.l2OutputOracle),
+                    optimismPortalDynamicConfig.portalGuardian,
+                    SystemConfig(optimismPortalDynamicConfig.systemConfig),
+                    optimismPortalDynamicConfig.paused
+                )
+            )
         );
 
         // Upgrade the L1CrossDomainMessenger.
@@ -368,7 +417,7 @@ contract SystemDictator is OwnableUpgradeable {
         // Try to initialize the L1CrossDomainMessenger, only fail if it's already been initialized.
         try
             L1CrossDomainMessenger(config.proxyAddressConfig.l1CrossDomainMessengerProxy)
-                .initialize()
+                .initialize(OptimismPortal(payable(config.proxyAddressConfig.optimismPortalProxy)))
         {
             // L1CrossDomainMessenger is the one annoying edge case difference between existing
             // networks and fresh networks because in existing networks it'll already be

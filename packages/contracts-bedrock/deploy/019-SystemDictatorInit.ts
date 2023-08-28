@@ -9,7 +9,8 @@ import 'hardhat-deploy'
 import {
   getContractsFromArtifacts,
   getDeploymentAddress,
-} from '../src/deploy-utils'
+  getDeploymentBlock,
+} from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployer } = await hre.getNamedAccounts()
@@ -112,6 +113,16 @@ const deployFn: DeployFunction = async (hre) => {
           '0xffffffffffffffffffffffffffffffff'
         ).toString(),
       },
+      opnodeStartBlock: await getDeploymentBlock(hre, 'L2OutputOracleProxy'),
+      batchInbox: hre.deployConfig.batchInboxAddress,
+      systemConfigAddressConfig: {
+        l1CrossDomainMessenger: await getDeploymentAddress(hre, 'Proxy__OVM_L1CrossDomainMessenger'),
+        l1ERC721Bridge: await getDeploymentAddress(hre, 'L1ERC721BridgeProxy'),
+        l1StandardBridge: await getDeploymentAddress(hre, 'Proxy__OVM_L1StandardBridge'),
+        l2OutputOracle: await getDeploymentAddress(hre, 'L2OutputOracleProxy'),
+        optimismPortal: await getDeploymentAddress(hre, 'OptimismPortalProxy'),
+        optimismMintableERC20Factory: await getDeploymentAddress(hre, 'OptimismMintableERC20FactoryProxy'),
+      }
     },
   }
 

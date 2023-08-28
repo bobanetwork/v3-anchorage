@@ -4,7 +4,7 @@ import { DeployFunction } from 'hardhat-deploy/dist/types'
 import '@eth-optimism/hardhat-deploy-config'
 import { ethers } from 'ethers'
 
-import { assertContractVariable, deploy } from '../src/deploy-utils'
+import { assertContractVariable, deploy } from '../scripts/deploy-utils'
 
 const uint128Max = ethers.BigNumber.from('0xffffffffffffffffffffffffffffffff')
 

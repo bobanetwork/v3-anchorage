@@ -17,7 +17,8 @@ import {
   liveDeployer,
   doPhase,
   isStartOfPhase,
-} from '../src/deploy-utils'
+  getDeploymentAddress,
+} from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployer } = await hre.getNamedAccounts()
@@ -131,7 +132,12 @@ const deployFn: DeployFunction = async (hre) => {
             hre.deployConfig.l2OutputOracleStartingBlockNumber,
           l2OutputOracleStartingTimestamp: deployL2StartingTimestamp,
         },
-        false // do not pause the the OptimismPortal when initializing
+        {
+          l2OutputOracle: await getDeploymentAddress(hre, 'L2OutputOracleProxy'),
+          guardian: hre.deployConfig.portalGuardian,
+          systemConfig: await getDeploymentAddress(hre, 'SystemConfigProxy'),
+          paused: false, // do not pause the the OptimismPortal when initializing
+        }
       )
     } else {
       // pause the OptimismPortal when initializing
@@ -143,7 +149,12 @@ const deployFn: DeployFunction = async (hre) => {
           l2OutputOracleStartingTimestamp:
             hre.deployConfig.l2OutputOracleStartingTimestamp,
         },
-        optimismPortalPaused
+        {
+          l2OutputOracle: await getDeploymentAddress(hre, 'L2OutputOracleProxy'),
+          guardian: hre.deployConfig.portalGuardian,
+          systemConfig: await getDeploymentAddress(hre, 'SystemConfigProxy'),
+          paused: optimismPortalPaused,
+        }
       )
       console.log(`Please update dynamic oracle config...`)
       console.log(
@@ -153,7 +164,10 @@ const deployFn: DeployFunction = async (hre) => {
               hre.deployConfig.l2OutputOracleStartingBlockNumber,
             l2OutputOracleStartingTimestamp:
               hre.deployConfig.l2OutputOracleStartingTimestamp,
-            optimismPortalPaused,
+              l2OutputOracle: await getDeploymentAddress(hre, 'L2OutputOracleProxy'),
+              portalGuardian: hre.deployConfig.portalGuardian,
+              systemConfig: await getDeploymentAddress(hre, 'SystemConfigProxy'),
+              paused: optimismPortalPaused,
           },
           null,
           2

@@ -2,7 +2,7 @@ import { DeployFunction } from 'hardhat-deploy/dist/types'
 import '@eth-optimism/hardhat-deploy-config'
 import 'hardhat-deploy'
 
-import { deploy } from '../src/deploy-utils'
+import { deploy } from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   await deploy({

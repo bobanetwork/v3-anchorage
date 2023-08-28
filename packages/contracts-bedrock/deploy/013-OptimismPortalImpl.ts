@@ -5,7 +5,7 @@ import {
   assertContractVariable,
   deploy,
   getContractFromArtifact,
-} from '../src/deploy-utils'
+} from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployer } = await hre.getNamedAccounts()

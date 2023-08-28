@@ -3,7 +3,7 @@ import '@nomiclabs/hardhat-ethers'
 import 'hardhat-deploy'
 import { OpNodeProvider, sleep } from '@eth-optimism/core-utils'
 
-import { predeploys } from '../src'
+import { predeploys } from '../scripts'
 
 task('watch', 'Watch an Optimism System')
   .addParam(

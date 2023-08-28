@@ -12,7 +12,7 @@ import 'hardhat-deploy'
 import './tasks'
 
 // Deploy configuration
-import { deployConfigSpec } from './src/deploy-config'
+import { deployConfigSpec } from './scripts/deploy-config'
 
 // Load environment variables
 dotenv.config()

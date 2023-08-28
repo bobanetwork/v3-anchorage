@@ -300,6 +300,21 @@ export const getDeploymentAddress = async (
 }
 
 /**
+ * Returns the block number for a given deployed contract by name.
+ *
+ * @param hre HardhatRuntimeEnvironment.
+ * @param name Name of the deployed contract.
+ * @returns Block number of the deployed contract.
+ */
+export const getDeploymentBlock = async (
+  hre: HardhatRuntimeEnvironment,
+  name: string
+): Promise<number> => {
+  const deployment = await hre.deployments.get(name)
+  return deployment.receipt.blockNumber
+}
+
+/**
  * JSON-ifies an ethers transaction object.
  *
  * @param tx Ethers transaction object.

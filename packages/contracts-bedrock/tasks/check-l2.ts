@@ -6,7 +6,7 @@ import 'hardhat-deploy'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { Contract, providers, Wallet, Signer, BigNumber } from 'ethers'
 
-import { predeploys } from '../src'
+import { predeploys } from '../scripts'
 
 // expectedSemver is the semver version of the contracts
 // deployed at bedrock deployment

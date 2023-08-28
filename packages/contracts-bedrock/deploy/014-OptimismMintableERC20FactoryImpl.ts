@@ -4,7 +4,7 @@ import {
   assertContractVariable,
   deploy,
   getContractFromArtifact,
-} from '../src/deploy-utils'
+} from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const L1StandardBridgeProxy = await getContractFromArtifact(

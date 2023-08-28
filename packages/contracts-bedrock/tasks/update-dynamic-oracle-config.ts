@@ -3,7 +3,7 @@ import readline from 'readline'
 import { task, types } from 'hardhat/config'
 import { ethers, Wallet } from 'ethers'
 
-import { getContractsFromArtifacts } from '../src/deploy-utils'
+import { getContractsFromArtifacts } from '../scripts/deploy-utils'
 
 task('update-dynamic-oracle-config', 'Updates the dynamic oracle config.')
   .addParam(

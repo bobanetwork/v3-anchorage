@@ -1,11 +1,11 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
-import { predeploys } from '../src'
+import { predeploys } from '../scripts'
 import {
   assertContractVariable,
   deploy,
   getContractFromArtifact,
-} from '../src/deploy-utils'
+} from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const L1CrossDomainMessengerProxy = await getContractFromArtifact(

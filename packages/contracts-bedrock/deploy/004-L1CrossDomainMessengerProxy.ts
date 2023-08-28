@@ -1,6 +1,6 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
-import { deploy, getDeploymentAddress } from '../src/deploy-utils'
+import { deploy, getDeploymentAddress } from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const addressManager = await getDeploymentAddress(hre, 'Lib_AddressManager')

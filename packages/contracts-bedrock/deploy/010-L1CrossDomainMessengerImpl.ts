@@ -4,7 +4,7 @@ import {
   assertContractVariable,
   deploy,
   getContractFromArtifact,
-} from '../src/deploy-utils'
+} from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const OptimismPortalProxy = await getContractFromArtifact(
@@ -15,7 +15,7 @@ const deployFn: DeployFunction = async (hre) => {
   await deploy({
     hre,
     name: 'L1CrossDomainMessenger',
-    args: [OptimismPortalProxy.address],
+    args: [],
     postDeployAction: async (contract) => {
       await assertContractVariable(
         contract,
