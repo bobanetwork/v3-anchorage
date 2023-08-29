@@ -21,16 +21,8 @@ const deployFn: DeployFunction = async (hre) => {
         'owner',
         '0x000000000000000000000000000000000000dEaD'
       )
-      await assertContractVariable(
-        contract,
-        'overhead',
-        0
-      )
-      await assertContractVariable(
-        contract,
-        'scalar',
-        0
-      )
+      await assertContractVariable(contract, 'overhead', 0)
+      await assertContractVariable(contract, 'scalar', 0)
       await assertContractVariable(contract, 'batcherHash', batcherHash)
       await assertContractVariable(
         contract,

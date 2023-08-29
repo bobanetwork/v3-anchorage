@@ -9,11 +9,7 @@ const deployFn: DeployFunction = async (hre) => {
     name: 'OptimismMintableERC20Factory',
     args: [],
     postDeployAction: async (contract) => {
-      await assertContractVariable(
-        contract,
-        'BRIDGE',
-        constants.AddressZero
-      )
+      await assertContractVariable(contract, 'BRIDGE', constants.AddressZero)
     },
   })
 }

@@ -9,11 +9,7 @@ const deployFn: DeployFunction = async (hre) => {
     name: 'L1CrossDomainMessenger',
     args: [],
     postDeployAction: async (contract) => {
-      await assertContractVariable(
-        contract,
-        'PORTAL',
-        constants.AddressZero
-      )
+      await assertContractVariable(contract, 'PORTAL', constants.AddressZero)
     },
   })
 }

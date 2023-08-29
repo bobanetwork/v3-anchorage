@@ -38,11 +38,7 @@ const deployFn: DeployFunction = async (hre) => {
         'L2_BLOCK_TIME',
         hre.deployConfig.l2BlockTime
       )
-      await assertContractVariable(
-        contract,
-        'PROPOSER',
-        constants.AddressZero
-      )
+      await assertContractVariable(contract, 'PROPOSER', constants.AddressZero)
       await assertContractVariable(
         contract,
         'CHALLENGER',

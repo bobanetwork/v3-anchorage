@@ -31,26 +31,14 @@ const deployFn: DeployFunction = async (hre) => {
     name: 'OptimismPortal',
     args: [],
     postDeployAction: async (contract) => {
-      await assertContractVariable(
-        contract,
-        'L2_ORACLE',
-        constants.AddressZero
-      )
-      await assertContractVariable(
-        contract,
-        'GUARDIAN',
-        constants.AddressZero
-      )
+      await assertContractVariable(contract, 'L2_ORACLE', constants.AddressZero)
+      await assertContractVariable(contract, 'GUARDIAN', constants.AddressZero)
       await assertContractVariable(
         contract,
         'SYSTEM_CONFIG',
         constants.AddressZero
       )
-      await assertContractVariable(
-        contract,
-        'paused',
-        true
-      )
+      await assertContractVariable(contract, 'paused', true)
     },
   })
 }

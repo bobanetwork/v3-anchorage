@@ -10,11 +10,7 @@ const deployFn: DeployFunction = async (hre) => {
     name: 'L1ERC721Bridge',
     args: [],
     postDeployAction: async (contract) => {
-      await assertContractVariable(
-        contract,
-        'MESSENGER',
-        constants.AddressZero
-      )
+      await assertContractVariable(contract, 'MESSENGER', constants.AddressZero)
       await assertContractVariable(
         contract,
         'OTHER_BRIDGE',
