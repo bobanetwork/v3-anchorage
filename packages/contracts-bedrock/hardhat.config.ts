@@ -23,7 +23,7 @@ const config: HardhatUserConfig = {
       live: false,
     },
     local: {
-      live: false,
+      live: true,
       url: 'http://localhost:8545',
       saveDeployments: !!process.env.SAVE_DEPLOYMENTS || false,
       accounts: [

@@ -457,6 +457,63 @@ contract SystemDictator is OwnableUpgradeable {
             payable(config.proxyAddressConfig.l1ERC721BridgeProxy),
             address(config.implementationAddressConfig.l1ERC721BridgeImpl)
         );
+
+        // Try to initialize the L1StandardBridge, only fail if it's already been initialized.
+        try
+            L1StandardBridge(payable(config.proxyAddressConfig.l1StandardBridgeProxy))
+                .initialize(L1CrossDomainMessenger(config.proxyAddressConfig.l1CrossDomainMessengerProxy))
+        {
+            // L1StandardBridge is the one annoying edge case difference between existing
+            // networks and fresh networks because in existing networks it'll already be
+            // initialized but in fresh networks it won't be. Try/catch is the easiest and most
+            // consistent way to handle this because initialized() is not exposed publicly.
+        } catch Error(string memory reason) {
+            require(
+                keccak256(abi.encodePacked(reason)) ==
+                    keccak256("Initializable: contract is already initialized"),
+                string.concat("SystemDictator: unexpected error initializing L1SB: ", reason)
+            );
+        } catch {
+            revert("SystemDictator: unexpected error initializing L1SB (no reason)");
+        }
+
+        // Try to initialize the OptimismMintableERC20FactoryProxy, only fail if it's already been initialized.
+        try
+            OptimismMintableERC20Factory(config.proxyAddressConfig.optimismMintableERC20FactoryProxy)
+                .initialize(config.proxyAddressConfig.l1StandardBridgeProxy)
+        {
+            // OptimismMintableERC20Factory is the one annoying edge case difference between existing
+            // networks and fresh networks because in existing networks it'll already be
+            // initialized but in fresh networks it won't be. Try/catch is the easiest and most
+            // consistent way to handle this because initialized() is not exposed publicly.
+        } catch Error(string memory reason) {
+            require(
+                keccak256(abi.encodePacked(reason)) ==
+                    keccak256("Initializable: contract is already initialized"),
+                string.concat("SystemDictator: unexpected error initializing OMEF: ", reason)
+            );
+        } catch {
+            revert("SystemDictator: unexpected error initializing OMEF (no reason)");
+        }
+
+        // Try to initialize the L1ERC721Bridge, only fail if it's already been initialized.
+        try
+            L1ERC721Bridge(payable(config.proxyAddressConfig.l1ERC721BridgeProxy))
+                .initialize(L1CrossDomainMessenger(config.proxyAddressConfig.l1CrossDomainMessengerProxy))
+        {
+            // L1ERC721Bridge is the one annoying edge case difference between existing
+            // networks and fresh networks because in existing networks it'll already be
+            // initialized but in fresh networks it won't be. Try/catch is the easiest and most
+            // consistent way to handle this because initialized() is not exposed publicly.
+        } catch Error(string memory reason) {
+            require(
+                keccak256(abi.encodePacked(reason)) ==
+                    keccak256("Initializable: contract is already initialized"),
+                string.concat("SystemDictator: unexpected error initializing L1ERC721Bridge: ", reason)
+            );
+        } catch {
+            revert("SystemDictator: unexpected error initializing L1ERC721Bridge (no reason)");
+        }
     }
 
     /**

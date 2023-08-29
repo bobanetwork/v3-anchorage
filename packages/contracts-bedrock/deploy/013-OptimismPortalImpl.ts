@@ -1,25 +1,13 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
+import { constants } from 'ethers'
 import '@eth-optimism/hardhat-deploy-config'
 
-import {
-  assertContractVariable,
-  deploy,
-  getContractFromArtifact,
-} from '../scripts/deploy-utils'
+import { assertContractVariable, deploy } from '../scripts/deploy-utils'
 
 const deployFn: DeployFunction = async (hre) => {
   const { deployer } = await hre.getNamedAccounts()
   const isLiveDeployer =
     deployer.toLowerCase() === hre.deployConfig.controller.toLowerCase()
-
-  const L2OutputOracleProxy = await getContractFromArtifact(
-    hre,
-    'L2OutputOracleProxy'
-  )
-
-  const Artifact__SystemConfigProxy = await hre.deployments.get(
-    'SystemConfigProxy'
-  )
 
   const portalGuardian = hre.deployConfig.portalGuardian
   const portalGuardianCode = await hre.ethers.provider.getCode(portalGuardian)
@@ -41,27 +29,27 @@ const deployFn: DeployFunction = async (hre) => {
   await deploy({
     hre,
     name: 'OptimismPortal',
-    args: [
-      L2OutputOracleProxy.address,
-      portalGuardian,
-      true, // paused
-      Artifact__SystemConfigProxy.address,
-    ],
+    args: [],
     postDeployAction: async (contract) => {
       await assertContractVariable(
         contract,
         'L2_ORACLE',
-        L2OutputOracleProxy.address
+        constants.AddressZero
       )
       await assertContractVariable(
         contract,
         'GUARDIAN',
-        hre.deployConfig.portalGuardian
+        constants.AddressZero
       )
       await assertContractVariable(
         contract,
         'SYSTEM_CONFIG',
-        Artifact__SystemConfigProxy.address
+        constants.AddressZero
+      )
+      await assertContractVariable(
+        contract,
+        'paused',
+        true
       )
     },
   })

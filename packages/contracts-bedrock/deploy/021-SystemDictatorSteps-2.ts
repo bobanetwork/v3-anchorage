@@ -131,10 +131,12 @@ const deployFn: DeployFunction = async (hre) => {
           l2OutputOracleStartingBlockNumber:
             hre.deployConfig.l2OutputOracleStartingBlockNumber,
           l2OutputOracleStartingTimestamp: deployL2StartingTimestamp,
+          l2OutputOracleProposer: hre.deployConfig.l2OutputOracleProposer,
+          l2OutputOracleChallenger: hre.deployConfig.l2OutputOracleChallenger,
         },
         {
           l2OutputOracle: await getDeploymentAddress(hre, 'L2OutputOracleProxy'),
-          guardian: hre.deployConfig.portalGuardian,
+          portalGuardian: hre.deployConfig.portalGuardian,
           systemConfig: await getDeploymentAddress(hre, 'SystemConfigProxy'),
           paused: false, // do not pause the the OptimismPortal when initializing
         }
@@ -148,10 +150,12 @@ const deployFn: DeployFunction = async (hre) => {
             hre.deployConfig.l2OutputOracleStartingBlockNumber,
           l2OutputOracleStartingTimestamp:
             hre.deployConfig.l2OutputOracleStartingTimestamp,
+            l2OutputOracleProposer: hre.deployConfig.l2OutputOracleProposer,
+            l2OutputOracleChallenger: hre.deployConfig.l2OutputOracleChallenger,
         },
         {
           l2OutputOracle: await getDeploymentAddress(hre, 'L2OutputOracleProxy'),
-          guardian: hre.deployConfig.portalGuardian,
+          portalGuardian: hre.deployConfig.portalGuardian,
           systemConfig: await getDeploymentAddress(hre, 'SystemConfigProxy'),
           paused: optimismPortalPaused,
         }
