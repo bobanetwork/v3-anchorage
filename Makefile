@@ -126,7 +126,7 @@ devnet-clean:
 .PHONY: devnet-clean
 
 devnet-allocs:
-	PYTHONPATH=./bedrock-devnet python3 ./bedrock-devnet/main.py --monorepo-dir=. --allocs
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/main.py --monorepo-dir=. --allocs
 
 devnet-logs:
 	@(cd ./ops-bedrock && docker compose logs -f)
