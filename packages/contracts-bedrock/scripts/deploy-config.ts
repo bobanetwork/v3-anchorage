@@ -186,6 +186,7 @@ interface OptionalL2DeployConfig {
   eip1559Elasticity: number
   gasPriceOracleOverhead: number
   gasPriceOracleScalar: number
+  l1BobaTokenAddress: string
 }
 
 /**
@@ -372,6 +373,9 @@ export const deployConfigSpec: {
     default: 'Optimism',
   },
   governanceTokenOwner: {
+    type: 'string',
+  },
+  l1BobaTokenAddress: {
     type: 'string',
   },
 }
