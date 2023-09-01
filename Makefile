@@ -109,6 +109,13 @@ devnet-up:
 # alias for devnet-up
 devnet-up-deploy: devnet-up
 
+devnet-harhdat-up:
+	@if [ ! -e op-program/bin ]; then \
+		make cannon-prestate; \
+	fi
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=.
+.PHONY: devnet-harhdat-up
+
 devnet-test:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/main.py --monorepo-dir=. --test
 .PHONY: devnet-test

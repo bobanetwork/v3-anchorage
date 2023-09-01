@@ -30,6 +30,11 @@ const config: HardhatUserConfig = {
         'ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
       ],
     },
+    'hardhat-local': {
+      url: process.env.L1_RPC || '',
+      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
+      live: true,
+    },
     'boba-devnet': {
       chainId: 11155111,
       url: process.env.L1_RPC || '',
@@ -60,6 +65,7 @@ const config: HardhatUserConfig = {
     deployments: {
       local: ['../contracts/deployments/local'],
       'boba-devnet': ['../contracts/deployments/boba-devnet'],
+      'hardhat-local': ['../contracts/deployments/hardhat-local'],
     },
   },
   solidity: {
