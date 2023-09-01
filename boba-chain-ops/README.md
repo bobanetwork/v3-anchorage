@@ -452,5 +452,3 @@ We can restore the legacy system by resetting the addresses in `Lib_AddressManag
   	"Proxy__L1StandardBridge"
   }
   ```
-
-  
