@@ -1,6 +1,7 @@
 package config
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -104,6 +105,19 @@ func TestDatadirRequired(t *testing.T) {
 	require.ErrorIs(t, config.Check(), ErrMissingDatadir)
 }
 
+func TestMaxConcurrency(t *testing.T) {
+	t.Run("Required", func(t *testing.T) {
+		config := validConfig(TraceTypeAlphabet)
+		config.MaxConcurrency = 0
+		require.ErrorIs(t, config.Check(), ErrMaxConcurrencyZero)
+	})
+
+	t.Run("DefaultToNumberOfCPUs", func(t *testing.T) {
+		config := validConfig(TraceTypeAlphabet)
+		require.EqualValues(t, runtime.NumCPU(), config.MaxConcurrency)
+	})
+}
+
 func TestCannonL2Required(t *testing.T) {
 	config := validConfig(TraceTypeCannon)
 	config.CannonL2 = ""
@@ -115,6 +129,14 @@ func TestCannonSnapshotFreq(t *testing.T) {
 		cfg := validConfig(TraceTypeCannon)
 		cfg.CannonSnapshotFreq = 0
 		require.ErrorIs(t, cfg.Check(), ErrMissingCannonSnapshotFreq)
+	})
+}
+
+func TestCannonInfoFreq(t *testing.T) {
+	t.Run("MustNotBeZero", func(t *testing.T) {
+		cfg := validConfig(TraceTypeCannon)
+		cfg.CannonInfoFreq = 0
+		require.ErrorIs(t, cfg.Check(), ErrMissingCannonInfoFreq)
 	})
 }
 

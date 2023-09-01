@@ -48,3 +48,6 @@ __pycache__
 
 # Ignore echidna artifacts
 crytic-export
+
+# ignore yarn.lock
+boba-community/*/yarn.lock

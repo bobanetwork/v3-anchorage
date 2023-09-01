@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -16,6 +17,7 @@ import (
 var (
 	ErrMissingTraceType              = errors.New("missing trace type")
 	ErrMissingDatadir                = errors.New("missing datadir")
+	ErrMaxConcurrencyZero            = errors.New("max concurrency must not be 0")
 	ErrMissingCannonL2               = errors.New("missing cannon L2")
 	ErrMissingCannonBin              = errors.New("missing cannon bin")
 	ErrMissingCannonServer           = errors.New("missing cannon server")
@@ -24,6 +26,7 @@ var (
 	ErrMissingL1EthRPC               = errors.New("missing l1 eth rpc url")
 	ErrMissingGameFactoryAddress     = errors.New("missing game factory address")
 	ErrMissingCannonSnapshotFreq     = errors.New("missing cannon snapshot freq")
+	ErrMissingCannonInfoFreq         = errors.New("missing cannon info freq")
 	ErrMissingCannonRollupConfig     = errors.New("missing cannon network or rollup config path")
 	ErrMissingCannonL2Genesis        = errors.New("missing cannon network or l2 genesis path")
 	ErrCannonNetworkAndRollupConfig  = errors.New("only specify one of network or rollup config path")
@@ -76,6 +79,7 @@ func ValidTraceType(value TraceType) bool {
 
 const (
 	DefaultCannonSnapshotFreq = uint(1_000_000_000)
+	DefaultCannonInfoFreq     = uint(10_000_000)
 	// DefaultGameWindow is the default maximum time duration in the past
 	// that the challenger will look for games to progress.
 	// The default value is 11 days, which is a 4 day resolution buffer
@@ -93,6 +97,7 @@ type Config struct {
 	GameWindow              time.Duration    // Maximum time duration to look for games to progress
 	AgreeWithProposedOutput bool             // Temporary config if we agree or disagree with the posted output
 	Datadir                 string           // Data Directory
+	MaxConcurrency          uint             // Maximum number of threads to use when progressing games
 
 	TraceType TraceType // Type of trace
 
@@ -108,6 +113,7 @@ type Config struct {
 	CannonL2GenesisPath    string
 	CannonL2               string // L2 RPC Url
 	CannonSnapshotFreq     uint   // Frequency of snapshots to create when executing cannon (in VM instructions)
+	CannonInfoFreq         uint   // Frequency of cannon progress log messages (in VM instructions)
 
 	TxMgrConfig   txmgr.CLIConfig
 	MetricsConfig opmetrics.CLIConfig
@@ -124,6 +130,7 @@ func NewConfig(
 	return Config{
 		L1EthRpc:           l1EthRpc,
 		GameFactoryAddress: gameFactoryAddress,
+		MaxConcurrency:     uint(runtime.NumCPU()),
 
 		AgreeWithProposedOutput: agreeWithProposedOutput,
 
@@ -136,6 +143,7 @@ func NewConfig(
 		Datadir: datadir,
 
 		CannonSnapshotFreq: DefaultCannonSnapshotFreq,
+		CannonInfoFreq:     DefaultCannonInfoFreq,
 		GameWindow:         DefaultGameWindow,
 	}
 }
@@ -152,6 +160,9 @@ func (c Config) Check() error {
 	}
 	if c.Datadir == "" {
 		return ErrMissingDatadir
+	}
+	if c.MaxConcurrency == 0 {
+		return ErrMaxConcurrencyZero
 	}
 	if c.TraceType == TraceTypeCannon {
 		if c.CannonBin == "" {
@@ -186,6 +197,9 @@ func (c Config) Check() error {
 		}
 		if c.CannonSnapshotFreq == 0 {
 			return ErrMissingCannonSnapshotFreq
+		}
+		if c.CannonInfoFreq == 0 {
+			return ErrMissingCannonInfoFreq
 		}
 	}
 	if c.TraceType == TraceTypeAlphabet && c.AlphabetTrace == "" {

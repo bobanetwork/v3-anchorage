@@ -2,13 +2,18 @@ package config
 
 import (
 	"fmt"
-	"math/big"
 	"os"
 	"reflect"
 
 	"github.com/BurntSushi/toml"
 	"github.com/ethereum/go-ethereum/common"
 	geth_log "github.com/ethereum/go-ethereum/log"
+)
+
+const (
+	// default to 5 seconds
+	defaultLoopInterval     = 5000
+	defaultHeaderBufferSize = 500
 )
 
 // in future presets can just be onchain config and fetched on initialization
@@ -59,15 +64,21 @@ func (c *L1Contracts) AsSlice() ([]common.Address, error) {
 // ChainConfig configures of the chain being indexed
 type ChainConfig struct {
 	// Configure known chains with the l2 chain id
-	// NOTE - This currently performs no lookups to extract known L1 contracts by l2 chain id
-	Preset      int
-	L1Contracts L1Contracts `toml:"l1-contracts"`
-	// L1StartingHeight is the block height to start indexing from
-	L1StartingHeight uint `toml:"l1-starting-height"`
-}
+	Preset int
 
-func (cc *ChainConfig) L1StartHeight() *big.Int {
-	return big.NewInt(int64(cc.L1StartingHeight))
+	L1Contracts      L1Contracts `toml:"l1-contracts"`
+	L1StartingHeight uint        `toml:"l1-starting-height"`
+
+	// These configuration options will be removed once
+	// native reorg handling is implemented
+	L1ConfirmationDepth uint `toml:"l1-confirmation-depth"`
+	L2ConfirmationDepth uint `toml:"l2-confirmation-depth"`
+
+	L1PollingInterval uint `toml:"l1-polling-interval"`
+	L2PollingInterval uint `toml:"l2-polling-interval"`
+
+	L1HeaderBufferSize uint `toml:"l1-header-buffer-size"`
+	L2HeaderBufferSize uint `toml:"l2-header-buffer-size"`
 }
 
 // RPCsConfig configures the RPC urls
@@ -121,6 +132,27 @@ func LoadConfig(logger geth_log.Logger, path string) (Config, error) {
 		} else {
 			return conf, fmt.Errorf("unknown preset: %d", conf.Chain.Preset)
 		}
+	}
+
+	// Set polling defaults if not set
+	if conf.Chain.L1PollingInterval == 0 {
+		logger.Info("setting default L1 polling interval", "interval", defaultLoopInterval)
+		conf.Chain.L1PollingInterval = defaultLoopInterval
+	}
+
+	if conf.Chain.L2PollingInterval == 0 {
+		logger.Info("setting default L2 polling interval", "interval", defaultLoopInterval)
+		conf.Chain.L2PollingInterval = defaultLoopInterval
+	}
+
+	if conf.Chain.L1HeaderBufferSize == 0 {
+		logger.Info("setting default L1 header buffer", "size", defaultHeaderBufferSize)
+		conf.Chain.L1HeaderBufferSize = defaultHeaderBufferSize
+	}
+
+	if conf.Chain.L2HeaderBufferSize == 0 {
+		logger.Info("setting default L2 header buffer", "size", defaultHeaderBufferSize)
+		conf.Chain.L2HeaderBufferSize = defaultHeaderBufferSize
 	}
 
 	logger.Info("loaded config")
