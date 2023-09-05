@@ -938,9 +938,6 @@ jobs:
             source $HOME/.bashrc
             forge --version
       - run:
-          name: install geth
-          command: make install-geth
-      - run:
           name: Install NVM
           command: |
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
@@ -967,7 +964,7 @@ jobs:
           command: make cannon-prestate
       - run:
           name: Bring up the stack
-          command: make devnet-harhdat-up
+          command: make devnet-hardhat-up
       # - run:
       #     name: Test the stack
       #     command: make devnet-test

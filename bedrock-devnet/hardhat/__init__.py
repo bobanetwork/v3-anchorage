@@ -117,7 +117,8 @@ def devnet_write_env(paths):
     write_json(paths.devnet_config_path, config)
 
 def devnet_deploy(paths):
-    shutil.rmtree(paths.deployment_dir)
+    if os.path.exists(paths.deployment_dir):
+        shutil.rmtree(paths.deployment_dir)
 
     run_command([
         'yarn', 'deploy:hardhat', '--network', 'hardhat-local'
