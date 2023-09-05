@@ -963,6 +963,10 @@ jobs:
           name: generate cannon prestate
           command: make cannon-prestate
       - run:
+          name: Build images
+          command: docker-compose build
+          working_directory: ops-bedrock
+      - run:
           name: Bring up the stack
           command: make devnet-hardhat-up
       - run:
