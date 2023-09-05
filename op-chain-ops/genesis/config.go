@@ -199,9 +199,9 @@ type DeployConfig struct {
 	// during devnet deployments.
 	FundDevAccounts bool `json:"fundDevAccounts"`
 	// It controls the upgrade process of the L1 contracts.
-	Controller common.Address `json:"controller,omitempty"`
+	Controller *common.Address `json:"controller,omitempty"`
 	// L1 Boba token address
-	L1BobaToken common.Address `json:"l1BobaTokenAddress,omitempty"`
+	L1BobaToken *common.Address `json:"l1BobaTokenAddress,omitempty"`
 }
 
 // Copy will deeply copy the DeployConfig. This does a JSON roundtrip to copy

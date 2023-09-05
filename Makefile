@@ -116,6 +116,10 @@ devnet-hardhat-up:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=.
 .PHONY: devnet-hardhat-up
 
+devnet-hardhat-test:
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --test
+.PHONY: devnet-hardhat-test
+
 devnet-test:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/main.py --monorepo-dir=. --test
 .PHONY: devnet-test

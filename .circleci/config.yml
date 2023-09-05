@@ -965,46 +965,34 @@ jobs:
       - run:
           name: Bring up the stack
           command: make devnet-hardhat-up
-      # - run:
-      #     name: Test the stack
-      #     command: make devnet-test
-      # - run:
-      #     name: Dump op-node logs
-      #     command: |
-      #       docker logs ops-bedrock-op-node-1 || echo "No logs."
-      #     when: on_fail
-      # - run:
-      #     name: Dump op-geth logs
-      #     command: |
-      #       docker logs ops-bedrock-l2-1 || echo "No logs."
-      #     when: on_fail
-      # - run:
-      #     name: Dump l1 logs
-      #     command: |
-      #       docker logs ops-bedrock-l1-1 || echo "No logs."
-      #     when: on_fail
-      # - run:
-      #     name: Dump op-batcher logs
-      #     command: |
-      #       docker logs ops-bedrock-op-batcher-1 || echo "No logs."
-      #     when: on_fail
-      # - run:
-      #     name: Dump op-proposer logs
-      #     command: |
-      #       docker logs ops-bedrock-op-proposer-1 || echo "No logs."
-      #     when: on_fail
-      # - run:
-      #     name: Log deployment artifact
-      #     command: |
-      #       cat broadcast/Deploy.s.sol/900/run-latest.json || echo "No deployment file found"
-      #     when: on_fail
-      #     working_directory: packages/contracts-bedrock
-      # - run:
-      #     name: Log artifacts directory
-      #     command: |
-      #       ls -R forge-artifacts || echo "No forge artifacts found"
-      #     when: on_fail
-      #     working_directory: packages/contracts-bedrock
+      - run:
+          name: Test the stack
+          command: make devnet-hardhat-test
+      - run:
+          name: Dump op-node logs
+          command: |
+            docker logs ops-bedrock-op-node-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump op-geth logs
+          command: |
+            docker logs ops-bedrock-l2-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump l1 logs
+          command: |
+            docker logs ops-bedrock-l1-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump op-batcher logs
+          command: |
+            docker logs ops-bedrock-op-batcher-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump op-proposer logs
+          command: |
+            docker logs ops-bedrock-op-proposer-1 || echo "No logs."
+          when: on_fail
 
   devnet:
     machine:

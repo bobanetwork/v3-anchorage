@@ -4,12 +4,9 @@ import os
 import subprocess
 import json
 import socket
-import calendar
-import datetime
 import time
 import shutil
 import http.client
-from multiprocessing import Process, Queue
 
 pjoin = os.path.join
 
@@ -21,11 +18,11 @@ parser.add_argument('--test', help='Tests the deployment, must already be deploy
 log = logging.getLogger()
 
 DEV_ACCOUNTS = [
-    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-    "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-    "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+    '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+    '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+    '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+    '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65'
 ]
 
 class Bunch:
@@ -38,12 +35,15 @@ def main():
     monorepo_dir = os.path.abspath(args.monorepo_dir)
     devnet_dir = pjoin(monorepo_dir, '.devnet')
     contracts_bedrock_dir = pjoin(monorepo_dir, 'packages', 'contracts-bedrock')
+    deployments_dir = pjoin(contracts_bedrock_dir, 'deployments')
     deployment_dir = pjoin(contracts_bedrock_dir, 'deployments', 'hardhat-local')
     op_node_dir = pjoin(args.monorepo_dir, 'op-node')
     ops_bedrock_dir = pjoin(monorepo_dir, 'ops-bedrock')
     deploy_config_dir = pjoin(contracts_bedrock_dir, 'deploy-config'),
     devnet_config_path = pjoin(contracts_bedrock_dir, 'deploy-config', 'hardhat-local.json')
+    devnet_config_export_path = pjoin(contracts_bedrock_dir, 'deploy-config', 'hardhat-local.ts')
     ops_chain_ops = pjoin(monorepo_dir, 'op-chain-ops')
+    boba_chain_ops = pjoin(monorepo_dir, 'boba-chain-ops')
     sdk_dir = pjoin(monorepo_dir, 'packages', 'sdk')
     env_dir = pjoin(contracts_bedrock_dir, '.env')
 
@@ -51,13 +51,16 @@ def main():
       mono_repo_dir=monorepo_dir,
       devnet_dir=devnet_dir,
       contracts_bedrock_dir=contracts_bedrock_dir,
+      deployments_dir=deployments_dir,
       deployment_dir=deployment_dir,
       l1_deployments_path=pjoin(deployment_dir, '.deploy'),
       deploy_config_dir=deploy_config_dir,
       devnet_config_path=devnet_config_path,
+      devnet_config_export_path=devnet_config_export_path,
       op_node_dir=op_node_dir,
       ops_bedrock_dir=ops_bedrock_dir,
       ops_chain_ops=ops_chain_ops,
+      boba_chain_ops=boba_chain_ops,
       sdk_dir=sdk_dir,
       env_dir=env_dir,
       genesis_l1_path=pjoin(devnet_dir, 'genesis-l1.json'),
@@ -68,12 +71,23 @@ def main():
       rollup_config_path=pjoin(devnet_dir, 'rollup.json')
     )
 
+    if args.test:
+      log.info('Testing deployed devnet')
+      devnet_test(paths)
+      return
+
     os.makedirs(devnet_dir, exist_ok=True)
 
+    log.info('Devnet starting')
     devnet_l1_genesis(paths)
     devnet_bring_l1(paths)
     devnet_write_env(paths)
     devnet_deploy(paths)
+    devnet_generate_files(paths)
+    devnet_bring_l2(paths)
+    devnet_bring_op_node(paths)
+    devnet_bring_batcher_proposer(paths)
+    devnet_store_addresses(paths)
 
 def devnet_l1_genesis(paths):
     # Create the allocs
@@ -102,8 +116,10 @@ def devnet_bring_l1(paths):
 def devnet_write_env(paths):
     log.info("Writing env file")
     with open(paths.env_dir, 'w+') as f:
-        f.write("L1_RPC=http://127.0.0.1:8545\n")
-        f.write("PRIVATE_KEY_DEPLOYER=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80\n")
+        f.write("""
+L1_RPC=http://127.0.0.1:8545
+PRIVATE_KEY_DEPLOYER=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+""")
 
     block_info = eth_block("127.0.0.1:8545")
     block_info = json.loads(block_info)
@@ -116,6 +132,14 @@ def devnet_write_env(paths):
         config['l1BobaTokenAddress'] = DEV_ACCOUNTS[0]
     write_json(paths.devnet_config_path, config)
 
+    with open(paths.devnet_config_export_path, 'w+') as f:
+        f.write("""
+import { DeployConfig } from '../scripts/deploy-config'
+import config from './hardhat-local.json'
+
+export default config satisfies DeployConfig
+""")
+
 def devnet_deploy(paths):
     if os.path.exists(paths.deployment_dir):
         shutil.rmtree(paths.deployment_dir)
@@ -123,6 +147,85 @@ def devnet_deploy(paths):
     run_command([
         'yarn', 'deploy:hardhat', '--network', 'hardhat-local'
     ], cwd=paths.contracts_bedrock_dir)
+
+    if os.path.exists(paths.devnet_config_export_path):
+      os.remove(paths.devnet_config_export_path)
+
+def devnet_generate_files(paths):
+    log.info('Generating L2 genesis and rollup config')
+
+    run_command([
+        'go', 'run', './cmd/boba-devnet',
+        '--l1-rpc', 'http://localhost:8545',
+        '--deploy-config', paths.devnet_config_path,
+        '--hardhat-deployments', paths.deployments_dir,
+        '--network', 'hardhat-local',
+        '--outfile-l2', pjoin(paths.devnet_dir, 'genesis-l2.json'),
+        '--outfile-rollup', pjoin(paths.devnet_dir, 'rollup.json')
+    ], cwd=paths.boba_chain_ops)
+
+    run_command(
+        'openssl rand -hex 32 > test-jwt-secret.txt',
+        shell=True,
+        cwd=paths.devnet_dir
+    )
+
+def devnet_bring_l2(paths):
+    log.info('Bringing up L2.')
+    run_command(['docker', 'compose', 'up', '-d', 'l2'], cwd=paths.ops_bedrock_dir, env={
+        'PWD': paths.ops_bedrock_dir
+    })
+    wait_up(8546)
+    wait_for_rpc_server('127.0.0.1:9545')
+
+def devnet_bring_op_node(paths):
+    log.info('Bringing up op-node.')
+    run_command(['docker', 'compose', 'up', '-d', 'op-node'], cwd=paths.ops_bedrock_dir, env={
+        'PWD': paths.ops_bedrock_dir
+    })
+
+def devnet_bring_batcher_proposer(paths):
+    log.info('Bringing up batcher and proposer.')
+
+    L2OO_deployment = read_json(pjoin(paths.deployment_dir, 'L2OutputOracleProxy.json'))
+    l2_output_oracle = L2OO_deployment['address']
+    log.info(f'Using L2OutputOracle {l2_output_oracle}')
+
+    rollup_config = read_json(paths.rollup_config_path)
+    batch_inbox_address = rollup_config['batch_inbox_address']
+    log.info(f'Using batch inbox {batch_inbox_address}')
+
+    run_command(['docker', 'compose', 'up', '-d', 'op-batcher', 'op-proposer'], cwd=paths.ops_bedrock_dir, env={
+        'PWD': paths.ops_bedrock_dir,
+        'L2OO_ADDRESS': l2_output_oracle,
+        'SEQUENCER_BATCH_INBOX_ADDRESS': batch_inbox_address
+    })
+
+def devnet_store_addresses(paths):
+    addresses = {}
+    addresses_name = {
+        'AddressManager': 'Lib_AddressManager.json',
+        'L1CrossDomainMessenger': 'L1CrossDomainMessenger.json',
+        'L1CrossDomainMessengerProxy': 'Proxy__OVM_L1CrossDomainMessenger.json',
+        'L1ERC721Bridge': 'L1ERC721Bridge.json',
+        'L1ERC721BridgeProxy': 'L1ERC721BridgeProxy.json',
+        'L1StandardBridge': 'L1StandardBridge.json',
+        'L1StandardBridgeProxy': 'Proxy__OVM_L1StandardBridge.json',
+        'L2OutputOracle': 'L2OutputOracle.json',
+        'L2OutputOracleProxy': 'L2OutputOracleProxy.json',
+        'OptimismMintableERC20Factory': 'OptimismMintableERC20Factory.json',
+        'OptimismMintableERC20FactoryProxy': 'OptimismMintableERC20FactoryProxy.json',
+        'OptimismPortal': 'OptimismPortal.json',
+        'OptimismPortalProxy': 'OptimismPortalProxy.json',
+        'ProxyAdmin': 'ProxyAdmin.json',
+        'SystemConfig': 'SystemConfig.json',
+        'SystemConfigProxy': 'SystemConfigProxy.json',
+    }
+
+    for k, v in addresses_name.items():
+        deployment = read_json(pjoin(paths.deployment_dir, v))
+        addresses[k] = deployment['address']
+    write_json(paths.addresses_json_path, addresses)
 
 def eth_block(url):
     log.info(f'Fetch eth_getBlockByNumber {url}')
@@ -153,6 +256,25 @@ def wait_for_rpc_server(url):
         except Exception as e:
             log.info(f'Waiting for RPC server at {url}')
             time.sleep(1)
+
+def devnet_test(paths):
+    # # Check the L2 config
+    # run_command(
+    #     ['go', 'run', './cmd/check-l2/main.go', '--l2-rpc-url', 'http://localhost:9545', '--l1-rpc-url', 'http://localhost:8545'],
+    #     cwd=paths.boba_chain_ops,
+    # )
+
+    run_command(
+         ['npx', 'hardhat',  'deposit-eth', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
+         cwd=paths.sdk_dir,
+         timeout=12*60,
+    )
+
+    run_command(
+         ['npx', 'hardhat',  'deposit-erc20', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
+         cwd=paths.sdk_dir,
+         timeout=12*60,
+    )
 
 def run_command(args, check=True, shell=False, cwd=None, env=None, timeout=None):
     env = env if env else {}
