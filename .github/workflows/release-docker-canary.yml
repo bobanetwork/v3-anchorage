@@ -70,7 +70,7 @@ jobs:
           file: ./ops/docker/Dockerfile.packages
           target: fault-mon
           push: true
-          tags: $ORG/fault-mon:${{ needs.canary-publish.outputs.canary-docker-tag }}
+          tags: ${{ env.ORG }}/fault-mon:${{ needs.canary-publish.outputs.canary-docker-tag }}
 
   balance-mon:
     name: Publish Balance Monitor Version ${{ needs.canary-publish.outputs.canary-docker-tag }}
