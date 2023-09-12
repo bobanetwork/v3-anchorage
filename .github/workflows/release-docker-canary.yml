@@ -48,7 +48,7 @@ jobs:
   fault-mon:
     name: Publish fault-mon Version ${{ needs.canary-publish.outputs.canary-docker-tag }}
     needs: canary-publish
-    if: needs.canary-publish.outputs.fault-mon != ''
+    #if: needs.canary-publish.outputs.fault-mon != ''
     runs-on: ubuntu-latest
 
     steps:
