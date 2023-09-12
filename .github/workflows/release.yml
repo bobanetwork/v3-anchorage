@@ -17,7 +17,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.repository == bobanetwork/v3-anchorage
+    if: github.repository == 'bobanetwork/v3-anchorage'
     # map the step outputs to job outputs
     outputs:
       fault-mon: ${{ steps.packages.outputs.fault-mon }}
