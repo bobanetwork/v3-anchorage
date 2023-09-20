@@ -9,7 +9,7 @@ on:
         required: false
         default: '0.0.0-rc-0'
 env:
-  ORG: bobanetwork
+  ORG: ethereumoptimism
 
 jobs:
   canary-publish:
