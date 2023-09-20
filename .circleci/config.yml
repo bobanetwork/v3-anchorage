@@ -807,7 +807,7 @@ jobs:
     steps:
       - checkout
       - check-changed:
-          patterns: op-(.+),contracts-bedrock
+          patterns: op-(.+),cannon,contracts-bedrock
       - run:
           name: prep results dir
           command: mkdir -p /tmp/test-results
@@ -910,6 +910,14 @@ jobs:
           name: Build
           command: make indexer
           working_directory: indexer
+      - run:
+          name: Install tygo
+          command: go install github.com/gzuidhof/tygo@latest
+          working_directory: indexer/api-ts
+      - run:
+          name: Check generated code
+          command: npm run generate && git diff --exit-code
+          working_directory: indexer/api-ts
 
   devnet:
     machine:
@@ -1008,6 +1016,86 @@ jobs:
             ls -R forge-artifacts || echo "No forge artifacts found"
           when: on_fail
           working_directory: packages/contracts-bedrock
+
+  devnet-hardhat:
+    machine:
+      image: ubuntu-2204:2022.10.2
+    environment:
+      DOCKER_BUILDKIT: 1
+    steps:
+      - checkout-with-submodules
+      - check-changed:
+          patterns: op-(.+),packages,ops-bedrock
+      - run:
+          name: Install latest golang
+          command: |
+            wget https://go.dev/dl/go1.20.linux-amd64.tar.gz
+            sudo rm -rf /usr/local/go
+            sudo tar -C /usr/local -xzf go1.20.linux-amd64.tar.gz
+            export PATH=$PATH:/usr/local/go/bin
+            go version
+      - run:
+          name: foundryup
+          command: |
+            curl -L https://foundry.paradigm.xyz | bash
+            source $HOME/.bashrc
+            foundryup
+            echo 'export PATH=$HOME/.foundry/bin:$PATH' >> $BASH_ENV
+            source $HOME/.bashrc
+            forge --version
+      - run:
+          name: Install NVM
+          command: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+            source ~/.bashrc
+            nvm --version
+      - run:
+          name: Install Node
+          command: |
+            nvm install
+            nvm use && node --version && npm --version
+      - run:
+          name: Install pnpm
+          command: |
+            npm i pnpm --global
+      - run:
+          name: git submodules
+          command: git submodule update --init --recursive
+      - run:
+          name: Install and build
+          command: |
+            pnpm install --frozen-lockfile --prefer-offline && pnpm build
+      - run:
+          name: Bring up the stack
+          command: make devnet-hardhat-up
+      - run:
+          name: Test the stack
+          command: make devnet-hardhat-test
+      - run:
+          name: Dump op-node logs
+          command: |
+            docker logs ops-bedrock-op-node-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump op-geth logs
+          command: |
+            docker logs ops-bedrock-l2-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump l1 logs
+          command: |
+            docker logs ops-bedrock-l1-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump op-batcher logs
+          command: |
+            docker logs ops-bedrock-op-batcher-1 || echo "No logs."
+          when: on_fail
+      - run:
+          name: Dump op-proposer logs
+          command: |
+            docker logs ops-bedrock-op-proposer-1 || echo "No logs."
+          when: on_fail
 
   semgrep-scan:
     parameters:
@@ -1164,13 +1252,14 @@ workflows:
           requires:
             - pnpm-monorepo
       - devnet
+      - devnet-hardhat
       - go-lint-test-build:
           name: proxyd-tests
           binary_name: proxyd
           working_directory: proxyd
       - indexer-tests
       - go-lint-test-build:
-          name: op-heartbeat tests
+          name: op-heartbeat-tests
           binary_name: op-heartbeat
           working_directory: op-heartbeat
       - semgrep-scan
@@ -1268,7 +1357,11 @@ workflows:
           target: test-external-erigon
       - bedrock-go-tests:
           requires:
+            - go-mod-tidy
+            - cannon-build-test-vectors
             - cannon-go-lint-and-test
+            - check-generated-mocks-op-node
+            - check-generated-mocks-op-service
             - op-batcher-lint
             - op-bootnode-lint
             - op-bindings-lint
@@ -1282,6 +1375,7 @@ workflows:
             - op-batcher-tests
             - op-bindings-tests
             - op-chain-ops-tests
+            - op-heartbeat-tests
             - op-node-tests
             - op-proposer-tests
             - op-challenger-tests
@@ -1289,6 +1383,7 @@ workflows:
             - op-service-tests
             - op-e2e-WS-tests
             - op-e2e-HTTP-tests
+            - op-e2e-ext-geth-tests
       - docker-build:
           name: op-node-docker-build
           docker_file: op-node/Dockerfile

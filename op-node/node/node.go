@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -19,6 +20,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/rollup/driver"
 	"github.com/ethereum-optimism/optimism/op-node/sources"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum-optimism/optimism/op-service/retry"
 )
 
 type OpNode struct {
@@ -40,10 +42,14 @@ type OpNode struct {
 	tracer    Tracer                // tracer to get events for testing/debugging
 	runCfg    *RuntimeConfig        // runtime configurables
 
+	rollupHalt string // when to halt the rollup, disabled if empty
+
 	// some resources cannot be stopped directly, like the p2p gossipsub router (not our design),
 	// and depend on this ctx to be closed.
 	resourcesCtx   context.Context
 	resourcesClose context.CancelFunc
+
+	closed atomic.Bool
 }
 
 // The OpNode handles incoming gossip
@@ -58,6 +64,7 @@ func New(ctx context.Context, cfg *Config, log log.Logger, snapshotLog log.Logge
 		log:        log,
 		appVersion: appVersion,
 		metrics:    m,
+		rollupHalt: cfg.RollupHalt,
 	}
 	// not a context leak, gossipsub is closed with a context.
 	n.resourcesCtx, n.resourcesClose = context.WithCancel(context.Background())
@@ -159,27 +166,73 @@ func (n *OpNode) initRuntimeConfig(ctx context.Context, cfg *Config) error {
 	// attempt to load runtime config, repeat N times
 	n.runCfg = NewRuntimeConfig(n.log, n.l1Source, &cfg.Rollup)
 
-	for i := 0; i < 5; i++ {
+	confDepth := cfg.Driver.VerifierConfDepth
+	reload := func(ctx context.Context) (eth.L1BlockRef, error) {
 		fetchCtx, fetchCancel := context.WithTimeout(ctx, time.Second*10)
 		l1Head, err := n.l1Source.L1BlockRefByLabel(fetchCtx, eth.Unsafe)
 		fetchCancel()
 		if err != nil {
 			n.log.Error("failed to fetch L1 head for runtime config initialization", "err", err)
-			continue
+			return eth.L1BlockRef{}, err
+		}
+
+		// Apply confirmation-distance
+		blNum := l1Head.Number
+		if blNum >= confDepth {
+			blNum -= confDepth
+		}
+		fetchCtx, fetchCancel = context.WithTimeout(ctx, time.Second*10)
+		confirmed, err := n.l1Source.L1BlockRefByNumber(fetchCtx, blNum)
+		fetchCancel()
+		if err != nil {
+			n.log.Error("failed to fetch confirmed L1 block for runtime config loading", "err", err, "number", blNum)
+			return eth.L1BlockRef{}, err
 		}
 
 		fetchCtx, fetchCancel = context.WithTimeout(ctx, time.Second*10)
-		err = n.runCfg.Load(fetchCtx, l1Head)
+		err = n.runCfg.Load(fetchCtx, confirmed)
 		fetchCancel()
 		if err != nil {
 			n.log.Error("failed to fetch runtime config data", "err", err)
-			continue
+			return l1Head, err
 		}
 
-		return nil
+		n.handleProtocolVersionsUpdate(ctx)
+
+		return l1Head, nil
 	}
 
-	return errors.New("failed to load runtime configuration repeatedly")
+	// initialize the runtime config before unblocking
+	if _, err := retry.Do(ctx, 5, retry.Fixed(time.Second*10), func() (eth.L1BlockRef, error) {
+		return reload(ctx)
+	}); err != nil {
+		return fmt.Errorf("failed to load runtime configuration repeatedly, last error: %w", err)
+	}
+
+	// start a background loop, to keep reloading it at the configured reload interval
+	go func(ctx context.Context, reloadInterval time.Duration) {
+		if reloadInterval <= 0 {
+			n.log.Debug("not running runtime-config reloading background loop")
+			return
+		}
+		ticker := time.NewTicker(reloadInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				// If the reload fails, we will try again the next interval.
+				// Missing a runtime-config update is not critical, and we do not want to overwhelm the L1 RPC.
+				if l1Head, err := reload(ctx); err != nil {
+					n.log.Warn("failed to reload runtime config", "err", err)
+				} else {
+					n.log.Debug("reloaded runtime config", "l1_head", l1Head)
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}(n.resourcesCtx, cfg.RuntimeConfigReloadInterval) // this keeps running after initialization
+	return nil
 }
 
 func (n *OpNode) initL2(ctx context.Context, cfg *Config, snapshotLog log.Logger) error {
@@ -397,8 +450,16 @@ func (n *OpNode) P2P() p2p.Node {
 	return n.p2pNode
 }
 
+func (n *OpNode) RuntimeConfig() ReadonlyRuntimeConfig {
+	return n.runCfg
+}
+
 // Close closes all resources.
 func (n *OpNode) Close() error {
+	if n.closed.Load() {
+		return errors.New("node is already closed")
+	}
+
 	var result *multierror.Error
 
 	if n.server != nil {
@@ -447,7 +508,16 @@ func (n *OpNode) Close() error {
 	if n.l1Source != nil {
 		n.l1Source.Close()
 	}
+
+	if result == nil { // mark as closed if we successfully fully closed
+		n.closed.Store(true)
+	}
+
 	return result.ErrorOrNil()
+}
+
+func (n *OpNode) Closed() bool {
+	return n.closed.Load()
 }
 
 func (n *OpNode) ListenAddr() string {

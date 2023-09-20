@@ -56,8 +56,9 @@ def main():
     deployment_dir = pjoin(contracts_bedrock_dir, 'deployments', 'devnetL1')
     op_node_dir = pjoin(args.monorepo_dir, 'op-node')
     ops_bedrock_dir = pjoin(monorepo_dir, 'ops-bedrock')
-    deploy_config_dir = pjoin(contracts_bedrock_dir, 'deploy-config'),
-    devnet_config_path = pjoin(contracts_bedrock_dir, 'deploy-config', 'devnetL1.json')
+    deploy_config_dir = pjoin(contracts_bedrock_dir, 'deploy-config')
+    devnet_config_path = pjoin(deploy_config_dir, 'devnetL1.json')
+    devnet_config_template_path = pjoin(deploy_config_dir, 'devnetL1-template.json')
     ops_chain_ops = pjoin(monorepo_dir, 'op-chain-ops')
     sdk_dir = pjoin(monorepo_dir, 'packages', 'sdk')
 
@@ -69,6 +70,7 @@ def main():
       l1_deployments_path=pjoin(deployment_dir, '.deploy'),
       deploy_config_dir=deploy_config_dir,
       devnet_config_path=devnet_config_path,
+      devnet_config_template_path=devnet_config_template_path,
       op_node_dir=op_node_dir,
       ops_bedrock_dir=ops_bedrock_dir,
       ops_chain_ops=ops_chain_ops,
@@ -108,6 +110,20 @@ def deploy_contracts(paths):
 
     response = json.loads(res)
     account = response['result'][0]
+    log.info(f'Deploying with {account}')
+
+    # send some ether to the create2 deployer account
+    run_command([
+        'cast', 'send', '--from', account,
+        '--rpc-url', 'http://127.0.0.1:8545',
+        '--unlocked', '--value', '1ether', '0x3fAB184622Dc19b6109349B94811493BF2a45362'
+    ], env={}, cwd=paths.contracts_bedrock_dir)
+
+    # deploy the create2 deployer
+    run_command([
+      'cast', 'publish', '--rpc-url', 'http://127.0.0.1:8545',
+      '0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222'
+    ], env={}, cwd=paths.contracts_bedrock_dir)
 
     fqn = 'scripts/Deploy.s.sol:Deploy'
     run_command([
@@ -124,13 +140,20 @@ def deploy_contracts(paths):
         '--rpc-url', 'http://127.0.0.1:8545'
     ], env={}, cwd=paths.contracts_bedrock_dir)
 
-
+def init_devnet_l1_deploy_config(paths, update_timestamp=False):
+    deploy_config = read_json(paths.devnet_config_template_path)
+    if update_timestamp:
+        deploy_config['l1GenesisBlockTimestamp'] = '{:#x}'.format(int(time.time()))
+    write_json(paths.devnet_config_path, deploy_config)
 
 def devnet_l1_genesis(paths):
     log.info('Generating L1 genesis state')
+    init_devnet_l1_deploy_config(paths)
+
     geth = subprocess.Popen([
         'geth', '--dev', '--http', '--http.api', 'eth,debug',
-        '--verbosity', '4', '--gcmode', 'archive', '--dev.gaslimit', '30000000'
+        '--verbosity', '4', '--gcmode', 'archive', '--dev.gaslimit', '30000000',
+        '--rpc.allow-unprotected-txs'
     ])
 
     forge = ChildProcess(deploy_contracts, paths)
@@ -148,6 +171,12 @@ def devnet_l1_genesis(paths):
     geth.terminate()
 
 
+def add_boba_token_to_config(paths):
+    deploy_config = read_json(paths.devnet_config_path)
+    addresses = read_json(paths.addresses_json_path)
+    deploy_config['l1BobaTokenAddress'] = addresses['BOBA']
+    write_json(paths.devnet_config_path, deploy_config)
+
 # Bring up the devnet where the contracts are deployed to L1
 def devnet_deploy(paths):
     if os.path.exists(paths.genesis_l1_path):
@@ -157,13 +186,13 @@ def devnet_deploy(paths):
         if os.path.exists(paths.allocs_path) == False:
             devnet_l1_genesis(paths)
 
-        devnet_config_backup = pjoin(paths.devnet_dir, 'devnetL1.json.bak')
-        shutil.copy(paths.devnet_config_path, devnet_config_backup)
-        deploy_config = read_json(paths.devnet_config_path)
-        deploy_config['l1GenesisBlockTimestamp'] = '{:#x}'.format(int(time.time()))
-        write_json(paths.devnet_config_path, deploy_config)
+        # It's odd that we want to regenerate the devnetL1.json file with
+        # an updated timestamp different than the one used in the devnet_l1_genesis
+        # function.  But, without it, CI flakes on this test rather consistently.
+        # If someone reads this comment and understands why this is being done, please
+        # update this comment to explain.
+        init_devnet_l1_deploy_config(paths, update_timestamp=True)
         outfile_l1 = pjoin(paths.devnet_dir, 'genesis-l1.json')
-
         run_command([
             'go', 'run', 'cmd/main.go', 'genesis', 'l1',
             '--deploy-config', paths.devnet_config_path,
@@ -178,6 +207,8 @@ def devnet_deploy(paths):
     })
     wait_up(8545)
     wait_for_rpc_server('127.0.0.1:8545')
+
+    add_boba_token_to_config(paths)
 
     if os.path.exists(paths.genesis_l2_path):
         log.info('L2 genesis and rollup configs already generated.')
@@ -275,6 +306,12 @@ def devnet_test(paths):
 
     run_command(
          ['npx', 'hardhat',  'deposit-eth', '--network',  'devnetL1', '--l1-contracts-json-path', paths.addresses_json_path],
+         cwd=paths.sdk_dir,
+         timeout=8*60,
+    )
+
+    run_command(
+         ['npx', 'hardhat',  'deposit-boba', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
          cwd=paths.sdk_dir,
          timeout=8*60,
     )

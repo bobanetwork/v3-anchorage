@@ -44,8 +44,7 @@ var (
 	// BobaUntouchablePredeploys are addresses in the predeploy namespace
 	// that should be removed the old proxy slot and append to the new proxy slot
 	BobaUntouchablePredeploys = map[common.Address]bool{
-		predeploys.BobaGasPriceOracleAddr: true,
-		predeploys.BobaTuringCreditAddr:   true,
+		predeploys.BobaTuringCreditAddr: true,
 	}
 
 	// FrozenStoragePredeploys represents the set of predeploys that
@@ -69,7 +68,7 @@ var (
 // can be set in state and the ProxyAdmin can be set as the admin of the
 // Proxy.
 func SetL2Proxies(g *types.Genesis) error {
-	return setProxies(g, predeploys.ProxyAdminAddr, bigL2PredeployNamespace, 2048)
+	return setProxies(g, predeploys.ProxyAdminAddr, BigL2PredeployNamespace, 2048)
 }
 
 // WipePredeployStorage will wipe the storage of all L2 predeploys expect

@@ -36,6 +36,11 @@ func NewConfig(ctx *cli.Context, log log.Logger) (*node.Config, error) {
 		return nil, err
 	}
 
+	if !ctx.Bool(flags.BetaRollupLoadProtocolVersions.Name) {
+		log.Info("Not opted in to ProtocolVersions signal loading, disabling ProtocolVersions contract now.")
+		rollupConfig.ProtocolVersionsAddress = common.Address{}
+	}
+
 	configPersistence := NewConfigPersistence(ctx)
 
 	driverConfig := NewDriverConfig(ctx)
@@ -61,6 +66,11 @@ func NewConfig(ctx *cli.Context, log log.Logger) (*node.Config, error) {
 
 	syncConfig := NewSyncConfig(ctx)
 
+	haltOption := ctx.String(flags.BetaRollupHalt.Name)
+	if haltOption == "none" {
+		haltOption = ""
+	}
+
 	cfg := &node.Config{
 		L1:     l1Endpoint,
 		L2:     l2Endpoint,
@@ -82,9 +92,10 @@ func NewConfig(ctx *cli.Context, log log.Logger) (*node.Config, error) {
 			ListenAddr: ctx.String(flags.PprofAddrFlag.Name),
 			ListenPort: ctx.Int(flags.PprofPortFlag.Name),
 		},
-		P2P:                 p2pConfig,
-		P2PSigner:           p2pSignerSetup,
-		L1EpochPollInterval: ctx.Duration(flags.L1EpochPollIntervalFlag.Name),
+		P2P:                         p2pConfig,
+		P2PSigner:                   p2pSignerSetup,
+		L1EpochPollInterval:         ctx.Duration(flags.L1EpochPollIntervalFlag.Name),
+		RuntimeConfigReloadInterval: ctx.Duration(flags.RuntimeConfigReloadIntervalFlag.Name),
 		Heartbeat: node.HeartbeatConfig{
 			Enabled: ctx.Bool(flags.HeartbeatEnabledFlag.Name),
 			Moniker: ctx.String(flags.HeartbeatMonikerFlag.Name),
@@ -92,6 +103,7 @@ func NewConfig(ctx *cli.Context, log log.Logger) (*node.Config, error) {
 		},
 		ConfigPersistence: configPersistence,
 		Sync:              *syncConfig,
+		RollupHalt:        haltOption,
 	}
 
 	if err := cfg.LoadPersisted(log); err != nil {

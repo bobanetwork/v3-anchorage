@@ -1,14 +1,11 @@
 package database
 
 import (
-	"context"
 	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-
-	"github.com/google/uuid"
 
 	"gorm.io/gorm"
 )
@@ -45,25 +42,6 @@ type L2BlockHeader struct {
 	BlockHeader `gorm:"embedded"`
 }
 
-type LegacyStateBatch struct {
-	// `default:0` is added since gorm would interepret 0 as NULL
-	// violating the primary key constraint.
-	Index uint64 `gorm:"primaryKey;default:0"`
-
-	Root                common.Hash `gorm:"serializer:bytes"`
-	Size                uint64
-	PrevTotal           uint64
-	L1ContractEventGUID uuid.UUID
-}
-
-type OutputProposal struct {
-	OutputRoot    common.Hash `gorm:"primaryKey;serializer:bytes"`
-	L2OutputIndex *big.Int    `gorm:"serializer:u256"`
-	L2BlockNumber *big.Int    `gorm:"serializer:u256"`
-
-	L1ContractEventGUID uuid.UUID
-}
-
 type BlocksView interface {
 	L1BlockHeader(common.Hash) (*L1BlockHeader, error)
 	L1BlockHeaderWithFilter(BlockHeader) (*L1BlockHeader, error)
@@ -73,9 +51,6 @@ type BlocksView interface {
 	L2BlockHeaderWithFilter(BlockHeader) (*L2BlockHeader, error)
 	L2LatestBlockHeader() (*L2BlockHeader, error)
 
-	LatestCheckpointedOutput() (*OutputProposal, error)
-	OutputProposal(index *big.Int) (*OutputProposal, error)
-
 	LatestEpoch() (*Epoch, error)
 }
 
@@ -84,9 +59,6 @@ type BlocksDB interface {
 
 	StoreL1BlockHeaders([]L1BlockHeader) error
 	StoreL2BlockHeaders([]L2BlockHeader) error
-
-	StoreLegacyStateBatches([]LegacyStateBatch) error
-	StoreOutputProposals([]OutputProposal) error
 }
 
 /**
@@ -104,17 +76,7 @@ func newBlocksDB(db *gorm.DB) BlocksDB {
 // L1
 
 func (db *blocksDB) StoreL1BlockHeaders(headers []L1BlockHeader) error {
-	result := db.gorm.Create(&headers)
-	return result.Error
-}
-
-func (db *blocksDB) StoreLegacyStateBatches(stateBatches []LegacyStateBatch) error {
-	result := db.gorm.Create(stateBatches)
-	return result.Error
-}
-
-func (db *blocksDB) StoreOutputProposals(outputs []OutputProposal) error {
-	result := db.gorm.Create(outputs)
+	result := db.gorm.CreateInBatches(&headers, batchInsertSize)
 	return result.Error
 }
 
@@ -149,38 +111,10 @@ func (db *blocksDB) L1LatestBlockHeader() (*L1BlockHeader, error) {
 	return &l1Header, nil
 }
 
-func (db *blocksDB) LatestCheckpointedOutput() (*OutputProposal, error) {
-	var outputProposal OutputProposal
-	result := db.gorm.Order("l2_output_index DESC").Take(&outputProposal)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-
-		return nil, result.Error
-	}
-
-	return &outputProposal, nil
-}
-
-func (db *blocksDB) OutputProposal(index *big.Int) (*OutputProposal, error) {
-	var outputProposal OutputProposal
-	result := db.gorm.Where(&OutputProposal{L2OutputIndex: index}).Take(&outputProposal)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-
-		return nil, result.Error
-	}
-
-	return &outputProposal, nil
-}
-
 // L2
 
 func (db *blocksDB) StoreL2BlockHeaders(headers []L2BlockHeader) error {
-	result := db.gorm.Create(&headers)
+	result := db.gorm.CreateInBatches(&headers, batchInsertSize)
 	return result.Error
 }
 
@@ -211,7 +145,6 @@ func (db *blocksDB) L2LatestBlockHeader() (*L2BlockHeader, error) {
 		return nil, result.Error
 	}
 
-	result.Logger.Info(context.Background(), "number ", l2Header.Number)
 	return &l2Header, nil
 }
 
@@ -229,12 +162,32 @@ type Epoch struct {
 // For more, see the protocol spec:
 //   - https://github.com/ethereum-optimism/optimism/blob/develop/specs/derivation.md
 func (db *blocksDB) LatestEpoch() (*Epoch, error) {
-	// Since L1 blocks occur less frequently than L2, we do a INNER JOIN from L1 on
-	// L2 for a faster query. Per the protocol, the L2 block that starts a new epoch
-	// will have a matching timestamp with the L1 origin.
-	query := db.gorm.Table("l1_block_headers").Order("l1_block_headers.timestamp DESC")
-	query = query.Joins("INNER JOIN l2_block_headers ON l1_block_headers.timestamp = l2_block_headers.timestamp")
-	query = query.Select("*")
+	latestL1Header, err := db.L1LatestBlockHeader()
+	if err != nil {
+		return nil, err
+	} else if latestL1Header == nil {
+		return nil, nil
+	}
+
+	latestL2Header, err := db.L2LatestBlockHeader()
+	if err != nil {
+		return nil, err
+	} else if latestL2Header == nil {
+		return nil, nil
+	}
+
+	minTime := latestL1Header.Timestamp
+	if latestL2Header.Timestamp < minTime {
+		minTime = latestL2Header.Timestamp
+	}
+
+	// This is a faster query than doing an INNER JOIN between l1_block_headers and l2_block_headers
+	// which requires a full table scan to compute the resulting table.
+	l1Query := db.gorm.Table("l1_block_headers").Where("timestamp <= ?", minTime)
+	l2Query := db.gorm.Table("l2_block_headers").Where("timestamp <= ?", minTime)
+	query := db.gorm.Raw(`SELECT * FROM (?) AS l1_block_headers, (?) AS l2_block_headers
+		WHERE l1_block_headers.timestamp = l2_block_headers.timestamp
+		ORDER BY l2_block_headers.number DESC LIMIT 1`, l1Query, l2Query)
 
 	var epoch Epoch
 	result := query.Take(&epoch)

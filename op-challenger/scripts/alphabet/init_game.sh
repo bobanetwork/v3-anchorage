@@ -18,7 +18,7 @@ DEVNET_SPONSOR="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 DISPUTE_GAME_FACTORY=$(jq -r .DisputeGameFactoryProxy $MONOREPO_DIR/.devnet/addresses.json)
 
 echo "----------------------------------------------------------------"
-echo " Dispute Game Factory at $DISPUTE_GAME_PROXY"
+echo " Dispute Game Factory at $DISPUTE_GAME_FACTORY"
 echo "----------------------------------------------------------------"
 
 L2_OUTPUT_ORACLE_PROXY=$(jq -r .L2OutputOracleProxy $MONOREPO_DIR/.devnet/addresses.json)
@@ -62,5 +62,7 @@ done
 # Root claim commits to the entire trace.
 # Alphabet game claim construction: keccak256(abi.encode(trace_index, trace[trace_index]))
 ROOT_CLAIM=$(cast keccak $(cast abi-encode "f(uint256,uint256)" 15 122))
+# Replace the first byte of the claim with the invalid vm status indicator
+ROOT_CLAIM="0x01${ROOT_CLAIM:4:60}"
 
 GAME_TYPE=255 ${SOURCE_DIR}/../create_game.sh http://localhost:8545 "${DISPUTE_GAME_FACTORY}" "${ROOT_CLAIM}" --private-key "${DEVNET_SPONSOR}"

@@ -15,7 +15,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/testlog"
 	"github.com/ethereum-optimism/optimism/op-service/ioutil"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +42,9 @@ func TestGet(t *testing.T) {
 		value, err := provider.Get(context.Background(), 7000)
 		require.NoError(t, err)
 		require.Contains(t, generator.generated, 7000, "should have tried to generate the proof")
-		require.Equal(t, crypto.Keccak256Hash(generator.finalState.EncodeWitness()), value)
+		stateHash, err := generator.finalState.EncodeWitness().StateHash()
+		require.NoError(t, err)
+		require.Equal(t, stateHash, value)
 	})
 
 	t.Run("MissingPostHash", func(t *testing.T) {
@@ -64,8 +65,8 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetStepData(t *testing.T) {
-	dataDir, prestate := setupTestData(t)
 	t.Run("ExistingProof", func(t *testing.T) {
+		dataDir, prestate := setupTestData(t)
 		provider, generator := setupWithTestData(t, dataDir, prestate)
 		value, proof, data, err := provider.GetStepData(context.Background(), 0)
 		require.NoError(t, err)
@@ -79,6 +80,7 @@ func TestGetStepData(t *testing.T) {
 	})
 
 	t.Run("GenerateProof", func(t *testing.T) {
+		dataDir, prestate := setupTestData(t)
 		provider, generator := setupWithTestData(t, dataDir, prestate)
 		generator.finalState = &mipsevm.State{
 			Memory: &mipsevm.Memory{},
@@ -86,7 +88,7 @@ func TestGetStepData(t *testing.T) {
 			Exited: true,
 		}
 		generator.proof = &proofData{
-			ClaimValue:   common.Hash{0xaa}.Bytes(),
+			ClaimValue:   common.Hash{0xaa},
 			StateData:    []byte{0xbb},
 			ProofData:    []byte{0xcc},
 			OracleKey:    common.Hash{0xdd}.Bytes(),
@@ -104,6 +106,7 @@ func TestGetStepData(t *testing.T) {
 	})
 
 	t.Run("ProofAfterEndOfTrace", func(t *testing.T) {
+		dataDir, prestate := setupTestData(t)
 		provider, generator := setupWithTestData(t, dataDir, prestate)
 		generator.finalState = &mipsevm.State{
 			Memory: &mipsevm.Memory{},
@@ -111,7 +114,7 @@ func TestGetStepData(t *testing.T) {
 			Exited: true,
 		}
 		generator.proof = &proofData{
-			ClaimValue:   common.Hash{0xaa}.Bytes(),
+			ClaimValue:   common.Hash{0xaa},
 			StateData:    []byte{0xbb},
 			ProofData:    []byte{0xcc},
 			OracleKey:    common.Hash{0xdd}.Bytes(),
@@ -128,7 +131,48 @@ func TestGetStepData(t *testing.T) {
 		require.Nil(t, data)
 	})
 
+	t.Run("ReadLastStepFromDisk", func(t *testing.T) {
+		dataDir, prestate := setupTestData(t)
+		provider, initGenerator := setupWithTestData(t, dataDir, prestate)
+		initGenerator.finalState = &mipsevm.State{
+			Memory: &mipsevm.Memory{},
+			Step:   10,
+			Exited: true,
+		}
+		initGenerator.proof = &proofData{
+			ClaimValue:   common.Hash{0xaa},
+			StateData:    []byte{0xbb},
+			ProofData:    []byte{0xcc},
+			OracleKey:    common.Hash{0xdd}.Bytes(),
+			OracleValue:  []byte{0xdd},
+			OracleOffset: 10,
+		}
+		_, _, _, err := provider.GetStepData(context.Background(), 7000)
+		require.NoError(t, err)
+		require.Contains(t, initGenerator.generated, 7000, "should have tried to generate the proof")
+
+		provider, generator := setupWithTestData(t, dataDir, prestate)
+		generator.finalState = &mipsevm.State{
+			Memory: &mipsevm.Memory{},
+			Step:   10,
+			Exited: true,
+		}
+		generator.proof = &proofData{
+			ClaimValue: common.Hash{0xaa},
+			StateData:  []byte{0xbb},
+			ProofData:  []byte{0xcc},
+		}
+		preimage, proof, data, err := provider.GetStepData(context.Background(), 7000)
+		require.NoError(t, err)
+		require.Empty(t, generator.generated, "should not have to generate the proof again")
+
+		require.EqualValues(t, initGenerator.finalState.EncodeWitness(), preimage)
+		require.Empty(t, proof)
+		require.Nil(t, data)
+	})
+
 	t.Run("MissingStateData", func(t *testing.T) {
+		dataDir, prestate := setupTestData(t)
 		provider, generator := setupWithTestData(t, dataDir, prestate)
 		_, _, _, err := provider.GetStepData(context.Background(), 1)
 		require.ErrorContains(t, err, "missing state data")
@@ -136,6 +180,7 @@ func TestGetStepData(t *testing.T) {
 	})
 
 	t.Run("IgnoreUnknownFields", func(t *testing.T) {
+		dataDir, prestate := setupTestData(t)
 		provider, generator := setupWithTestData(t, dataDir, prestate)
 		value, proof, data, err := provider.GetStepData(context.Background(), 2)
 		require.NoError(t, err)
@@ -185,7 +230,7 @@ func TestAbsolutePreState(t *testing.T) {
 			Step:           0,
 			Registers:      [32]uint32{},
 		}
-		require.Equal(t, state.EncodeWitness(), preState)
+		require.Equal(t, []byte(state.EncodeWitness()), preState)
 	})
 }
 

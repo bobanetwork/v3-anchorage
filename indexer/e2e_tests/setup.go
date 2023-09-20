@@ -71,21 +71,21 @@ func createE2ETestSuite(t *testing.T) E2ETestSuite {
 			L2RPC: opSys.EthInstances["sequencer"].HTTPEndpoint(),
 		},
 		Chain: config.ChainConfig{
-			L1PollingInterval:   uint(opCfg.DeployConfig.L1BlockTime) * 1000,
-			L1ConfirmationDepth: 0,
-			L2PollingInterval:   uint(opCfg.DeployConfig.L2BlockTime) * 1000,
-			L2ConfirmationDepth: 0,
+			L1PollingInterval: uint(opCfg.DeployConfig.L1BlockTime) * 1000,
+			L2PollingInterval: uint(opCfg.DeployConfig.L2BlockTime) * 1000,
+			L2Contracts:       config.L2ContractsFromPredeploys(),
 			L1Contracts: config.L1Contracts{
+				AddressManager:              opCfg.L1Deployments.AddressManager,
+				SystemConfigProxy:           opCfg.L1Deployments.SystemConfigProxy,
 				OptimismPortalProxy:         opCfg.L1Deployments.OptimismPortalProxy,
 				L2OutputOracleProxy:         opCfg.L1Deployments.L2OutputOracleProxy,
 				L1CrossDomainMessengerProxy: opCfg.L1Deployments.L1CrossDomainMessengerProxy,
 				L1StandardBridgeProxy:       opCfg.L1Deployments.L1StandardBridgeProxy,
+				L1ERC721BridgeProxy:         opCfg.L1Deployments.L1ERC721BridgeProxy,
 			},
 		},
-		Metrics: config.MetricsConfig{
-			Host: "127.0.0.1",
-			Port: 0,
-		},
+		HTTPServer:    config.ServerConfig{Host: "127.0.0.1", Port: 0},
+		MetricsServer: config.ServerConfig{Host: "127.0.0.1", Port: 0},
 	}
 
 	db, err := database.NewDB(indexerCfg.DB)
@@ -93,7 +93,7 @@ func createE2ETestSuite(t *testing.T) E2ETestSuite {
 	t.Cleanup(func() { db.Close() })
 
 	indexerLog := testlog.Logger(t, log.LvlInfo).New("role", "indexer")
-	indexer, err := indexer.NewIndexer(indexerLog, db, indexerCfg.Chain, indexerCfg.RPCs, indexerCfg.Metrics)
+	indexer, err := indexer.NewIndexer(indexerLog, db, indexerCfg.Chain, indexerCfg.RPCs, indexerCfg.HTTPServer, indexerCfg.MetricsServer)
 	require.NoError(t, err)
 
 	indexerCtx, indexerStop := context.WithCancel(context.Background())

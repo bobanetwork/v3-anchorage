@@ -41,17 +41,20 @@ type HealthzConfig struct {
 type WalletConfig struct {
 	ChainID big.Int `toml:"chain_id"`
 
-	// signer | static
+	// signer | static | kms
 	SignerMethod string `toml:"signer_method"`
 	Address      string `toml:"address"`
+
 	// private key is used for static signing
 	PrivateKey string `toml:"private_key"`
 
+	// kms parameters
+	KMSKeyID    string `toml:"kms_key_id"`
+	KMSEndpoint string `toml:"kms_endpoint"`
+	KMSRegion   string `toml:"kms_region"`
+
 	// transaction parameters
-	TxValue   big.Int `toml:"tx_value"`
-	GasLimit  uint64  `toml:"gas_limit"`
-	GasTipCap big.Int `toml:"gas_tip_cap"`
-	GasFeeCap big.Int `toml:"gas_fee_cap"`
+	TxValue big.Int `toml:"tx_value"`
 }
 
 type ProviderConfig struct {
@@ -64,6 +67,7 @@ type ProviderConfig struct {
 	SendInterval                 TOMLDuration `toml:"send_interval"`
 	SendTransactionRetryInterval TOMLDuration `toml:"send_transaction_retry_interval"`
 	SendTransactionRetryTimeout  TOMLDuration `toml:"send_transaction_retry_timeout"`
+	SendTransactionCoolDown      TOMLDuration `toml:"send_transaction_cool_down"`
 	ReceiptRetrievalInterval     TOMLDuration `toml:"receipt_retrieval_interval"`
 	ReceiptRetrievalTimeout      TOMLDuration `toml:"receipt_retrieval_timeout"`
 
@@ -102,7 +106,7 @@ func (c *Config) Validate() error {
 		if wallet.ChainID.BitLen() == 0 {
 			return errors.Errorf("wallet [%s] chain_id is missing", name)
 		}
-		if wallet.SignerMethod != "signer" && wallet.SignerMethod != "static" {
+		if wallet.SignerMethod != "signer" && wallet.SignerMethod != "static" && wallet.SignerMethod != "kms" {
 			return errors.Errorf("wallet [%s] signer_method is invalid", name)
 		}
 		if wallet.SignerMethod == "signer" {
@@ -124,17 +128,22 @@ func (c *Config) Validate() error {
 				return errors.Errorf("wallet [%s] private_key is missing", name)
 			}
 		}
+		if wallet.SignerMethod == "kms" {
+			if wallet.KMSKeyID == "" {
+				return errors.Errorf("wallet [%s] kms_key_id is missing", name)
+			}
+			if wallet.KMSEndpoint == "" {
+				return errors.Errorf("wallet [%s] kms_endpoint is missing", name)
+			}
+			if wallet.KMSRegion == "" {
+				return errors.Errorf("wallet [%s] kms_region is missing", name)
+			}
+		}
 		if wallet.Address == "" {
 			return errors.Errorf("wallet [%s] address is missing", name)
 		}
 		if wallet.TxValue.BitLen() == 0 {
 			return errors.Errorf("wallet [%s] tx_value is missing", name)
-		}
-		if wallet.GasLimit == 0 {
-			return errors.Errorf("wallet [%s] gas_limit is missing", name)
-		}
-		if wallet.GasFeeCap.BitLen() == 0 {
-			return errors.Errorf("wallet [%s] gas_fee_cap is missing", name)
 		}
 	}
 
@@ -153,6 +162,9 @@ func (c *Config) Validate() error {
 		}
 		if provider.SendTransactionRetryTimeout == 0 {
 			return errors.Errorf("provider [%s] send_transaction_retry_timeout is missing", name)
+		}
+		if provider.SendTransactionCoolDown == 0 {
+			return errors.Errorf("provider [%s] send_transaction_cool_down is missing", name)
 		}
 		if provider.ReceiptRetrievalInterval == 0 {
 			return errors.Errorf("provider [%s] receipt_retrieval_interval is missing", name)

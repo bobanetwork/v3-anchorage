@@ -104,8 +104,8 @@ var (
 		predeploys.BaseFeeVaultAddr: eip1967Slots(predeploys.BaseFeeVaultAddr),
 		predeploys.L1FeeVaultAddr:   eip1967Slots(predeploys.L1FeeVaultAddr),
 		// Boba contracts
-		predeploys.BobaTuringCreditAddr:   eip1967Slots(predeploys.BobaTuringCreditAddr),
-		predeploys.BobaGasPriceOracleAddr: eip1967Slots(predeploys.BobaGasPriceOracleAddr),
+		predeploys.BobaTuringCreditAddr: eip1967Slots(predeploys.BobaTuringCreditAddr),
+		predeploys.BobaHCHelperAddr:     eip1967Slots(predeploys.BobaHCHelperAddr),
 	}
 )
 
@@ -231,9 +231,7 @@ func PostCheckBobaLegacyProxyImplementation(tx kv.Tx) error {
 		if *code != libcommon.BytesToHash(proxyByteCode) {
 			return fmt.Errorf("expected code for %s to be %x, but got %x", name, proxyByteCode, code)
 		}
-		expectedStorage := map[libcommon.Hash]libcommon.Hash{
-			AdminSlot: predeploys.Predeploys["ProxyAdmin"].Hash(),
-		}
+		expectedStorage := eip1967Slots(predeploys.EASAddr)
 		actualStorage := make(map[libcommon.Hash]libcommon.Hash)
 		if err := state.ForEachStorage(tx, *addr, func(key, val libcommon.Hash) bool {
 			actualStorage[key] = val
@@ -295,7 +293,7 @@ func PostCheckUntouchables(tx kv.Tx, g *types.Genesis) error {
 func PostCheckPredeploys(tx kv.Tx, g *types.Genesis) error {
 	for i := uint64(0); i <= 2048; i++ {
 		// Compute the predeploy address
-		bigAddr := new(big.Int).Or(bigL2PredeployNamespace, new(big.Int).SetUint64(i))
+		bigAddr := new(big.Int).Or(BigL2PredeployNamespace, new(big.Int).SetUint64(i))
 		addr := libcommon.BigToAddress(bigAddr)
 
 		// Get the code for the predeploy
