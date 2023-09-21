@@ -95,10 +95,10 @@ nuke: clean devnet-clean
 	git clean -Xdf
 .PHONY: nuke
 
-devnet-up:
-	@if [ ! -e op-program/bin ]; then \
-		make cannon-prestate; \
-	fi
+op-program/bin/prestate-proof.json:
+	make cannon-prestate
+
+devnet-up: op-program/bin/prestate-proof.json
 	$(shell ./ops/scripts/newer-file.sh .devnet/allocs-l1.json ./packages/contracts-bedrock)
 	if [ $(.SHELLSTATUS) -ne 0 ]; then \
 		make devnet-allocs; \
@@ -109,10 +109,7 @@ devnet-up:
 # alias for devnet-up
 devnet-up-deploy: devnet-up
 
-devnet-hardhat-up:
-	@if [ ! -e op-program/bin ]; then \
-		make cannon-prestate; \
-	fi
+devnet-hardhat-up: op-program/bin/prestate-proof.json
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=.
 .PHONY: devnet-hardhat-up
 
