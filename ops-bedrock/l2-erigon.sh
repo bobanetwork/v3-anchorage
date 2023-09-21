@@ -37,6 +37,7 @@ ERIGON_FLAGS=" \
   --authrpc.port=8551 \
   --authrpc.vhosts=* \
   --authrpc.jwtsecret /config/jwt-secret.txt \
+  --rollup.hybridcompute \
   "
 
 if [ -z "$CHAIN_NAME" ]; then
