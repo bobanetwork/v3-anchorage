@@ -18,20 +18,8 @@ from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer,SimpleJSONRPCRequ
 
 from eth_abi import abi as ethabi
 
-w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
-assert (w3.isConnected)
-w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-
-l2 = Web3(Web3.HTTPProvider("http://127.0.0.1:9545"))
-assert (l2.isConnected)
-l2.middleware_onion.inject(geth_poa_middleware, layer=0)
-
-# Test account created for local Boba devnet (Need to fix the deployment to fund this one on L1;
-# for now using the Deployer address
-#addr=Web3.toChecksumAddress("0xb0bA04c08d8f1471bcA20C12a64DcCa17B01d96f")
-#key="c9776e5eb09b348dfde140019e21142503d3c2a5c6d2019d0b30f5099ff2c8dd"
-addr=Web3.toChecksumAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+# ----------------------------------------------------------
+# Methods provided by the local webserver
 
 # Expect an ABI-encoded uint32 'x'. Return an ABI-encoded 'x+5'
 def add5(req):
@@ -124,6 +112,7 @@ def sumSquares_v2(req):
   return enc
 
 # ----------------------------------------------------------
+# Main code for the local webserver
 
 def offchain(*args):
   print("  -> offchain handler called with", args)
@@ -160,8 +149,29 @@ def server_loop(contractAddr):
   print ("Registering method", contractAddr)
   server = SimpleJSONRPCServer(('192.168.4.2', 1234), requestHandler=RequestHandler)
   server.register_function(offchain, contractAddr)
-  server.register_function(ocReg, "0x42000000000000000000000000000000000000Fd")
+  server.register_function(ocReg, "0x42000000000000000000000000000000000003E9")
   server.serve_forever()
+
+# ----------------------------------------------------------
+# RPC endpoints and contracts
+
+#with open("../../packages/contracts-bedrock/deploy-config/hardhat-local.json") as f:
+#  config = json.loads(f.read())
+
+w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
+assert (w3.isConnected)
+w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+l2 = Web3(Web3.HTTPProvider("http://127.0.0.1:9545"))
+assert (l2.isConnected)
+l2.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+# Test account created for local Boba devnet (Need to fix the deployment to fund this one on L1;
+# for now using the Deployer address
+#addr=Web3.toChecksumAddress("0xb0bA04c08d8f1471bcA20C12a64DcCa17B01d96f")
+#key="c9776e5eb09b348dfde140019e21142503d3c2a5c6d2019d0b30f5099ff2c8dd"
+addr=Web3.toChecksumAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 with open("../../packages/contracts-bedrock/forge-artifacts/OptimismMintableERC20.sol/OptimismMintableERC20.json") as f:
   abi = json.loads(f.read())['abi']
@@ -173,7 +183,7 @@ with open("../../packages/contracts-bedrock/forge-artifacts/BobaHCHelper.sol/Bob
 #hc = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000000fd"), abi=abi)
 hc = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000003E9"), abi=abi)
 
-with open("../../packages/contracts-bedrock/forge-artifacts/BobaTuringCredit.sol/BobaTuringCredit.0.8.19.json") as f:
+with open("../../packages/contracts-bedrock/forge-artifacts/BobaTuringCredit.sol/BobaTuringCredit.0.8.15.json") as f:
   abi = json.loads(f.read())['abi']
 #legacyCredit = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000000ff"), abi=abi)
 legacyCredit = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000003e8"), abi=abi)
@@ -189,7 +199,10 @@ l1sb = w3.eth.contract(address="0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0", abi
 with open("../../packages/contracts-bedrock/forge-artifacts/BOBA.sol/BOBA.json") as f:
   abi = json.loads(f.read())['abi']
 #boba_l1 = w3.eth.contract(address="0x154C5E3762FbB57427d6B03E7302BDA04C497226", abi=abi)
-boba_l1 = w3.eth.contract(address="0x09635F643e140090A9A8Dcd712eD6285858ceBef", abi=abi)
+boba_l1 = w3.eth.contract(address="0x67d269191c92Caf3cD7723F116c85e6E9bf55933", abi=abi)
+
+# ----------------------------------------------------------
+# Utility functions
 
 def signAndSend(tx, label, gasEstimate):
   balStart = l2.eth.getBalance(addr)
@@ -200,8 +213,8 @@ def signAndSend(tx, label, gasEstimate):
   balEnd = l2.eth.getBalance(addr)
   if gasEstimate:
     print("Got receipt in block {} status {}, gasUsed {}/{} ({} leftover)".format(
-      rcpt.blockNumber, 
-      rcpt.status, 
+      rcpt.blockNumber,
+      rcpt.status,
       rcpt.gasUsed,
       gasEstimate,
       gasEstimate - rcpt.gasUsed))
@@ -209,8 +222,8 @@ def signAndSend(tx, label, gasEstimate):
     print("Got receipt in block {} status {}, gasUsed {}".format(rcpt.blockNumber, rcpt.status, rcpt.gasUsed))
   totFee = balStart - balEnd
   l1Fee = Web3.toInt(hexstr=rcpt.l1Fee)
-  l2Fee = rcpt.gasUsed * rcpt.effectiveGasPrice 
-  
+  l2Fee = rcpt.gasUsed * rcpt.effectiveGasPrice
+
   extraStr = ""
   if totFee > (l1Fee + l2Fee):
     extraStr = "extra {}".format(Web3.fromWei(totFee - l1Fee - l2Fee, 'gwei'))
@@ -229,7 +242,8 @@ def signAndSend(tx, label, gasEstimate):
   return rcpt
 
 # =========================================
-# Setup
+# Setup - ensure accounts are funded and approved; deploy test contracts
+
 if boba_l1.functions.allowance(addr,l1sb.address).call() == 0:
   print("Approving bridge contract")
   tx = boba_l1.functions.approve(l1sb.address, Web3.toInt(hexstr="0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")).buildTransaction({
@@ -271,15 +285,15 @@ if balCheck == 0:
 
 if balCheck2 == 0:
   tx = l1sb.functions.depositERC20(
-  	boba_l1.address,
-    	boba_l2.address,
-	Web3.toWei(10,'ether'),
-	4000000,
-	"").buildTransaction({
-          'nonce': w3.eth.get_transaction_count(addr),
-          'from':addr,
-          'chainId': 900
-	})
+     boba_l1.address,
+     boba_l2.address,
+     Web3.toWei(10,'ether'),
+     4000000,
+     "").buildTransaction({
+       'nonce': w3.eth.get_transaction_count(addr),
+       'from':addr,
+       'chainId': 900
+     })
   tx['gas'] = int(w3.eth.estimate_gas(tx) * 1.5)
 
   signed_txn =w3.eth.account.sign_transaction(tx, key)
@@ -315,16 +329,16 @@ approveTx = boba_l2.functions.approve(legacyCredit.address, Web3.toWei(1000000,'
 signAndSend(approveTx,"ApproveToken (legacy)", None)
 
 print("CHECK1", legacyCredit.address, hc.address)
-print("CHECK2", legacyCredit.functions.HCHelper().call())
+#print("CHECK2", legacyCredit.functions.HCHelper().call())
 
-linkTx = legacyCredit.functions.RegisterAnchorage(hc.address).buildTransaction({
-       'nonce': l2.eth.get_transaction_count(addr),
-       'from':addr,
-       'chainId': 901,
-       'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
-})
-signAndSend(linkTx,"Link legacy payment contract", None)
+#linkTx = legacyCredit.functions.RegisterAnchorage(hc.address).buildTransaction({
+#       'nonce': l2.eth.get_transaction_count(addr),
+#       'from':addr,
+#       'chainId': 901,
+#       'gas':1000000,
+#       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+#})
+#signAndSend(linkTx,"Link legacy payment contract", None)
 
 demoFactory = l2.eth.contract(abi=demoJson['abi'], bytecode=demoJson['bytecode'])
 deployTx = demoFactory.constructor(hc.address).buildTransaction({
@@ -390,8 +404,10 @@ tx = legacyCredit.functions.addBalanceTo(100000, cAddr).buildTransaction({
        'maxFeePerGas':Web3.toWei(10, 'gwei'),
 })
 signAndSend(tx, "AddCredit(legacy)", None)
+#print("SKIP legacyCredit")
 
-# -----------------------------
+# =========================================
+# Tests start here
 
 print("\nGetSimpleRandom starting")
 tx = demo.functions.FlipCoin().buildTransaction({
@@ -446,10 +462,7 @@ eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "SeqRandom(3)", eg)
 
-# -----------------------------
-
 print("\nAdd5 (2) starting")
-
 tx = demo.functions.Add5(2).buildTransaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
@@ -480,8 +493,6 @@ print("MathResponse event: ", ans[0].args)
 
 print("ownerRevenue", hc.functions.ownerRevenue().call(), legacyCredit.functions.ownerRevenue().call())
 
-# -----------------------------
-
 print("\nChicken(1) starting")
 tx = demo.functions.Chicken(1).buildTransaction({
        'nonce': l2.eth.get_transaction_count(addr),
@@ -503,7 +514,7 @@ tx = demo.functions.Chicken(250).buildTransaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
- #      'gas':1000000,
+#      'gas':1000000,
        'maxFeePerGas':Web3.toWei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
@@ -514,7 +525,7 @@ rcpt = signAndSend(tx, "Chicken", eg)
 ans = demo.events.StringLength().processReceipt(rcpt,errors=DISCARD)
 print("StringLength event: ", ans[0].args)
 
-# -----------------------------
+# ----------------------------------------------------------
 
 print("\nLegacyV1 starting")
 tx = demo.functions.LegacyV1().buildTransaction({
@@ -546,7 +557,8 @@ rcpt = signAndSend(tx, "LegacyV2", eg)
 ans = demo.events.MathResponse().processReceipt(rcpt,errors=DISCARD)
 print("MathResponse event: ", ans[0].args)
 
-# -----------------------------
+# ----------------------------------------------------------
+# Cleanup and shutdown
 
 print("\nCleanup starting")
 
@@ -569,6 +581,5 @@ tx = hc.functions.UnregisterEndpoint(URL).buildTransaction({
 signAndSend(tx, "Unregister", None)
 
 print("ownerRevenue", hc.functions.ownerRevenue().call(), " new, ", legacyCredit.functions.ownerRevenue().call(), " legacy")
-
 serverProc.kill()
 
