@@ -51,8 +51,6 @@ var DevAccounts = []common.Address{
 	common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"),
 	// Test account used by geth tests
 	common.HexToAddress("0x71562b71999873DB5b286dF957af199Ec94617F7"),
-	// Test account for Hybrid Compute
-	common.HexToAddress("0xb0bA04c08d8f1471bcA20C12a64DcCa17B01d96f"),
 }
 
 // AddressToCodeNamespace takes a predeploy address and computes
