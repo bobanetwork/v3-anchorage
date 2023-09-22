@@ -51,3 +51,4 @@ crytic-export
 
 # ignore yarn.lock
 boba-community/*/yarn.lock
+boba-examples/*/yarn.lock
