@@ -149,14 +149,16 @@ def server_loop(contractAddr):
   print ("Registering method", contractAddr)
   server = SimpleJSONRPCServer(('192.168.4.2', 1234), requestHandler=RequestHandler)
   server.register_function(offchain, contractAddr)
+  # Registration events are sent from the HCHelper contract, which is predeployed
+  # to the 0x4200...03E9 address.
   server.register_function(ocReg, "0x42000000000000000000000000000000000003E9")
   server.serve_forever()
 
 # ----------------------------------------------------------
 # RPC endpoints and contracts
 
-#with open("../../packages/contracts-bedrock/deploy-config/hardhat-local.json") as f:
-#  config = json.loads(f.read())
+with open("../../.devnet/addresses.json") as f:
+  config = json.loads(f.read())
 
 w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
 assert (w3.isConnected)
@@ -167,25 +169,26 @@ assert (l2.isConnected)
 l2.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 # Test account created for local Boba devnet (Need to fix the deployment to fund this one on L1;
-# for now using the Deployer address
+# for now using a shared test account
 #addr=Web3.toChecksumAddress("0xb0bA04c08d8f1471bcA20C12a64DcCa17B01d96f")
 #key="c9776e5eb09b348dfde140019e21142503d3c2a5c6d2019d0b30f5099ff2c8dd"
 addr=Web3.toChecksumAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
 key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
+# Hardhat test account which is Owner of the legacy TuringCredit contract (needed to update price)
+legacyOwner = Web3.toChecksumAddress("0xa0Ee7A142d267C1f36714E4a8F75612F20a79720")
+legacyOwnerKey = 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6
+
 with open("../../packages/contracts-bedrock/forge-artifacts/OptimismMintableERC20.sol/OptimismMintableERC20.json") as f:
   abi = json.loads(f.read())['abi']
-#boba_l2 = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000000fe"), abi=abi)
 boba_l2 = l2.eth.contract(address=Web3.toChecksumAddress("0x4200000000000000000000000000000000000023"), abi=abi)
 
 with open("../../packages/contracts-bedrock/forge-artifacts/BobaHCHelper.sol/BobaHCHelper.json") as f:
   abi = json.loads(f.read())['abi']
-#hc = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000000fd"), abi=abi)
 hc = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000003E9"), abi=abi)
 
 with open("../../packages/contracts-bedrock/forge-artifacts/BobaTuringCredit.sol/BobaTuringCredit.0.8.15.json") as f:
   abi = json.loads(f.read())['abi']
-#legacyCredit = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000000ff"), abi=abi)
 legacyCredit = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000003e8"), abi=abi)
 
 with open("./artifacts/contracts/HCDemo.sol/HCDemo.json") as f:
@@ -193,13 +196,11 @@ with open("./artifacts/contracts/HCDemo.sol/HCDemo.json") as f:
 
 with open("../../packages/contracts-bedrock/forge-artifacts/L1StandardBridge.sol/L1StandardBridge.json") as f:
   abi = json.loads(f.read())['abi']
-#l1sb = w3.eth.contract(address="0x6900000000000000000000000000000000000003", abi=abi)
-l1sb = w3.eth.contract(address="0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0", abi=abi)
+l1sb = w3.eth.contract(address=config['L1StandardBridgeProxy'], abi=abi)
 
 with open("../../packages/contracts-bedrock/forge-artifacts/BOBA.sol/BOBA.json") as f:
   abi = json.loads(f.read())['abi']
-#boba_l1 = w3.eth.contract(address="0x154C5E3762FbB57427d6B03E7302BDA04C497226", abi=abi)
-boba_l1 = w3.eth.contract(address="0x67d269191c92Caf3cD7723F116c85e6E9bf55933", abi=abi)
+boba_l1 = w3.eth.contract(address=config['BOBA'], abi=abi)
 
 # ----------------------------------------------------------
 # Utility functions
@@ -265,8 +266,7 @@ if balCheck == 0:
   tx = {
       'nonce': w3.eth.get_transaction_count(addr),
       'from':addr,
-#      'to':Web3.toChecksumAddress("0x6900000000000000000000000000000000000001"), # Optimism portal on L1
-      'to':Web3.toChecksumAddress("0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"),
+      'to':config['OptimismPortalProxy'],
       'gas':210000,
       'chainId': 900,
       'value': Web3.toWei(10,'ether')
@@ -328,17 +328,19 @@ approveTx = boba_l2.functions.approve(legacyCredit.address, Web3.toWei(1000000,'
 })
 signAndSend(approveTx,"ApproveToken (legacy)", None)
 
-print("CHECK1", legacyCredit.address, hc.address)
-#print("CHECK2", legacyCredit.functions.HCHelper().call())
-
-#linkTx = legacyCredit.functions.RegisterAnchorage(hc.address).buildTransaction({
-#       'nonce': l2.eth.get_transaction_count(addr),
-#       'from':addr,
-#       'chainId': 901,
-#       'gas':1000000,
-#       'maxFeePerGas':Web3.toWei(10, 'gwei'),
-#})
-#signAndSend(linkTx,"Link legacy payment contract", None)
+print("Setting legacy TuringPrice")
+# This has to be done by the owner of the contact.
+legacyPriceTx = legacyCredit.functions.updateTuringPrice(1001).buildTransaction({
+       'nonce': l2.eth.get_transaction_count(legacyOwner),
+       'from':legacyOwner,
+       'chainId': 901,
+       'gas':1000000,
+       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+})
+signed_tx = l2.eth.account.sign_transaction(legacyPriceTx, legacyOwnerKey)
+ret = l2.eth.send_raw_transaction(signed_tx.rawTransaction)
+rcpt = l2.eth.wait_for_transaction_receipt(ret, poll_latency=0.75)
+assert(rcpt.status == 1)
 
 demoFactory = l2.eth.contract(abi=demoJson['abi'], bytecode=demoJson['bytecode'])
 deployTx = demoFactory.constructor(hc.address).buildTransaction({
@@ -361,12 +363,12 @@ print("Server started")
 T0 = time.time()
 print("ownerRevenue", hc.functions.ownerRevenue().call(), legacyCredit.functions.ownerRevenue().call())
 
-URL="http://192.168.4.2:1234/hc"
-tx = hc.functions.RegisterEndpoint(URL, "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563").buildTransaction({
+URL = "http://192.168.4.2:1234/hc"
+RegHash = "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
+tx = hc.functions.RegisterEndpoint(URL, RegHash).buildTransaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
-#       'gas':1000000,
        'gas':1222333,
        'maxFeePerGas':Web3.toWei(10, 'gwei'),
 })
@@ -404,7 +406,6 @@ tx = legacyCredit.functions.addBalanceTo(100000, cAddr).buildTransaction({
        'maxFeePerGas':Web3.toWei(10, 'gwei'),
 })
 signAndSend(tx, "AddCredit(legacy)", None)
-#print("SKIP legacyCredit")
 
 # =========================================
 # Tests start here
@@ -514,7 +515,6 @@ tx = demo.functions.Chicken(250).buildTransaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
-#      'gas':1000000,
        'maxFeePerGas':Web3.toWei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
@@ -580,6 +580,6 @@ tx = hc.functions.UnregisterEndpoint(URL).buildTransaction({
 })
 signAndSend(tx, "Unregister", None)
 
-print("ownerRevenue", hc.functions.ownerRevenue().call(), " new, ", legacyCredit.functions.ownerRevenue().call(), " legacy")
+print("ownerRevenue", hc.functions.ownerRevenue().call(), "new,", legacyCredit.functions.ownerRevenue().call(), "legacy")
 serverProc.kill()
 
