@@ -260,7 +260,10 @@ if boba_l1.functions.allowance(addr,l1sb.address).call() == 0:
 
 balCheck = l2.eth.getBalance(addr)
 balCheck2 = boba_l2.functions.balanceOf(addr).call()
-print("Starting balances", Web3.fromWei(balCheck,'ether'), "l2_eth", Web3.fromWei(balCheck2,'ether'), "l2_boba")
+balCheck3 = l2.eth.getBalance(legacyOwner)
+print("Starting balances", Web3.fromWei(balCheck,'ether'), "l2_eth",
+  Web3.fromWei(balCheck2,'ether'), "l2_boba",
+  Web3.fromWei(balCheck3,'ether'), "legacyOwner")
 
 if balCheck == 0:
   tx = {
@@ -304,11 +307,35 @@ if balCheck2 == 0:
   print("Got BOBA receipt in block", rcpt.blockNumber, "status", rcpt.status, "gasPrice", rcpt.effectiveGasPrice)
   assert(rcpt.status == 1)
 
-while balCheck == 0 or balCheck2 == 0:  # Could check for low balance and top up, but this works for simple tests
+if balCheck3 == 0:
+  tx = {
+      'nonce': w3.eth.get_transaction_count(legacyOwner),
+      'from':legacyOwner,
+      'to':config['OptimismPortalProxy'],
+      'gas':210000,
+      'chainId': 900,
+      'value': Web3.toWei(10,'ether')
+  }
+  if w3.eth.gasPrice > 1000000:
+    tx['gasPrice'] = w3.eth.gasPrice
+  else:
+    tx['gasPrice'] = Web3.toWei(1, 'gwei')
+
+  signed_txn =w3.eth.account.sign_transaction(tx, legacyOwnerKey)
+  ret = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+  print("\nSubmitted ETH TX", Web3.toHex(ret))
+  rcpt = w3.eth.wait_for_transaction_receipt(ret)
+  print("Got ETH receipt in block", rcpt.blockNumber, "status", rcpt.status, "gasPrice", rcpt.effectiveGasPrice)
+  assert(rcpt.status == 1)
+
+
+# Could check for low balance and top up, but this works for simple tests
+while balCheck == 0 or balCheck2 == 0 or balCheck3 == 0:
   print("Waiting...")
   time.sleep(2)
   balCheck = l2.eth.getBalance(addr)
   balCheck2 = boba_l2.functions.balanceOf(addr).call()
+  balCheck3 = l2.eth.getBalance(legacyOwner)
 
 approveTx = boba_l2.functions.approve(hc.address, Web3.toWei(1000000,'ether')).buildTransaction({
        'nonce': l2.eth.get_transaction_count(addr),
