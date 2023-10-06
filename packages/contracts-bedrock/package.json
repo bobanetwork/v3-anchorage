@@ -1,6 +1,6 @@
 {
   "name": "@eth-optimism/contracts-bedrock",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "Contracts for Optimism Specs",
   "license": "MIT",
   "files": [
@@ -56,7 +56,7 @@
     "hardhat": "2.17.3",
     "hardhat-deploy": "^0.11.4",
     "dotenv": "^16.0.0",
-    "@eth-optimism/core-utils": "^0.12.0",
+    "@eth-optimism/core-utils": "^0.13.0",
     "ethereumjs-wallet": "^1.0.2",
     "bip39": "^3.0.4",
     "@foundry-rs/easy-foundryup": "^0.1.3",

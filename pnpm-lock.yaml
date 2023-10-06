@@ -268,7 +268,7 @@ importers:
   packages/contracts-bedrock:
     devDependencies:
       '@eth-optimism/core-utils':
-        specifier: ^0.12.0
+        specifier: ^0.13.0
         version: link:../core-utils
       '@eth-optimism/hardhat-deploy-config':
         specifier: ^0.2.6
