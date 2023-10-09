@@ -12,12 +12,12 @@ import (
 	"github.com/ethereum-optimism/optimism/op-e2e/config"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/geth"
-	"github.com/ethereum-optimism/optimism/op-node/client"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
-	"github.com/ethereum-optimism/optimism/op-node/sources"
-	"github.com/ethereum-optimism/optimism/op-node/testlog"
+	"github.com/ethereum-optimism/optimism/op-service/client"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum-optimism/optimism/op-service/sources"
+	"github.com/ethereum-optimism/optimism/op-service/testlog"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -40,7 +40,7 @@ var (
 type OpGeth struct {
 	node          EthInstance
 	l2Engine      *sources.EngineClient
-	L2RpcCleint   *rpc.Client
+	L2RpcClient   *rpc.Client
 	L2Client      *ethclient.Client
 	SystemConfig  eth.SystemConfig
 	L1ChainConfig *params.ChainConfig
@@ -82,7 +82,7 @@ func NewOpGeth(t *testing.T, ctx context.Context, cfg *SystemConfig) (*OpGeth, e
 		node = gethNode
 	} else {
 		externalNode := (&ExternalRunner{
-			Name:    "Sequencer",
+			Name:    "l2",
 			BinPath: cfg.ExternalL2Shim,
 			Genesis: l2Genesis,
 			JWTPath: cfg.JWTFilePath,
@@ -115,7 +115,7 @@ func NewOpGeth(t *testing.T, ctx context.Context, cfg *SystemConfig) (*OpGeth, e
 	return &OpGeth{
 		node:          node,
 		L2Client:      l2Client,
-		L2RpcCleint:   l2RpcClient,
+		L2RpcClient:   l2RpcClient,
 		l2Engine:      l2Engine,
 		SystemConfig:  rollupGenesis.SystemConfig,
 		L1ChainConfig: l1Genesis.Config,
@@ -129,7 +129,7 @@ func (d *OpGeth) Close() {
 	_ = d.node.Close()
 	d.l2Engine.Close()
 	d.L2Client.Close()
-	d.L2RpcCleint.Close()
+	d.L2RpcClient.Close()
 }
 
 // AddL2Block Appends a new L2 block to the current chain including the specified transactions
