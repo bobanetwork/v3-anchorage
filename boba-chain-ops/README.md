@@ -26,7 +26,7 @@ It performs the following integrity checks:
 
 Run `make boba-migrate`
 
-## boba-rollover
+## boba-rollover (MM: this tool is not mentioned in the following procedures. Do we still need it or should it be marked as deprecated?)
 
 This package performs state regenesis for creating a legacy chain in erigon. The new chain is only readable and is not compatible with v3. It takes the following input:
 
@@ -83,7 +83,7 @@ Run `make boba-crawler`
 
 ## boba-devnet
 
-This package generates a clean genesis file for devent. It only includes the predeployed contracts for L2. It takes the following input to generate the genesis file:
+This package generates a clean genesis file for devnet. It only includes the predeployed contracts for L2. It takes the following input to generate the genesis file:
 
 1. The deployment configuration for the l2
 2. The hardhat deployment path
@@ -93,7 +93,7 @@ This package generates a clean genesis file for devent. It only includes the pre
 
 Run `make boba-devnet`
 
-## boba-connect
+## boba-connect (MM: this tool is not mentioned in the following procedures. Do we still need it or should it be marked as deprecated?)
 
 This package generates a transition block between the legacy and new systems. It does this by performing the following steps:
 
@@ -106,13 +106,35 @@ Run `make boba-connect`
 
 # Migration
 
+## Outline
+
+Conceptually, the migration process starts by deploying some new contracts to L1. These will not do anything until activated during a later step so timing is not important here and this step may be performed concurrently with the next ones.
+
+Various data files must be extracted from the existing chain by running special tools described below. This is an iterative process because the tools take time to run and the old chain is still active at this point. Designate the current block number when this step starts as "Milestone 1". The first pass is to collect data from the Genesis block up to Milestone 1.
+
+The new chain starts by bringing up an empty Erigon instance and loading its database with historical blocks and receipts from Genesis up to Milestone 1. This is also a slow process so it is performed in the preparatory phase, leaving a smaller block range to be processed during the downtime window.
+
+If necessary, another "Milestone 2" block can be designated and the above steps can be repeated to extract and pre-populate data for the blocks between milestones 1 and 2.
+
+A transition point must be chosen for the actual migration, and a downtime window must be scheduled around it. At the start of the downtime window, external traffic into the Sequencer must be blocked so that no further transactions can be submitted. However, dummy transactions can be submitted internally if needed in order to advance the latest block number to a desired value. Designate this block as "Final". The next block number after Final will be the "Bedrock Transition Block" (among other names).
+
+The data-extraction steps are repeated to extract and pre-populate into Erigon all blocks from the last Milestone up to and including the Final block.
+
+A state dump of the old system is taken at the Final block, and is imported into the Erigon instance.
+
+A starting point is chosen on the L1 chain, identified by the L1 block hash and timestamp. The L2 chain will begin to derive empty blocks (apart from Deposits) starting from this timestamp and continuing until the system is able to accept user transactions.
+
+A tool is run to generate the Bedrock Transition Block in Erigon. This is a special block with no transactions, in which the bytecode and storage slots of certain contracts are modified to perform the migration. A "rollup.json" configuration file for op-node is also created at this point.
+
+Now the new system is brought up (op-node, op-batcher, op-proposer, etc). After some internal tests to confirm that the migration was successful, external access can be re-enabled and the downtime window ends.
+
 ## Preparation
 
 ### Files
 
 Before the migration, we need these following files
 
-* `witness.txt` - this includes the set of withdrawals through the `L2CrossDomainMessenger` from after the evm equivalence upgrade. To generate this file, we add the following environment variable in the l2geth client.
+* `witness.txt` - this includes the set of withdrawals through the `L2CrossDomainMessenger` from after the evm equivalence upgrade. To generate this file, we add the following environment variable in a new instance of an l2geth replica/verifier client. The client will then write the file as it syncs from its genesis block to the latest Sequencer block.
 
   ```yaml
   environment:
@@ -127,9 +149,9 @@ Before the migration, we need these following files
   go run ./cmd/boba-crawler --rpc-url=https://mainnet.boba.network --output-path=./eth-addresses.json
   ```
 
-* `eth-allowance.json` - this includes all allowances of the `OVM_ETH` contract. For Goerli L2, this file is **EMPTY**. For Mainnet L2, this file is needed and **SHOULDN'T** be empty. Otherwsie, we can't bypass the security checks.
+* `eth-allowance.json` - this includes all allowances of the `OVM_ETH` contract. For Goerli L2, this file is **EMPTY**. For Mainnet L2, this file is needed and **SHOULDN'T** be empty. Otherwsie, we can't bypass the security checks. (MM: Where is this file located? Can it be added to the v3-anchorage repo?)
 
-* `ovm-message.json` - this includes the set of withdrawals through the `L2CrossDomainMessenger` from before the evm equivalence upgrade. For Goerli L2, this file is **EMPTY**.
+* `ovm-message.json` - this includes the set of withdrawals through the `L2CrossDomainMessenger` from before the evm equivalence upgrade. For Goerli L2, this file is **EMPTY**. (MM: Where is this file located? Can it be added to the v3-anchorage repo?)
 
 ### Contracts
 
@@ -154,6 +176,7 @@ yarn deploy:hardhat --network boba-mainnet
 
 ### Erigon
 
+(MM: Our v3-erigon-lib repo is obsolete now that the upstream erigon-lib has been moved into the main Erigon repository. Need to make sure that this gets merged to the boba-bedrock-hardfork branch)
 Before generating the database, we need to add the genesis block information to the [v3-erigon-lib](https://github.com/bobanetwork/v3-erigon-lib/blob/boba-bedrock-hardfork/chain/chain_config.go) so that the first block can match the legacy chain. For example,
 
 ```go
@@ -383,11 +406,11 @@ We will run a `boba-crawler` program to get all ETH addresses pointing at the **
 
 ### boba-regenerate
 
-We will run a `boba-regenerate` program to re-generate the legacy block chain pointing at the **erigon node**.
+We will run a `boba-regenerate` program to re-generate the legacy block chain pointing at the **erigon node**. (MM: should also specify which legacy node it's pointed at)
 
 ### Note
 
-We will distribute the erigon db to our partners. What's the best way to handle this case?
+We will distribute the erigon db to our partners. What's the best way to handle this case? (MM: for reference, upstream does it like this: https://community.optimism.io/docs/developers/nodes/mainnet/ )
 
 ## Abort migration
 
