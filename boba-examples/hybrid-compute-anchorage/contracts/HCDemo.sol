@@ -29,7 +29,7 @@ contract HCDemo {
     bool success;
 
     (success, response) = Helper.CallOffchain(
-      "http://192.168.4.2:1234/hc", 
+      "http://192.168.4.2:1234/hc",
       abi.encodeWithSignature("add5(uint32)",a)
       );
 
@@ -51,9 +51,8 @@ contract HCDemo {
     bytes memory response;
 
     (success, response) = Helper.CallOffchain(
-    	"http://192.168.4.2:1234/hc",
-	 abi.encodeWithSignature("chicken(uint32)",a)
-	 );
+      "http://192.168.4.2:1234/hc",
+       abi.encodeWithSignature("chicken(uint32)",a));
 
     require(success);
 
