@@ -11,7 +11,10 @@ WORKDIR /app
 ADD ../op-erigon/go.mod go.mod
 ADD ../op-erigon/go.sum go.sum
 
-RUN go mod download
+RUN --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/tmp/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 ADD ../op-erigon/ .
 
 RUN --mount=type=cache,target=/root/.cache \
