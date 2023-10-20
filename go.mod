@@ -212,7 +212,8 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-replace github.com/ethereum/go-ethereum v1.13.1 => github.com/bobanetwork/v3-op-geth v0.0.0-20231009215129-1cb6d5780bcc
+// custom version which is aware of the offchain transaction type
+replace github.com/ethereum/go-ethereum v1.13.1 => github.com/bobanetwork/v3-op-geth v0.0.0-20231020012618-14dd24458704
 
 //replace github.com/ethereum-optimism/superchain-registry/superchain => ../superchain-registry/superchain
 //replace github.com/ethereum/go-ethereum v1.13.1 => ../go-ethereum
