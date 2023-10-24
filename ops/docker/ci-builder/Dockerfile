@@ -52,6 +52,7 @@ COPY ./.gethrc ./.gethrc
 RUN go install github.com/ethereum/go-ethereum/cmd/geth@$(cat .gethrc)
 
 RUN go install gotest.tools/gotestsum@latest
+RUN go install golang.org/x/tools/cmd/goimports@latest
 RUN go install github.com/vektra/mockery/v2@v2.28.1
 RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
 
