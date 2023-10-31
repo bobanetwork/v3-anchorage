@@ -96,8 +96,8 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bits-and-blooms/bitset v1.7.0 h1:YjAGVd3XmtK9ktAbX8Zg2g2PwLIMjGREZJHlV4j7NEo=
 github.com/bits-and-blooms/bitset v1.7.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
-github.com/bobanetwork/v3-op-geth v0.0.0-20231018201518-63125bd85c80 h1:AcoXtXYsBbS093H2VAN/N/EQ5PEupQPA6qn4kdunn7Q=
-github.com/bobanetwork/v3-op-geth v0.0.0-20231018201518-63125bd85c80/go.mod h1:QoC1Xf6dzEFrZjjsi2tKhze1MwRAk6KXFbIzcHnIXx4=
+github.com/bobanetwork/v3-op-geth v0.0.0-20231025210318-ad1ef6d4302d h1:a1EfLjdZsnMSGpPEMlxKvuGv56foP1gPdh3wsiP2zFI=
+github.com/bobanetwork/v3-op-geth v0.0.0-20231025210318-ad1ef6d4302d/go.mod h1:QoC1Xf6dzEFrZjjsi2tKhze1MwRAk6KXFbIzcHnIXx4=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
