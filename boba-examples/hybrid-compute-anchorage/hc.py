@@ -1,5 +1,5 @@
 import os,sys
-from web3 import Web3
+from web3 import Web3 # now using v6.x
 import threading
 import signal
 import time
@@ -26,8 +26,8 @@ def add5(req):
   print("  -> ADD5 handler called with",req)
 
   try:
-    reqBytes = Web3.toBytes(hexstr=req)
-    dec = ethabi.decode_abi(['uint32'], reqBytes)
+    reqBytes = Web3.to_bytes(hexstr=req)
+    dec = ethabi.decode(['uint32'], reqBytes)
   except Exception as e:
     print("DECODE FAILED", e)
 
@@ -35,8 +35,8 @@ def add5(req):
   print("  -> ADD5 calculated", answer)
 
   try:
-    e1 = ethabi.encode_abi(['uint32'], [answer])
-    enc = Web3.toHex(e1)
+    e1 = ethabi.encode(['uint32'], [answer])
+    enc = Web3.to_hex(e1)
   except Exception as e:
     print("ENCODE FAILED", e)
   print("  -> ADD5 responding", enc)
@@ -49,8 +49,8 @@ def chicken(req):
   print("  -> Chicken handler called with",req)
 
   try:
-    reqBytes = Web3.toBytes(hexstr=req)
-    dec = ethabi.decode_abi(['uint32'], reqBytes)
+    reqBytes = Web3.to_bytes(hexstr=req)
+    dec = ethabi.decode(['uint32'], reqBytes)
   except Exception as e:
     print("DECODE FAILED", e)
 
@@ -59,9 +59,9 @@ def chicken(req):
   print("  -> Chicken response length", len(answer))
 
   try:
-    answer = Web3.toBytes(text=answer)
-    e1 = ethabi.encode_abi(['bytes'], [answer])
-    enc = Web3.toHex(e1)
+    answer = Web3.to_bytes(text=answer)
+    e1 = ethabi.encode(['bytes'], [answer])
+    enc = Web3.to_hex(e1)
   except Exception as e:
     print("ENCODE FAILED", e)
 
@@ -71,8 +71,8 @@ def sumSquares_v1(req):
   print("  -> SumSquares_v1 handler called with",req)
 
   try:
-    reqBytes = Web3.toBytes(hexstr=req)
-    dec = ethabi.decode_abi(['uint32','uint32','uint32'], reqBytes)
+    reqBytes = Web3.to_bytes(hexstr=req)
+    dec = ethabi.decode(['uint32','uint32','uint32'], reqBytes)
   except Exception as e:
     print("DECODE FAILED", e)
 
@@ -81,8 +81,8 @@ def sumSquares_v1(req):
   print("  -> SumSquares calculated", answer)
 
   try:
-    e1 = ethabi.encode_abi(['uint32','uint32'], [32, answer])
-    enc = Web3.toHex(e1)
+    e1 = ethabi.encode(['uint32','uint32'], [32, answer])
+    enc = Web3.to_hex(e1)
   except Exception as e:
     print("ENCODE FAILED", e)
   print("  -> SumSquares responding", enc)
@@ -94,8 +94,8 @@ def sumSquares_v2(req):
   print("  -> SumSquares_v2 handler called with",req)
 
   try:
-    reqBytes = Web3.toBytes(hexstr=req)
-    dec = ethabi.decode_abi(['uint32','uint32'], reqBytes)
+    reqBytes = Web3.to_bytes(hexstr=req)
+    dec = ethabi.decode(['uint32','uint32'], reqBytes)
   except Exception as e:
     print("DECODE FAILED", e)
 
@@ -103,8 +103,8 @@ def sumSquares_v2(req):
   print("  -> SumSquares calculated", answer)
 
   try:
-    e1 = ethabi.encode_abi(['uint32'], [answer])
-    enc = Web3.toHex(e1)
+    e1 = ethabi.encode(['uint32'], [answer])
+    enc = Web3.to_hex(e1)
   except Exception as e:
     print("ENCODE FAILED", e)
   print("  -> SumSquares responding", enc)
@@ -161,35 +161,35 @@ with open("../../.devnet/addresses.json") as f:
   config = json.loads(f.read())
 
 w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
-assert (w3.isConnected)
+assert (w3.is_connected)
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 l2 = Web3(Web3.HTTPProvider("http://127.0.0.1:9545"))
-assert (l2.isConnected)
+assert (l2.is_connected)
 l2.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 # Test account created for local Boba devnet (Need to fix the deployment to fund this one on L1;
 # for now using a shared test account
-#addr=Web3.toChecksumAddress("0xb0bA04c08d8f1471bcA20C12a64DcCa17B01d96f")
+#addr=Web3.to_checksum_address("0xb0bA04c08d8f1471bcA20C12a64DcCa17B01d96f")
 #key="c9776e5eb09b348dfde140019e21142503d3c2a5c6d2019d0b30f5099ff2c8dd"
-addr=Web3.toChecksumAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+addr=Web3.to_checksum_address("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
 key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 # Hardhat test account which is Owner of the legacy TuringCredit contract (needed to update price)
-legacyOwner = Web3.toChecksumAddress("0xa0Ee7A142d267C1f36714E4a8F75612F20a79720")
+legacyOwner = Web3.to_checksum_address("0xa0Ee7A142d267C1f36714E4a8F75612F20a79720")
 legacyOwnerKey = 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6
 
 with open("../../packages/contracts-bedrock/forge-artifacts/OptimismMintableERC20.sol/OptimismMintableERC20.json") as f:
   abi = json.loads(f.read())['abi']
-boba_l2 = l2.eth.contract(address=Web3.toChecksumAddress("0x4200000000000000000000000000000000000023"), abi=abi)
+boba_l2 = l2.eth.contract(address=Web3.to_checksum_address("0x4200000000000000000000000000000000000023"), abi=abi)
 
 with open("../../packages/contracts-bedrock/forge-artifacts/BobaHCHelper.sol/BobaHCHelper.json") as f:
   abi = json.loads(f.read())['abi']
-hc = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000003E9"), abi=abi)
+hc = l2.eth.contract(address=Web3.to_checksum_address("0x42000000000000000000000000000000000003E9"), abi=abi)
 
 with open("../../packages/contracts-bedrock/forge-artifacts/BobaTuringCredit.sol/BobaTuringCredit.0.8.15.json") as f:
   abi = json.loads(f.read())['abi']
-legacyCredit = l2.eth.contract(address=Web3.toChecksumAddress("0x42000000000000000000000000000000000003e8"), abi=abi)
+legacyCredit = l2.eth.contract(address=Web3.to_checksum_address("0x42000000000000000000000000000000000003e8"), abi=abi)
 
 with open("./artifacts/contracts/HCDemo.sol/HCDemo.json") as f:
   demoJson = json.loads(f.read())
@@ -206,12 +206,12 @@ boba_l1 = w3.eth.contract(address=config['BOBA'], abi=abi)
 # Utility functions
 
 def signAndSend(tx, label, gasEstimate):
-  balStart = l2.eth.getBalance(addr)
+  balStart = l2.eth.get_balance(addr)
   signed_tx = l2.eth.account.sign_transaction(tx, key)
   ret = l2.eth.send_raw_transaction(signed_tx.rawTransaction)
-  print("Submitted {} tx, id={}".format(label,Web3.toHex(ret)))
+  print("Submitted {} tx, id={}".format(label,Web3.to_hex(ret)))
   rcpt = l2.eth.wait_for_transaction_receipt(ret, poll_latency=0.75)
-  balEnd = l2.eth.getBalance(addr)
+  balEnd = l2.eth.get_balance(addr)
   if gasEstimate:
     print("Got receipt in block {} status {}, gasUsed {}/{} ({} leftover)".format(
       rcpt.blockNumber,
@@ -222,18 +222,18 @@ def signAndSend(tx, label, gasEstimate):
   else:
     print("Got receipt in block {} status {}, gasUsed {}".format(rcpt.blockNumber, rcpt.status, rcpt.gasUsed))
   totFee = balStart - balEnd
-  l1Fee = Web3.toInt(hexstr=rcpt.l1Fee)
+  l1Fee = Web3.to_int(hexstr=rcpt.l1Fee)
   l2Fee = rcpt.gasUsed * rcpt.effectiveGasPrice
 
   extraStr = ""
   if totFee > (l1Fee + l2Fee):
-    extraStr = "extra {}".format(Web3.fromWei(totFee - l1Fee - l2Fee, 'gwei'))
+    extraStr = "extra {}".format(Web3.from_wei(totFee - l1Fee - l2Fee, 'gwei'))
   elif totFee < (l1Fee + l2Fee):
-    extraStr = "***UNDERPAID*** {}".format(Web3.fromWei((l1Fee + l2Fee) - totFee, 'gwei'))
+    extraStr = "***UNDERPAID*** {}".format(Web3.from_wei((l1Fee + l2Fee) - totFee, 'gwei'))
   print("Fee paid (gwei): {} total, {} l1, {} l2 {}".format(
-    Web3.fromWei(totFee, 'gwei'),
-    Web3.fromWei(l1Fee, 'gwei'),
-    Web3.fromWei(l2Fee, 'gwei'),
+    Web3.from_wei(totFee, 'gwei'),
+    Web3.from_wei(l1Fee, 'gwei'),
+    Web3.from_wei(l2Fee, 'gwei'),
     extraStr))
   if rcpt.status != 1:
     print("RECEIPT:", rcpt)
@@ -247,7 +247,7 @@ def signAndSend(tx, label, gasEstimate):
 
 if boba_l1.functions.allowance(addr,l1sb.address).call() == 0:
   print("Approving bridge contract")
-  tx = boba_l1.functions.approve(l1sb.address, Web3.toInt(hexstr="0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")).buildTransaction({
+  tx = boba_l1.functions.approve(l1sb.address, Web3.to_int(hexstr="0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")).build_transaction({
       'nonce': w3.eth.get_transaction_count(addr),
       'from':addr,
       'chainId': 900
@@ -258,12 +258,12 @@ if boba_l1.functions.allowance(addr,l1sb.address).call() == 0:
   assert(rcpt.status == 1)
   print("Approval done")
 
-balCheck = l2.eth.getBalance(addr)
+balCheck = l2.eth.get_balance(addr)
 balCheck2 = boba_l2.functions.balanceOf(addr).call()
-balCheck3 = l2.eth.getBalance(legacyOwner)
-print("Starting balances", Web3.fromWei(balCheck,'ether'), "l2_eth",
-  Web3.fromWei(balCheck2,'ether'), "l2_boba",
-  Web3.fromWei(balCheck3,'ether'), "legacyOwner")
+balCheck3 = l2.eth.get_balance(legacyOwner)
+print("Starting balances", Web3.from_wei(balCheck,'ether'), "l2_eth",
+  Web3.from_wei(balCheck2,'ether'), "l2_boba",
+  Web3.from_wei(balCheck3,'ether'), "legacyOwner")
 
 if balCheck == 0:
   tx = {
@@ -272,27 +272,27 @@ if balCheck == 0:
       'to':config['OptimismPortalProxy'],
       'gas':210000,
       'chainId': 900,
-      'value': Web3.toWei(10,'ether')
+      'value': Web3.to_wei(10,'ether')
   }
-  if w3.eth.gasPrice > 1000000:
-    tx['gasPrice'] = w3.eth.gasPrice
+  if w3.eth.gas_price > 1000000:
+    tx['gasPrice'] = w3.eth.gas_price
   else:
-    tx['gasPrice'] = Web3.toWei(1, 'gwei')
+    tx['gasPrice'] = Web3.to_wei(1, 'gwei')
 
   signed_txn =w3.eth.account.sign_transaction(tx, key)
   ret = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-  print("\nSubmitted ETH TX", Web3.toHex(ret))
+  print("\nSubmitted ETH TX", Web3.to_hex(ret))
   rcpt = w3.eth.wait_for_transaction_receipt(ret)
-  print("Got ETH receipt in block", rcpt.blockNumber, "status", rcpt.status, "gasPrice", rcpt.effectiveGasPrice)
+  print("Got ETH receipt in block", rcpt.blockNumber, "status", rcpt.status, "gas_price", rcpt.effectiveGasPrice)
   assert(rcpt.status == 1)
 
 if balCheck2 == 0:
   tx = l1sb.functions.depositERC20(
      boba_l1.address,
      boba_l2.address,
-     Web3.toWei(10,'ether'),
+     Web3.to_wei(10,'ether'),
      4000000,
-     "").buildTransaction({
+     "0x").build_transaction({
        'nonce': w3.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 900
@@ -301,10 +301,10 @@ if balCheck2 == 0:
 
   signed_txn =w3.eth.account.sign_transaction(tx, key)
   ret2 = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-  print("Submitted BOBA TX", Web3.toHex(ret2))
+  print("Submitted BOBA TX", Web3.to_hex(ret2))
 
   rcpt = w3.eth.wait_for_transaction_receipt(ret2)
-  print("Got BOBA receipt in block", rcpt.blockNumber, "status", rcpt.status, "gasPrice", rcpt.effectiveGasPrice)
+  print("Got BOBA receipt in block", rcpt.blockNumber, "status", rcpt.status, "gas_price", rcpt.effectiveGasPrice)
   assert(rcpt.status == 1)
 
 if balCheck3 == 0:
@@ -314,18 +314,18 @@ if balCheck3 == 0:
       'to':config['OptimismPortalProxy'],
       'gas':210000,
       'chainId': 900,
-      'value': Web3.toWei(10,'ether')
+      'value': Web3.to_wei(10,'ether')
   }
-  if w3.eth.gasPrice > 1000000:
-    tx['gasPrice'] = w3.eth.gasPrice
+  if w3.eth.gas_price > 1000000:
+    tx['gasPrice'] = w3.eth.gas_price
   else:
-    tx['gasPrice'] = Web3.toWei(1, 'gwei')
+    tx['gasPrice'] = Web3.to_wei(1, 'gwei')
 
   signed_txn =w3.eth.account.sign_transaction(tx, legacyOwnerKey)
   ret = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
-  print("\nSubmitted ETH TX", Web3.toHex(ret))
+  print("\nSubmitted ETH TX", Web3.to_hex(ret))
   rcpt = w3.eth.wait_for_transaction_receipt(ret)
-  print("Got ETH receipt in block", rcpt.blockNumber, "status", rcpt.status, "gasPrice", rcpt.effectiveGasPrice)
+  print("Got ETH receipt in block", rcpt.blockNumber, "status", rcpt.status, "gas_price", rcpt.effectiveGasPrice)
   assert(rcpt.status == 1)
 
 
@@ -333,36 +333,36 @@ if balCheck3 == 0:
 while balCheck == 0 or balCheck2 == 0 or balCheck3 == 0:
   print("Waiting...")
   time.sleep(2)
-  balCheck = l2.eth.getBalance(addr)
+  balCheck = l2.eth.get_balance(addr)
   balCheck2 = boba_l2.functions.balanceOf(addr).call()
-  balCheck3 = l2.eth.getBalance(legacyOwner)
+  balCheck3 = l2.eth.get_balance(legacyOwner)
 
-approveTx = boba_l2.functions.approve(hc.address, Web3.toWei(1000000,'ether')).buildTransaction({
+approveTx = boba_l2.functions.approve(hc.address, Web3.to_wei(1000000,'ether')).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signAndSend(approveTx,"ApproveToken", None)
 
-approveTx = boba_l2.functions.approve(legacyCredit.address, Web3.toWei(1000000,'ether')).buildTransaction({
+approveTx = boba_l2.functions.approve(legacyCredit.address, Web3.to_wei(1000000,'ether')).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signAndSend(approveTx,"ApproveToken (legacy)", None)
 
 print("Setting legacy TuringPrice")
 # This has to be done by the owner of the contact.
-legacyPriceTx = legacyCredit.functions.updateTuringPrice(1001).buildTransaction({
+legacyPriceTx = legacyCredit.functions.updateTuringPrice(1001).build_transaction({
        'nonce': l2.eth.get_transaction_count(legacyOwner),
        'from':legacyOwner,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signed_tx = l2.eth.account.sign_transaction(legacyPriceTx, legacyOwnerKey)
 ret = l2.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -370,12 +370,12 @@ rcpt = l2.eth.wait_for_transaction_receipt(ret, poll_latency=0.75)
 assert(rcpt.status == 1)
 
 demoFactory = l2.eth.contract(abi=demoJson['abi'], bytecode=demoJson['bytecode'])
-deployTx = demoFactory.constructor(hc.address).buildTransaction({
+deployTx = demoFactory.constructor(hc.address).build_transaction({
   'from':addr,
   'nonce':l2.eth.get_transaction_count(addr),
   'chainId': 901,
   'gas':1000000,
-  'maxFeePerGas':Web3.toWei(10, 'gwei'),
+  'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 rcpt = signAndSend(deployTx, "deploy", None)
 
@@ -392,45 +392,45 @@ print("ownerRevenue", hc.functions.ownerRevenue().call(), legacyCredit.functions
 
 URL = "http://192.168.4.2:1234/hc"
 RegHash = "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
-tx = hc.functions.RegisterEndpoint(URL, RegHash).buildTransaction({
+tx = hc.functions.RegisterEndpoint(URL, RegHash).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1222333,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 rcpt = signAndSend(tx, "Register", None)
-ans = hc.events.EndpointRegistered().processReceipt(rcpt,errors=DISCARD)
+ans = hc.events.EndpointRegistered().process_receipt(rcpt,errors=DISCARD)
 print("Registration", ans)
 
 print("ownerRevenue", hc.functions.ownerRevenue().call(), legacyCredit.functions.ownerRevenue().call())
 
 # Register our Demo contract as a permitted caller of the endpoint
-tx = hc.functions.AddPermittedCaller(URL, cAddr).buildTransaction({
+tx = hc.functions.AddPermittedCaller(URL, cAddr).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signAndSend(tx, "AddPermittedCaller", None)
 
 # Deposit credits for Demo contract
-tx = hc.functions.AddCredit(cAddr, 100000).buildTransaction({
+tx = hc.functions.AddCredit(cAddr, 100000).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signAndSend(tx, "AddCredit", None)
 
-tx = legacyCredit.functions.addBalanceTo(100000, cAddr).buildTransaction({
+tx = legacyCredit.functions.addBalanceTo(100000, cAddr).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signAndSend(tx, "AddCredit(legacy)", None)
 
@@ -438,150 +438,150 @@ signAndSend(tx, "AddCredit(legacy)", None)
 # Tests start here
 
 print("\nGetSimpleRandom starting")
-tx = demo.functions.FlipCoin().buildTransaction({
+tx = demo.functions.FlipCoin().build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "FlipCoin", eg)
 
-ans = demo.events.CoinFlip().processReceipt(rcpt,errors=DISCARD)
+ans = demo.events.CoinFlip().process_receipt(rcpt,errors=DISCARD)
 print("CoinFlip event", ans[0].args)
 
 print("\nSequentialRandom starting")
 time.sleep(2)
 
-tx = demo.functions.SeqRandom(1).buildTransaction({
+tx = demo.functions.SeqRandom(1).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "SeqRandom(1)", eg)
 time.sleep(2)
 
-tx = demo.functions.SeqRandom(2).buildTransaction({
+tx = demo.functions.SeqRandom(2).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "SeqRandom(2)", eg)
 time.sleep(2)
 
-tx = demo.functions.SeqRandom(2).buildTransaction({
+tx = demo.functions.SeqRandom(2).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "SeqRandom(3)", eg)
 
 print("\nAdd5 (2) starting")
-tx = demo.functions.Add5(2).buildTransaction({
+tx = demo.functions.Add5(2).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 
 rcpt = signAndSend(tx, "Add5", eg)
-ans = demo.events.MathResponse().processReceipt(rcpt,errors=DISCARD)
+ans = demo.events.MathResponse().process_receipt(rcpt,errors=DISCARD)
 print("MathResponse event: ", ans[0].args)
 
 print("\nAdd5 (10) starting, no eth.estimate_gas")
-tx = demo.functions.Add5(10).buildTransaction({
+tx = demo.functions.Add5(10).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 
 rcpt = signAndSend(tx, "Add5", None)
-ans = demo.events.MathResponse().processReceipt(rcpt,errors=DISCARD)
+ans = demo.events.MathResponse().process_receipt(rcpt,errors=DISCARD)
 print("MathResponse event: ", ans[0].args)
 
 print("ownerRevenue", hc.functions.ownerRevenue().call(), legacyCredit.functions.ownerRevenue().call())
 
 print("\nChicken(1) starting")
-tx = demo.functions.Chicken(1).buildTransaction({
+tx = demo.functions.Chicken(1).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "Chicken", eg)
 
-ans = demo.events.StringLength().processReceipt(rcpt,errors=DISCARD)
+ans = demo.events.StringLength().process_receipt(rcpt,errors=DISCARD)
 print("StringLength event: ", ans[0].args)
 
 # Large requests may expose bugs in L1 fee calculation
 print("\nChicken(250) starting")
-tx = demo.functions.Chicken(250).buildTransaction({
+tx = demo.functions.Chicken(250).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 tx['gas'] = int(eg * 1.0)  # Can adjust for debugging
 rcpt = signAndSend(tx, "Chicken", eg)
 
-ans = demo.events.StringLength().processReceipt(rcpt,errors=DISCARD)
+ans = demo.events.StringLength().process_receipt(rcpt,errors=DISCARD)
 print("StringLength event: ", ans[0].args)
 
 # ----------------------------------------------------------
 
 print("\nLegacyV1 starting")
-tx = demo.functions.LegacyV1().buildTransaction({
+tx = demo.functions.LegacyV1().build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "LegacyV1", eg)
 
-ans = demo.events.MathResponse().processReceipt(rcpt,errors=DISCARD)
+ans = demo.events.MathResponse().process_receipt(rcpt,errors=DISCARD)
 print("MathResponse event: ", ans[0].args)
 
 print("\nLegacyV2 starting")
-tx = demo.functions.LegacyV2().buildTransaction({
+tx = demo.functions.LegacyV2().build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 eg = l2.eth.estimate_gas(tx)
 print("GasEstimate", eg)
 rcpt = signAndSend(tx, "LegacyV2", eg)
 
-ans = demo.events.MathResponse().processReceipt(rcpt,errors=DISCARD)
+ans = demo.events.MathResponse().process_receipt(rcpt,errors=DISCARD)
 print("MathResponse event: ", ans[0].args)
 
 # ----------------------------------------------------------
@@ -589,21 +589,21 @@ print("MathResponse event: ", ans[0].args)
 
 print("\nCleanup starting")
 
-tx = hc.functions.RemovePermittedCaller(URL, cAddr).buildTransaction({
+tx = hc.functions.RemovePermittedCaller(URL, cAddr).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signAndSend(tx, "RemovePermittedCaller", None)
 
-tx = hc.functions.UnregisterEndpoint(URL).buildTransaction({
+tx = hc.functions.UnregisterEndpoint(URL).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,
        'chainId': 901,
        'gas':1000000,
-       'maxFeePerGas':Web3.toWei(10, 'gwei'),
+       'maxFeePerGas':Web3.to_wei(10, 'gwei'),
 })
 signAndSend(tx, "Unregister", None)
 
