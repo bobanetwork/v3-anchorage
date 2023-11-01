@@ -18,7 +18,7 @@ services:
       args:
         GIT_COMMIT: "dev"
         GIT_DATE: "0"
-    image: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/op_stack_go:devnet
+    image: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/op-stack-go:devnet
     entrypoint: ["echo", "build complete"]
 
   l1:
