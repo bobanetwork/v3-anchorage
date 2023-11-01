@@ -125,8 +125,6 @@ def offchain(*args):
     return add5(rest)
   elif selector == "0xf69de8e1":
     return chicken(rest)
-  elif selector == "0x61f334d3":  # Register endpoint
-    return "0x0000000000000000000000000000000000000000000000000000000000000000"
   elif selector == "0x00000000": # A hack to handle legacy requests using the same server process.
     if len(args[0]) == 130:
       return sumSquares_v2(args[0])
@@ -140,7 +138,7 @@ def offchain(*args):
 def ocReg(*args):
   print(" *** ocReg", args)
 
-  return "0x0000000000000000000000000000000000000000000000000000000000000000"
+  return "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 
 class RequestHandler(SimpleJSONRPCRequestHandler):
   rpc_paths = ('/', '/hc', '/SoS_v1', '/SoS_v2')
@@ -391,7 +389,7 @@ T0 = time.time()
 print("ownerRevenue", hc.functions.ownerRevenue().call(), legacyCredit.functions.ownerRevenue().call())
 
 URL = "http://192.168.4.2:1234/hc"
-RegHash = "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
+RegHash = "0xa9c584056064687e149968cbab758a3376d22aedc6a55823d1b3ecbee81b8fb9"
 tx = hc.functions.RegisterEndpoint(URL, RegHash).build_transaction({
        'nonce': l2.eth.get_transaction_count(addr),
        'from':addr,

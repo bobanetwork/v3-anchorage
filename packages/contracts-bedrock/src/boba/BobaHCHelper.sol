@@ -96,6 +96,8 @@ contract BobaHCHelper { /*is Ownable*/
         BobaHCHelper Self = BobaHCHelper(HelperAddr);
         bytes32 EK = keccak256(abi.encodePacked(_url));
 
+	require(_auth != keccak256(abi.encode(uint256(0))), "Registration value must be non-zero");
+
         IERC20(hcToken).safeTransferFrom(msg.sender, address(this), RegCost);
         ownerRevenue += RegCost;
 
