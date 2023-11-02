@@ -5,7 +5,7 @@ BEDROCK_TAGS_REMOTE?=origin
 PYTHON=python3
 GCP_PROJECT_ID?=local
 GCP_ARTIFACT_REPOSITORY?=local
-OP_STACK_GO_BUILDER?=us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/op_stack_go:latest
+OP_STACK_GO_BUILDER?=us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/op-stack-go:latest
 
 export GCP_PROJECT_ID
 export GCP_ARTIFACT_REPOSITORY
