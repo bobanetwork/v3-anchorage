@@ -214,7 +214,8 @@ require (
 )
 
 // custom version which is aware of the offchain transaction type
-replace github.com/ethereum/go-ethereum v1.13.1 => github.com/bobanetwork/v3-op-geth v0.0.0-20231107223316-bc199b65ac45
+//replace github.com/ethereum/go-ethereum v1.13.1 => github.com/bobanetwork/v3-op-geth v0.0.0-20231107223316-bc199b65ac45
+replace github.com/ethereum/go-ethereum v1.13.1 => github.com/bobanetwork/v3-op-geth v0.0.0-20231107232037-102c9a4352bb
 
 //replace github.com/ethereum-optimism/superchain-registry/superchain => ../superchain-registry/superchain
 //replace github.com/ethereum/go-ethereum v1.13.1 => ../go-ethereum
