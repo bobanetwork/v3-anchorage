@@ -162,10 +162,13 @@ target "ufm" {
   dockerfile = "Dockerfile"
   context = "./op-ufm"
   args = {
-    // proxyd dockerfile has no _ in the args
     GITCOMMIT = "${GIT_COMMIT}"
     GITDATE = "${GIT_DATE}"
     GITVERSION = "${GIT_VERSION}"
+    OP_STACK_GO_BUILDER = "op-stack-go"
+  }
+  contexts = {
+    op-stack-go: "target:op-stack-go"
   }
   platforms = split(",", PLATFORMS)
   tags = [for tag in split(",", IMAGE_TAGS) : "${REGISTRY}/${REPOSITORY}/op-ufm:${tag}"]
