@@ -159,8 +159,8 @@ target "ufm-metamask" {
 }
 
 target "op-ufm" {
-  dockerfile = "Dockerfile"
-  context = "./op-ufm"
+  dockerfile = "./op-ufm/Dockerfile"
+  context = "./"
   args = {
     GITCOMMIT = "${GIT_COMMIT}"
     GITDATE = "${GIT_DATE}"
