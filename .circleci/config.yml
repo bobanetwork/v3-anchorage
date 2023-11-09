@@ -1783,7 +1783,6 @@ workflows:
               ignore: /.*/
           docker_name: op-ufm
           docker_tags: <<pipeline.git.revision>>
-          platforms: "linux/amd64,linux/arm64"
           publish: true
           release: true
           context:

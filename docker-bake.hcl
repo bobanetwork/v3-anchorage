@@ -158,7 +158,7 @@ target "ufm-metamask" {
   tags = [for tag in split(",", IMAGE_TAGS) : "${REGISTRY}/${REPOSITORY}/ufm-metamask:${tag}"]
 }
 
-target "ufm" {
+target "op-ufm" {
   dockerfile = "Dockerfile"
   context = "./op-ufm"
   args = {
