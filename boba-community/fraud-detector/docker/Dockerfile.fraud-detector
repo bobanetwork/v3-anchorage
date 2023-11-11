@@ -1,0 +1,9 @@
+FROM python:3.8-slim
+RUN pip3 install --no-cache-dir web3==6.11.1
+RUN pip3 install --no-cache-dir ratelimiter==1.2.0.post0
+COPY boba-community/fraud-detector/fraud-detector.py /
+COPY boba-community/fraud-detector/packages/jsonrpclib /jsonrpclib
+COPY /packages/contracts-bedrock/forge-artifacts/L2OutputOracle.sol/L2OutputOracle.json /contracts/L2OutputOracle.json
+RUN [ "mkdir", "-p", "db" ]
+
+CMD [ "python", "-u", "./fraud-detector.py" ]

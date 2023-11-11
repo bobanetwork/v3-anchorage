@@ -1,0 +1,100 @@
+version: '3'
+
+# Custom environment variables may be specified in a ".env" file
+# or a preconfigured environment may be specified from the command line
+#
+# Example for a local devnet (substitute your real IP, not localhost)
+#L1_NODE_WEB3_URL="http://192.0.2.5:8545"
+#L2_NODE_WEB3_URL="http://192.0.2.5:9545"
+#L2OO_CONTRACT_ADDRESS="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+#CONFIG_DIR="./config_devnet"
+#
+# The "config_dir" is by default a symlink to the top-level .devnet dir,
+# but a real directory may be specified for other deployments. This dir
+# must contain the target's genesis-l2.json and rollup.json files.
+
+volumes:
+  verifier-op-log:
+
+services:
+  verifier-l2:
+    image: bobanetwork/verifier-l2:${RELEASE_VERSION:?}
+    environment:
+      - CHAIN_NAME=dev
+      - CHAIN_ID=901
+      - VERBOSITY=6
+    ports:
+      - "29545:8545"
+      - "28060:6060"
+      - "28551:8551"
+    volumes:
+      - ${CONFIG_DIR:-../../.devnet}:/config
+      - ${PWD}/vfy-jwt-secret.txt:/vfy-jwt-secret.txt
+    # - ./<YOUR PERSISTED STORAGE>:/db/
+    entrypoint:
+      - "/bin/sh"
+      - "/home/boba/l2-erigon.sh"
+      - "--authrpc.jwtsecret=/vfy-jwt-secret.txt"
+
+  verifier-op-node:
+    image: bobanetwork/verifier-op-node:${RELEASE_VERSION:?}
+    command: >
+      op-node
+      --l1=${L1_NODE_WEB3_URL:?}
+      --l2=http://verifier-l2:8551
+      --l2.jwt-secret=/vfy-jwt-secret.txt
+      --verifier.l1-confs=0
+      --p2p.disable
+      --rollup.config=/config/rollup.json
+      --rpc.addr=0.0.0.0
+      --rpc.port=8545
+      --p2p.listen.ip=0.0.0.0
+      --p2p.listen.tcp=9003
+      --p2p.listen.udp=9003
+      --p2p.scoring.peers=light
+      --p2p.ban.peers=true
+      --snapshotlog.file=/op-log/snapshot.log
+      --p2p.priv.path=/config/p2p-node-key.txt
+      --metrics.enabled
+      --metrics.addr=0.0.0.0
+      --metrics.port=7300
+      --pprof.enabled
+      --rpc.enable-admin
+      --log.level=DEBUG
+    ports:
+      - "27545:8545"
+      - "29003:9003"
+      - "27300:7300"
+      - "26060:6060"
+    volumes:
+      - ${CONFIG_DIR:-../../.devnet}:/config
+      - ${PWD}/vfy-jwt-secret.txt:/vfy-jwt-secret.txt
+      - verifier-op-log:/op-log
+
+  fraud-detector:
+    depends_on:
+      - verifier-l2
+      - verifier-op-node
+    image: bobanetwork/fraud-detector:${RELEASE_VERSION:?}
+    build:
+      context: ../..
+      dockerfile: boba-community/fraud-detector/docker/Dockerfile.fraud-detector
+    deploy:
+      replicas: 1
+    environment:
+      L1_NODE_WEB3_URL: ${L1_NODE_WEB3_URL:?}
+      L2_NODE_WEB3_URL: ${L2_NODE_WEB3_URL:?}
+      VERIFIER_WEB3_URL: http://verifier-l2:8545
+      L2_CHECK_INTERVAL: ${L2_CHECK_INTERVAL:-300}
+      L2OO_CONTRACT_ADDRESS: ${L2OO_CONTRACT_ADDRESS:?}
+      RATE_LIMITER_MAX_CALLS: ${RATE_LIMITER_MAX_CALLS:-100}
+      RATE_LIMITER_PERIOD: 1
+    #volumes:
+    #  - ./<YOUR PERSISTED STORAGE>:/db/
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '5'
+        max-size: '10m'
+    ports:
+      - ${FRAUD_CHECKER_HTTP_PORT:-8555}:8555
