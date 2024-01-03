@@ -112,7 +112,7 @@ RUN /bin/sh -c set -eux; \
   rm -rf /root/.cache/npm;
 
 
-RUN npm i -g pnpm && npm i -g yarn@1 && pnpm --version && yarn --version
+RUN npm i -g pnpm@8.12.1 && npm i -g yarn@1 && pnpm --version && yarn --version
 
 RUN svm install 0.5.17 && \
   svm install 0.8.15 && \
