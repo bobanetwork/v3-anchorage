@@ -21,7 +21,7 @@
     "build:differential": "go build -o ./scripts/differential-testing/differential-testing ./scripts/differential-testing",
     "build:fuzz": "(cd test-case-generator && go build ./cmd/fuzz.go)",
     "deploy:hardhat": "hardhat deploy",
-    "build:go-ffi": "(cd scripts/go-ffi && go build)",
+    "build:go-ffi": "(cd scripts/go-ffi && go build -a -x -v && ls -alt && echo 'All is well')",
     "autogen:invariant-docs": "npx tsx scripts/invariant-doc-gen.ts",
     "test": "pnpm build:go-ffi && forge test",
     "test:kontrol": "./test/kontrol/kontrol/run-kontrol.sh",
