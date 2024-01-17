@@ -215,7 +215,7 @@ func (d *OpGeth) CreatePayloadAttributes(txs ...*types.Transaction) (*eth.Payloa
 	}
 
 	var withdrawals *types.Withdrawals
-	if d.L2ChainConfig.IsCanyon(uint64(timestamp)) {
+	if d.L2ChainConfig.IsShanghai(new(big.Int).SetUint64(uint64(d.L2Head.BlockNumber)), uint64(timestamp)) {
 		withdrawals = &types.Withdrawals{}
 	}
 
