@@ -57,17 +57,6 @@ func TestWipePredeployStorage(t *testing.T) {
 			require.Equal(t, expected, g.Alloc[*addr])
 			continue
 		}
-		if BobaUntouchablePredeploys[*addr] {
-			expected := types.GenesisAccount{
-				Code: code,
-				Storage: map[common.Hash]common.Hash{
-					storeVal: storeVal,
-				},
-				Nonce: uint64(nonce),
-			}
-			require.Equal(t, expected, g.Alloc[*addr])
-			continue
-		}
 		expected := types.GenesisAccount{
 			Code:    code,
 			Storage: map[common.Hash]common.Hash{},
@@ -75,34 +64,6 @@ func TestWipePredeployStorage(t *testing.T) {
 		}
 		require.Equal(t, expected, g.Alloc[*addr])
 	}
-}
-
-func TestWipeBobaLegacyImplementation(t *testing.T) {
-	g := &types.Genesis{
-		Config: &chain.Config{
-			ChainID: big.NewInt(2888),
-		},
-		Alloc: types.GenesisAlloc{},
-	}
-	expectedG := &types.Genesis{
-		Config: &chain.Config{
-			ChainID: big.NewInt(2888),
-		},
-		Alloc: types.GenesisAlloc{},
-	}
-	for _, addr := range predeploys.LegacyBobaProxyImplementation {
-		g.Alloc[*addr] = types.GenesisAccount{
-			Code: []byte{1, 2, 3},
-			Storage: map[common.Hash]common.Hash{
-				ether.BobaLegacyProxyOwnerSlot: {31: 0xff},
-			},
-		}
-		expectedG.Alloc[*addr] = types.GenesisAccount{}
-	}
-
-	err := WipeBobaLegacyProxyImplementation(g)
-	require.NoError(t, err)
-	require.Equal(t, expectedG, g)
 }
 
 func TestSetImplementations(t *testing.T) {
@@ -193,7 +154,6 @@ func TestSetImplementations(t *testing.T) {
 		"_symbol":   "BOBA",
 		"_decimals": uint8(18),
 	}
-	storage["BobaTuringCredit"] = state.StorageValues{}
 
 	err := SetImplementations(g, storage, immutables)
 	require.NoError(t, err)
