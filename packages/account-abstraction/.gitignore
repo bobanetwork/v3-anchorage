@@ -1,0 +1,21 @@
+node_modules
+
+#Hardhat files
+cache
+artifacts
+/.idea/
+/typechain/
+/dist/
+/yarn-error.log
+/deployments/dev/
+/deployments/localhost/
+deployments/hardhat
+/deployments/proxy/
+/deployments/hardhat/
+/typechain-types/
+/types/
+/reports/gas-used-output.color
+/coverage
+/coverage.json
+/.DS_Store
+.DS_Store

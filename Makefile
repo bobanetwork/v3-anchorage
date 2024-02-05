@@ -146,6 +146,13 @@ devnet-hardhat-up:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=.
 .PHONY: devnet-hardhat-up
 
+devnet-hardhat-up-with-aa:
+	@if [ ! -e op-program/bin ]; then \
+		make cannon-prestate; \
+	fi
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --aa-setup --aa
+.PHONY: devnet-hardhat-up-with-aa
+
 devnet-hardhat-test:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --test
 .PHONY: devnet-hardhat-test

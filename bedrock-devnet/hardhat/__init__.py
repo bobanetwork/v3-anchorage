@@ -14,6 +14,8 @@ parser = argparse.ArgumentParser(description='Bedrock devnet launcher')
 parser.add_argument('--monorepo-dir', help='Directory of the monorepo', default=os.getcwd())
 parser.add_argument('--allocs', help='Only create the allocs and exit', type=bool, action=argparse.BooleanOptionalAction)
 parser.add_argument('--test', help='Tests the deployment, must already be deployed', type=bool, action=argparse.BooleanOptionalAction)
+parser.add_argument('--aa', help='Deploys the AA contracts', type=bool, action=argparse.BooleanOptionalAction)
+parser.add_argument('--aa-setup', help='Transfers funds to L2 and the Deterministic Deployer for local devnet', type=bool, action=argparse.BooleanOptionalAction)
 
 log = logging.getLogger()
 
@@ -40,6 +42,7 @@ def main():
     monorepo_dir = os.path.abspath(args.monorepo_dir)
     devnet_dir = pjoin(monorepo_dir, '.devnet')
     contracts_bedrock_dir = pjoin(monorepo_dir, 'packages', 'contracts-bedrock')
+    contracts_account_abstraction_dir = pjoin(monorepo_dir, 'packages', 'account-abstraction')
     deployments_dir = pjoin(contracts_bedrock_dir, 'deployments')
     deployment_dir = pjoin(contracts_bedrock_dir, 'deployments', 'hardhat-local')
     op_node_dir = pjoin(args.monorepo_dir, 'op-node')
@@ -51,11 +54,14 @@ def main():
     boba_chain_ops = pjoin(monorepo_dir, 'boba-chain-ops')
     sdk_dir = pjoin(monorepo_dir, 'packages', 'sdk')
     env_dir = pjoin(contracts_bedrock_dir, '.env')
+    aa_env_dir = pjoin(contracts_account_abstraction_dir, '.env')
+    aa_deployment_dir = pjoin(contracts_account_abstraction_dir, 'deployments', 'hardhat-local')
 
     paths = Bunch(
       mono_repo_dir=monorepo_dir,
       devnet_dir=devnet_dir,
       contracts_bedrock_dir=contracts_bedrock_dir,
+      contracts_account_abstraction_dir=contracts_account_abstraction_dir,
       deployments_dir=deployments_dir,
       deployment_dir=deployment_dir,
       l1_deployments_path=pjoin(deployment_dir, '.deploy'),
@@ -68,6 +74,8 @@ def main():
       boba_chain_ops=boba_chain_ops,
       sdk_dir=sdk_dir,
       env_dir=env_dir,
+      aa_env_dir=aa_env_dir,
+      aa_deployment_dir=aa_deployment_dir,
       genesis_l1_path=pjoin(devnet_dir, 'genesis-l1.json'),
       genesis_l2_path=pjoin(devnet_dir, 'genesis-l2.json'),
       allocs_path=pjoin(devnet_dir, 'allocs-l1.json'),
@@ -94,6 +102,13 @@ def main():
     devnet_bring_batcher_proposer(paths)
     devnet_store_addresses(paths)
     devent_restore_configurations(paths)
+
+    if args.aa:
+        log.info('Deploying AA contracts')
+        devnet_write_env_for_aa(paths)
+        if args.aa_setup:
+            devnet_setup_aa(paths)
+        devnet_deploy_aa(paths)
 
 def devnet_l1_genesis(paths):
     # Create the allocs
@@ -147,6 +162,34 @@ import config from './hardhat-local.json'
 export default config satisfies DeployConfig
 """)
 
+def devnet_write_env_for_aa(paths):
+    OptimismPortal_deployment = read_json(pjoin(paths.deployment_dir, 'OptimismPortalProxy.json'))
+    optimismPortal_address = OptimismPortal_deployment['address']
+    log.info(f'Using optimism portal {optimismPortal_address}')
+    log.info("Writing env file")
+    with open(paths.env_dir, 'a') as f:
+        f.write(f"""
+L2_RPC=http://127.0.0.1:9545
+OPTIMISMPORTAL={optimismPortal_address}
+""")
+
+    AddressManager_deployment = read_json(pjoin(paths.deployment_dir, 'Lib_AddressManager.json'))
+    addressManager_address = AddressManager_deployment['address']
+    log.info(f'Using AddressManager {addressManager_address}')
+    BOBA_deployment = read_json(pjoin(paths.deployment_dir, 'BOBA.json'))
+    boba_token_address = BOBA_deployment['address']
+    log.info(f'Using l1 boba token {boba_token_address}')
+    log.info("Writing env file for aa")
+    with open(paths.aa_env_dir, 'w+') as f:
+        f.write(f"""
+L1_NODE_WEB3_URL=http://127.0.0.1:8545
+L2_NODE_WEB3_URL=http://127.0.0.1:9545
+ADDRESS_MANAGER_ADDRESS={addressManager_address}
+DEPLOYER_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+L1_BOBA_TOKEN_ADDRESS={boba_token_address}
+""")
+
+
 def devnet_deploy(paths):
     if os.path.exists(paths.deployment_dir):
         shutil.rmtree(paths.deployment_dir)
@@ -157,6 +200,19 @@ def devnet_deploy(paths):
 
     if os.path.exists(paths.devnet_config_export_path):
       os.remove(paths.devnet_config_export_path)
+
+def devnet_setup_aa(paths):
+    run_command([
+        'npx', 'hardhat', 'run', 'scripts/deposit_for_aa_depl.ts'
+    ], cwd=paths.contracts_bedrock_dir)
+
+def devnet_deploy_aa(paths):
+    if os.path.exists(paths.aa_deployment_dir):
+        shutil.rmtree(paths.aa_deployment_dir)
+
+    run_command([
+        'yarn', 'deploy'
+    ], cwd=paths.contracts_account_abstraction_dir)
 
 def devnet_generate_files(paths):
     log.info('Generating L2 genesis and rollup config')
