@@ -168,6 +168,9 @@ importers:
       '@types/mocha':
         specifier: ^9.0.0
         version: 9.1.1
+      dotenv:
+        specifier: ^16.4.1
+        version: 16.4.4
       ethereumjs-util:
         specifier: ^7.1.0
         version: 7.1.5
@@ -5597,7 +5600,7 @@ packages:
       chokidar: 3.5.3
       dedent: 0.7.0
       detect-package-manager: 2.0.1
-      dotenv: 16.3.1
+      dotenv: 16.4.4
       dotenv-expand: 10.0.0
       esbuild: 0.16.17
       execa: 6.1.0
@@ -9225,6 +9228,10 @@ packages:
 
   /dotenv@16.3.1:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
+    engines: {node: '>=12'}
+
+  /dotenv@16.4.4:
+    resolution: {integrity: sha512-XvPXc8XAQThSjAbY6cQ/9PcBXmFoWuw1sQ3b8HqUCR6ziGXjkTi//kB9SWa2UwqlgdAIuRqAa/9hVljzPehbYg==}
     engines: {node: '>=12'}
 
   /dotenv@8.6.0:
