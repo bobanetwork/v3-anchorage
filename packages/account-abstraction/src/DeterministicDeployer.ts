@@ -47,6 +47,12 @@ export class DeterministicDeployer {
       this.deploymentSignerAddress = '0x3fab184622dc19b6109349b94811493bf2a45362'
       this.deploymentGasPrice = 100e9
       this.deploymentGasLimit = 100000
+    } else if (network === 'boba_sepolia') {
+      this.proxyAddress = '0x4e59b44847b379578588920ca78fbf26c0b4956c'
+      this.deploymentTransaction = '0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222'
+      this.deploymentSignerAddress = '0x3fab184622dc19b6109349b94811493bf2a45362'
+      this.deploymentGasPrice = 100e9
+      this.deploymentGasLimit = 100000
     } else if (network == 'devnet') {
       this.proxyAddress = '0x1De997F8437546b2463334C00dDfF1Ba65eC4835'
       this.deploymentTransaction = '0xf8a6808459682f31830111708080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf382072ea0c4cf778a2efb9e93e8be280a0888a58c409c81d9bea4713bd7f1f3c7a4761710a01094394e86ee22c558ae16bebe8cef20af2c36ee124255c13be584f729989591'
