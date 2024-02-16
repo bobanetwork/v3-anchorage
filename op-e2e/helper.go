@@ -2,6 +2,7 @@ package op_e2e
 
 import (
 	"crypto/md5"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -24,6 +25,7 @@ func InitParallel(t e2eutils.TestingBase, args ...func(t e2eutils.TestingBase, o
 	tName := t.Name()
 	tHash := md5.Sum([]byte(tName))
 	executor := uint64(tHash[0]) % info.total
+	fmt.Printf("JKY!!! tName=%v tHash=%v executor=%v\n", tName, tHash, executor)
 	opts := &testopts{
 		executor: executor,
 	}
