@@ -133,6 +133,11 @@ func FindL2Heads(ctx context.Context, cfg *rollup.Config, l1 L1Chain, l2 L2Chain
 		// Fetch L1 information if we never had it, or if we do not have it for the current origin.
 		// Optimization: as soon as we have a previous L1 block, try to traverse L1 by hash instead of by number, to fill the cache.
 		if n.L1Origin.Hash == l1Block.ParentHash {
+			_, err := l1.L1BlockRefByHash(ctx, common.HexToHash("0x86d2dd54be0a197a0bdf387a4500a569b6d38a6715e1785be38f5b5aecf6c324"))
+			if err != nil {
+				fmt.Println(err)
+				return nil, fmt.Errorf("failed to retrieve L1 block: %w", err)
+			}
 			b, err := l1.L1BlockRefByHash(ctx, n.L1Origin.Hash)
 			if err != nil {
 				// Exit, find-sync start should start over, to move to an available L1 chain with block-by-number / not-found case.
