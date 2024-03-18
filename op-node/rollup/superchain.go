@@ -56,10 +56,8 @@ func LoadOPStackRollupConfig(chainID uint64) (*Config, error) {
 		return nil, fmt.Errorf("unable to retrieve genesis SystemConfig of chain %d", chainID)
 	}
 
-	var depositContractAddress common.Address
-	if addrs, ok := superchain.Addresses[chainID]; ok {
-		depositContractAddress = common.Address(addrs.OptimismPortalProxy)
-	} else {
+	addrs, ok := superchain.Addresses[chainID]
+	if !ok {
 		return nil, fmt.Errorf("unable to retrieve deposit contract address")
 	}
 
@@ -79,7 +77,7 @@ func LoadOPStackRollupConfig(chainID uint64) (*Config, error) {
 		regolithTime = 1705600788
 	}
 
-	deltaTime := superChain.Config.DeltaTime
+	deltaTime := chConfig.DeltaTime
 	// OP Labs Sepolia devnet 0 activated delta at genesis, slightly earlier than
 	// Base Sepolia devnet 0 on the same superchain.
 	switch chainID {
@@ -111,13 +109,13 @@ func LoadOPStackRollupConfig(chainID uint64) (*Config, error) {
 		L1ChainID:              new(big.Int).SetUint64(superChain.Config.L1.ChainID),
 		L2ChainID:              new(big.Int).SetUint64(chConfig.ChainID),
 		RegolithTime:           &regolithTime,
-		CanyonTime:             superChain.Config.CanyonTime,
+		CanyonTime:             chConfig.CanyonTime,
 		DeltaTime:              deltaTime,
-		EcotoneTime:            superChain.Config.EcotoneTime,
-		FjordTime:              superChain.Config.FjordTime,
+		EcotoneTime:            chConfig.EcotoneTime,
+		FjordTime:              chConfig.FjordTime,
 		BatchInboxAddress:      common.Address(chConfig.BatchInboxAddr),
-		DepositContractAddress: depositContractAddress,
-		L1SystemConfigAddress:  common.Address(chConfig.SystemConfigAddr),
+		DepositContractAddress: common.Address(addrs.OptimismPortalProxy),
+		L1SystemConfigAddress:  common.Address(addrs.SystemConfigProxy),
 	}
 	if superChain.Config.ProtocolVersionsAddr != nil { // Set optional protocol versions address
 		cfg.ProtocolVersionsAddress = common.Address(*superChain.Config.ProtocolVersionsAddr)
