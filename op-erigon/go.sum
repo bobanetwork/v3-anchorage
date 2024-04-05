@@ -202,10 +202,12 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/bits-and-blooms/bitset v1.7.0 h1:YjAGVd3XmtK9ktAbX8Zg2g2PwLIMjGREZJHlV4j7NEo=
 github.com/bits-and-blooms/bitset v1.7.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
-github.com/bobanetwork/v3-erigon v1.1.2 h1:CNLvLATs9KuyhxisSd8nXCn3XbvpFAuVBRB8HwKBf9k=
-github.com/bobanetwork/v3-erigon v1.1.2/go.mod h1:FGfMpNuUA0W5/AyU6wOUetH+gU/4lID3MKUrlEMfUCI=
-github.com/bobanetwork/v3-erigon/erigon-lib v0.0.0-20240318172300-bc416811c1de h1:IsfIp5gBp/8fpY1l3Eg4ZaWCp9Bl+wHuFmECLRhI8vo=
-github.com/bobanetwork/v3-erigon/erigon-lib v0.0.0-20240318172300-bc416811c1de/go.mod h1:bOiKB3LSTL/J/ZQZHpKnubpdqqjC5z9sWXRloVKQq/U=
+github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240315201409-1ecd6fec327e h1:GdD5nhXwsA9sPAEEL//phSgwlWGo2vWFsN7XeTTQ78k=
+github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240315201409-1ecd6fec327e/go.mod h1:7xh2awFQqsiZxFrHKTgEd+InVfDRrkKVUIuK8SAFHp0=
+github.com/bobanetwork/v3-erigon v1.9.7-0.20240405152227-c17aa534e86b h1:PU/QZHZQ00UhWxGOpbDbJm3Bys00JA1X+zEDfzkECF0=
+github.com/bobanetwork/v3-erigon v1.9.7-0.20240405152227-c17aa534e86b/go.mod h1:FGfMpNuUA0W5/AyU6wOUetH+gU/4lID3MKUrlEMfUCI=
+github.com/bobanetwork/v3-erigon/erigon-lib v0.0.0-20240405152227-c17aa534e86b h1:OttEtM5T5UA96KrY3/q4jh5WJzgUmpuerPIMwPJXV7A=
+github.com/bobanetwork/v3-erigon/erigon-lib v0.0.0-20240405152227-c17aa534e86b/go.mod h1:bOiKB3LSTL/J/ZQZHpKnubpdqqjC5z9sWXRloVKQq/U=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/bradfitz/iter v0.0.0-20140124041915-454541ec3da2/go.mod h1:PyRFw1Lt2wKX4ZVSQ2mk+PeDa1rxyObEDlApuIsUKuo=
 github.com/bradfitz/iter v0.0.0-20190303215204-33e6a9893b0c/go.mod h1:PyRFw1Lt2wKX4ZVSQ2mk+PeDa1rxyObEDlApuIsUKuo=
@@ -302,8 +304,6 @@ github.com/erigontech/mdbx-go v0.27.21 h1:Pv47QIiRXR8Nv+nltZteLm4xkRwuvqmOCjzZj9
 github.com/erigontech/mdbx-go v0.27.21/go.mod h1:FAMxbOgqOnRDx51j8HjuJZIgznbDwjX7LItd+/UWyA4=
 github.com/erigontech/silkworm-go v0.10.0 h1:oAoptLtJbQXk63mrKYs6qliQlbDrXTSNiZfzv1OMp+Q=
 github.com/erigontech/silkworm-go v0.10.0/go.mod h1:O50ux0apICEVEGyRWiE488K8qz8lc3PA/SXbQQAc8SU=
-github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20240315155522-09647974da0d h1:bFfj5iiIUazl+kZOucgf/oWAetPuD2B47O5qD7UCWkY=
-github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20240315155522-09647974da0d/go.mod h1:7xh2awFQqsiZxFrHKTgEd+InVfDRrkKVUIuK8SAFHp0=
 github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c h1:CndMRAH4JIwxbW8KYq6Q+cGWcGHz0FjGR3QqcInWcW0=
 github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c/go.mod h1:AzA8Lj6YtixmJWL+wkKoBGsLWy9gFrAzi4g+5bCKwpY=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
