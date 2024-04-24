@@ -20,6 +20,8 @@ module.exports = {
       '../accountabstraction/node_modules',
     ],
     alias: {
+      '@ethersproject/random': '@ethersproject/random/lib/index.js',
+      '@ethersproject/base64': '@ethersproject/base64/lib/index.js',
       'ethereum-cryptography/secp256k1': require.resolve(
         'ethereum-cryptography/secp256k1'
       ),
