@@ -13,18 +13,15 @@ module.exports = {
     }),
   ],
   resolve: {
-    modules: ['node_modules', '../bundler_sdk/node_modules', '../bundler_utils/node_modules', '../accountabstraction/node_modules'],
+    modules: [
+      'node_modules',
+      '../bundler_sdk/node_modules',
+      '../bundler_utils/node_modules',
+      '../accountabstraction/node_modules',
+    ],
     alias: {
-      // the packages below has a "browser" and "main" entry. Unfortunately, webpack uses the "browser" entry,
-      // even through we explicitly use set "target: node"
-      // (see https://github.com/webpack/webpack/issues/4674)
-      '@ethersproject/random': path.resolve(
-        __dirname,
-        '../../../node_modules/@ethersproject/random/lib/index.js'
-      ),
-      '@ethersproject/base64': path.resolve(
-        __dirname,
-        '../../../node_modules/@ethersproject/base64/lib/index.js'
+      'ethereum-cryptography/secp256k1': require.resolve(
+        'ethereum-cryptography/secp256k1'
       ),
     },
   },

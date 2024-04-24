@@ -1,5 +1,4 @@
-import { Wallet, providers } from 'ethers'
-import { getContractFactory } from '@bobanetwork/core_contracts'
+import { Wallet, providers, Contract } from 'ethers'
 
 /* eslint-disable */
 require('dotenv').config()
@@ -18,9 +17,11 @@ const main = async () => {
   const deployer_l2 = new Wallet(process.env.DEPLOYER_PRIVATE_KEY, l2Provider)
 
   const getAddressManager = (provider: any, addressManagerAddress: any) => {
-    return getContractFactory('Lib_AddressManager')
-      .connect(provider)
-      .attach(addressManagerAddress) as any
+    return new Contract(
+      addressManagerAddress,
+      ['function getAddress(string) external view returns (address)'],
+      provider
+    )
   }
 
   console.log(
@@ -41,9 +42,11 @@ const main = async () => {
   const L1StandardBridgeAddress = await addressManager.getAddress(
     'Proxy__L1StandardBridge'
   )
-  const L1StandardBridge = getContractFactory('L1StandardBridge')
-    .connect(deployer_l1)
-    .attach(L1StandardBridgeAddress)
+  const L1StandardBridge = new Contract(
+    L1StandardBridgeAddress,
+    ['function l2TokenBridge() external view returns (address)'],
+    deployer_l1
+  )
 
   const L2StandardBridgeAddress = await L1StandardBridge.l2TokenBridge()
 

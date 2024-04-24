@@ -37,15 +37,23 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@bobanetwork/accountabstraction": "^1.0.0",
+    "@bobanetwork/accountabstraction": "file:../account-abstraction",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.5.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@openzeppelin/contracts": "^4.7.3",
-    "ethers": "^5.7.0"
+    "@typechain/ethers-v5": "^10.1.0",
+    "@types/debug": "^4.1.7",
+    "debug": "^4.3.4",
+    "ethers": "^5.7.0",
+    "hardhat-gas-reporter": "^1.0.8"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "hardhat": "^2.12.5"
+    "hardhat": "^2.12.5",
+    "ts-node": ">=8.0.0",
+    "typechain": "^8.1.0"
   }
 }

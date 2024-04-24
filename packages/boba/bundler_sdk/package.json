@@ -38,8 +38,8 @@
     "watch-tsc": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@bobanetwork/accountabstraction": "^1.0.0",
-    "@bobanetwork/bundler_utils": "^0.2.3",
+    "@bobanetwork/accountabstraction": "file:../account-abstraction",
+    "@bobanetwork/bundler_utils": "file:../bundler_utils",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@ethersproject/abstract-signer": "^5.7.0",

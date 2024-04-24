@@ -4,10 +4,7 @@ import fs from 'fs'
 
 import { Command } from 'commander'
 import { erc4337RuntimeVersion } from '@bobanetwork/bundler_utils'
-import { ethers, Wallet } from 'ethers'
-import { getContractFactory } from '@bobanetwork/core_contracts'
-import { BundlerServer } from './BundlerServer'
-import { UserOpMethodHandler } from './UserOpMethodHandler'
+import { ethers, Wallet, Contract } from 'ethers'
 import {
   EntryPoint,
   EntryPoint__factory,
@@ -15,6 +12,9 @@ import {
   EntryPointWrapper__factory,
 } from '@bobanetwork/accountabstraction'
 import { BaseProvider } from '@ethersproject/providers'
+
+import { BundlerServer } from './BundlerServer'
+import { UserOpMethodHandler } from './UserOpMethodHandler'
 import { initServer } from './modules/initServer'
 import { DebugMethodHandler } from './DebugMethodHandler'
 import { isGeth, supportsRpcMethod } from './utils'
@@ -35,28 +35,44 @@ export async function connectContracts(
   wallet: Wallet,
   entryPointAddress: string,
   entryPointWrapperAddress: string
-): Promise<{ entryPoint: EntryPoint, entryPointWrapper: EntryPointWrapper }> {
+): Promise<{ entryPoint: EntryPoint; entryPointWrapper: EntryPointWrapper }> {
   const entryPoint = EntryPoint__factory.connect(entryPointAddress, wallet)
-  const entryPointWrapper = EntryPointWrapper__factory.connect(entryPointWrapperAddress, wallet)
+  const entryPointWrapper = EntryPointWrapper__factory.connect(
+    entryPointWrapperAddress,
+    wallet
+  )
   return { entryPoint, entryPointWrapper }
 }
 
-export async function connectContractsViaAddressManager (
+export async function connectContractsViaAddressManager(
   providerL1: BaseProvider,
   wallet: Wallet,
-  addressManagerAddress: string): Promise<{ entryPoint: EntryPoint, entryPointWrapper: EntryPointWrapper }> {
+  addressManagerAddress: string
+): Promise<{ entryPoint: EntryPoint; entryPointWrapper: EntryPointWrapper }> {
   const addressManager = getAddressManager(providerL1, addressManagerAddress)
-  const entryPointAddress = await addressManager.getAddress('L2_Boba_EntryPoint')
-  const entryPointWrapperAddress = await addressManager.getAddress('L2_EntryPointWrapper')
+  const entryPointAddress = await addressManager.getAddress(
+    'L2_Boba_EntryPoint'
+  )
+  const entryPointWrapperAddress = await addressManager.getAddress(
+    'L2_EntryPointWrapper'
+  )
   const entryPoint = EntryPoint__factory.connect(entryPointAddress, wallet)
-  const entryPointWrapper = EntryPointWrapper__factory.connect(entryPointWrapperAddress, wallet)
+  const entryPointWrapper = EntryPointWrapper__factory.connect(
+    entryPointWrapperAddress,
+    wallet
+  )
   return { entryPoint, entryPointWrapper }
 }
 
-function getAddressManager (provider: any, addressManagerAddress: any): ethers.Contract {
-  return getContractFactory('Lib_AddressManager')
-    .attach(addressManagerAddress)
-    .connect(provider)
+function getAddressManager(
+  provider: any,
+  addressManagerAddress: any
+): ethers.Contract {
+  return new Contract(
+    addressManagerAddress,
+    ['function getAddress(string) external view returns (address)'],
+    provider
+  )
 }
 
 /**
@@ -117,15 +133,38 @@ export async function runBundler(
     .option('--show-stack-traces', 'Show stack traces.')
     .option('--createMnemonic', 'create the mnemonic file')
     .option('--addressManager <string>', 'address of the Address Manager', '')
-    .option('--l1NodeWeb3Url <string>', 'L1 network url for Address Manager', '')
-    .option('--maxBundleGas <number>', 'Max Bundle Gas available to use', '5000000')
-    .option('--enableDebugMethods <boolean>', 'debug_* methods available', false)
+    .option(
+      '--l1NodeWeb3Url <string>',
+      'L1 network url for Address Manager',
+      ''
+    )
+    .option(
+      '--maxBundleGas <number>',
+      'Max Bundle Gas available to use',
+      '5000000'
+    )
+    .option(
+      '--enableDebugMethods <boolean>',
+      'debug_* methods available',
+      false
+    )
     .option('--minStake <string>', 'Min stake for Entrypoint', '0.0001')
-    .option('--minUnstakeDelay <number>', 'Minimum unstake delay in seconds', '300')
+    .option(
+      '--minUnstakeDelay <number>',
+      'Minimum unstake delay in seconds',
+      '300'
+    )
     .option('--autoBundleInterval <number>', 'Auto Bundle interval', '3')
-    .option('--autoBundleMempoolSize <number>', 'Auto Bundle Mempool Size', '10')
+    .option(
+      '--autoBundleMempoolSize <number>',
+      'Auto Bundle Mempool Size',
+      '10'
+    )
     .option('--l2Offset <number>', 'l2 Offset to start from')
-    .option('--logsChunkSize <number>', 'eth_getLogs range supported by network')
+    .option(
+      '--logsChunkSize <number>',
+      'eth_getLogs range supported by network'
+    )
 
   const programOpts = program.parse(argv).opts()
   showStackTraces = programOpts.showStackTraces
@@ -171,7 +210,9 @@ export async function runBundler(
   let entryPointWrapper: EntryPointWrapper
   if (config.addressManager.length > 0) {
     console.log('Getting entrypoint from address manager')
-    const providerL1: BaseProvider = new ethers.providers.JsonRpcProvider(config.l1NodeWeb3Url)
+    const providerL1: BaseProvider = new ethers.providers.JsonRpcProvider(
+      config.l1NodeWeb3Url
+    )
     const { entryPoint: eP, entryPointWrapper: epW } =
       await connectContractsViaAddressManager(
         providerL1,
@@ -185,7 +226,11 @@ export async function runBundler(
     entryPoint = eP
     entryPointWrapper = epW
   } else {
-    const { entryPoint: eP, entryPointWrapper: epW } = await connectContracts(wallet, config.entryPoint, config.entryPointWrapper)
+    const { entryPoint: eP, entryPointWrapper: epW } = await connectContracts(
+      wallet,
+      config.entryPoint,
+      config.entryPointWrapper
+    )
     config.entryPoint = eP.address
     entryPoint = eP
     config.entryPointWrapper = epW.address

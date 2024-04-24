@@ -1,8 +1,12 @@
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 import { resolveProperties } from 'ethers/lib/utils'
-import { NotPromise } from './ERC4337Utils'
-import { EntryPoint, UserOperationStruct } from '@bobanetwork/accountabstraction'
+import {
+  EntryPoint,
+  UserOperationStruct,
+} from '@bobanetwork/accountabstraction'
 import Debug from 'debug'
+
+import { NotPromise } from './ERC4337Utils'
 
 const debug = Debug('aa.postExec')
 
