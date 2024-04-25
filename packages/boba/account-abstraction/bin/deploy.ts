@@ -3,7 +3,7 @@ import { Wallet, providers, Contract } from 'ethers'
 /* eslint-disable */
 require('dotenv').config()
 
-import hre from 'hardhat'
+import hre, { ethers } from 'hardhat'
 
 const main = async () => {
   console.log('Starting BOBA AA contracts deployment...')
@@ -32,25 +32,64 @@ const main = async () => {
     process.env.ADDRESS_MANAGER_ADDRESS
   )
 
-  const l1MessengerAddress = await addressManager.getAddress(
+  let proxyAdminAddress = await addressManager.getAddress('ProxyAdmin')
+  if (proxyAdminAddress === ethers.constants.AddressZero) {
+    proxyAdminAddress = process.env.PROXY_ADMIN_ADDRESS
+    if (proxyAdminAddress === ethers.constants.AddressZero) {
+      throw new Error('ProxyAdmin address not found in address manager or in env')
+    }
+  }
+  const proxyAdmin = new Contract(
+    proxyAdminAddress,
+    new ethers.utils.Interface(['function setAddress(string,address) external','function owner() external view returns (address)']),
+    deployer_l1
+  )
+  console.log(await proxyAdmin.owner())
+
+  let l1MessengerAddress = await addressManager.getAddress(
     'Proxy__L1CrossDomainMessenger'
   )
-  const l2MessengerAddress = await addressManager.getAddress(
+  if (l1MessengerAddress === ethers.constants.AddressZero) {
+    l1MessengerAddress = process.env.L1_CROSS_DOMAIN_MESSENGER_ADDRESS
+    if (l1MessengerAddress === ethers.constants.AddressZero) {
+      throw new Error(
+        'L1CrossDomainMessenger address not found in address manager or in env'
+      )
+    }
+  }
+
+  let l2MessengerAddress = await addressManager.getAddress(
     'L2CrossDomainMessenger'
   )
+  if (l2MessengerAddress === ethers.constants.AddressZero) {
+    l2MessengerAddress = process.env.L2_CROSS_DOMAIN_MESSENGER_ADDRESS
+    if (l2MessengerAddress === ethers.constants.AddressZero) {
+      console.warn(`L2CrossDomainMessenger is set to 0x4200000000000000000000000000000000000007`)
+      l2MessengerAddress = '0x4200000000000000000000000000000000000007'
+    }
+  }
 
-  const L1StandardBridgeAddress = await addressManager.getAddress(
+  let L1StandardBridgeAddress = await addressManager.getAddress(
     'Proxy__L1StandardBridge'
   )
+  if (L1StandardBridgeAddress === ethers.constants.AddressZero) {
+    L1StandardBridgeAddress = process.env.L1_STANDARD_BRIDGE_ADDRESS
+    if (L1StandardBridgeAddress === ethers.constants.AddressZero) {
+      throw new Error(
+        'L1StandardBridge address not found in address manager or in env'
+      )
+    }
+  }
   const L1StandardBridge = new Contract(
     L1StandardBridgeAddress,
-    ['function l2TokenBridge() external view returns (address)'],
+    new ethers.utils.Interface(['function otherBridge() external view returns (address)']),
     deployer_l1
   )
 
-  const L2StandardBridgeAddress = await L1StandardBridge.l2TokenBridge()
+  const L2StandardBridgeAddress = await L1StandardBridge.otherBridge()
 
   await hre.run('deploy', {
+    proxyAdminAddress,
     l1MessengerAddress,
     l2MessengerAddress,
     L1StandardBridgeAddress,
@@ -59,6 +98,7 @@ const main = async () => {
     l2Provider,
     deployer_l1,
     deployer_l2,
+    proxyAdmin,
     addressManager,
     network,
     noCompile: process.env.NO_COMPILE ? true : false,

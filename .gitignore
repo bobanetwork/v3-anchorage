@@ -56,4 +56,4 @@ boba-community/*/yarn.lock
 packages/boba/subgraphs/local/data
 
 # bunlder
-packages/boba/bunlder/bundler.js
+packages/boba/bundler/bundler.js

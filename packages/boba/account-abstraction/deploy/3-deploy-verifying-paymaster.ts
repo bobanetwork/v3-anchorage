@@ -37,7 +37,7 @@ const deployFn: DeployFunction = async (hre) => {
     }
     await hre.deployments.save('BobaVerifyingPaymaster', BobaVerifyingPaymasterDeploymentSubmission)
 
-    await registerBobaAddress( (hre as any).deployConfig.addressManager, 'L2_BobaVerifyingPaymaster', BobaVerifyingPaymaster.address )
+    await registerBobaAddress( (hre as any).deployConfig.proxyAdmin, (hre as any).deployConfig.addressManager, 'L2_BobaVerifyingPaymaster', BobaVerifyingPaymaster.address )
   }
 }
 

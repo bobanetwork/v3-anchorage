@@ -7,11 +7,14 @@ x-deployer_pk: &deployer_pk
 services:
   # deploys account abstraction contracts and serves contract addresses
   aa_deployer:
-    image: bobanetwork/aa_deployer:latest
+    depends_on:
+      - l1
+      - l2
     build:
       context: ..
       dockerfile: ./ops/docker/Dockerfile.bundler
       target: aa_deployer
+    # image: bobanetwork/aa_deployer:latest
     environment:
       L1_NODE_WEB3_URL: http://l1:8545
       L2_NODE_WEB3_URL: http://l2:8545
@@ -24,11 +27,14 @@ services:
 
   bundler:
     depends_on:
-    image: bobanetwork/bundler:latest
+      - l1
+      - l2
+      - aa_deployer
     build:
       context: ..
       dockerfile: ./ops/docker/Dockerfile.bundler
       target: bundler
+    # image: bobanetwork/bundler:latest
     deploy:
       replicas: 1
     ports: [ '3000:3000' ]
