@@ -35,7 +35,7 @@ const deployFn: DeployFunction = async (hre) => {
     }
     await hre.deployments.save('EntryPointWrapper', entryPointWrapperDeploymentSubmission)
 
-    await registerBobaAddress( (hre as any).deployConfig.proxyAdmin, (hre as any).deployConfig.addressManager, 'L2_EntryPointWrapper', EntryPointWrapperAddress )
+    await registerBobaAddress( (hre as any).deployConfig.addressManager, 'L2_EntryPointWrapper', EntryPointWrapperAddress )
   }
 }
 

@@ -1,9 +1,8 @@
 import { DeployFunction, DeploymentSubmission } from 'hardhat-deploy/types'
 import { ethers } from 'hardhat'
-import { Contract, ContractFactory } from 'ethers'
+import { Contract, ContractFactory, constants } from 'ethers'
 import { registerBobaAddress } from './1-deploy_entrypoint'
 import BobaVerifyingPaymasterJson from '../artifacts/contracts/samples/BobaVerifyingPaymaster.sol/BobaVerifyingPaymaster.json'
-import { DeterministicDeployer } from '../src/DeterministicDeployer'
 
 let Factory__BobaVerifyingPaymaster: ContractFactory
 let BobaVerifyingPaymaster: Contract
@@ -22,7 +21,11 @@ const deployFn: DeployFunction = async (hre) => {
   console.log(`EntryPoint is located at: ${entryPoint.address}`)
   const bobaDepositPaymaster = await hre.deployments.getOrNull('BobaDepositPaymaster')
   console.log(`BobaDepositPaymaster is located at: ${bobaDepositPaymaster.address}`)
-  const bobaToken = await (hre as any).deployConfig.addressManager.getAddress('TK_L2BOBA')
+  let bobaToken = await (hre as any).deployConfig.addressManager.getAddress('TK_L2BOBA')
+  if (bobaToken === constants.AddressZero) {
+    console.warn(`!!! WARNING: TK_L2BOBA not found in address manager, using default value !!!`)
+    bobaToken = "0x4200000000000000000000000000000000000023"
+  }
   console.log(`Boba is located at: ${bobaToken}`)
   const entryPointFromAM = await (hre as any).deployConfig.addressManager.getAddress('L2_Boba_EntryPoint')
   if (entryPoint.address.toLowerCase() === entryPointFromAM.toLowerCase()) {
@@ -37,7 +40,7 @@ const deployFn: DeployFunction = async (hre) => {
     }
     await hre.deployments.save('BobaVerifyingPaymaster', BobaVerifyingPaymasterDeploymentSubmission)
 
-    await registerBobaAddress( (hre as any).deployConfig.proxyAdmin, (hre as any).deployConfig.addressManager, 'L2_BobaVerifyingPaymaster', BobaVerifyingPaymaster.address )
+    await registerBobaAddress( (hre as any).deployConfig.addressManager, 'L2_BobaVerifyingPaymaster', BobaVerifyingPaymaster.address )
   }
 }
 

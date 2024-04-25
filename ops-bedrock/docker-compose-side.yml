@@ -14,16 +14,20 @@ services:
       context: ..
       dockerfile: ./ops/docker/Dockerfile.bundler
       target: aa_deployer
-    # image: bobanetwork/aa_deployer:latest
+    image: bobanetwork/aa_deployer:latest
     environment:
       L1_NODE_WEB3_URL: http://l1:8545
       L2_NODE_WEB3_URL: http://l2:8545
+      L1_CROSS_DOMAIN_MESSENGER_ADDRESS: ${L1_CROSS_DOMAIN_MESSENGER_ADDRESS}
+      L1_STANDARD_BRIDGE_ADDRESS: ${L1_STANDARD_BRIDGE_ADDRESS}
       # DO NOT use in production
       << : *deployer_pk
       RETRIES: 200
       # skip compilation when run in docker-compose, since the contracts
       # were already compiled in the builder step
       NO_COMPILE: 1
+    volumes:
+      - "${PWD}/../.devnet:/opt/boba/packages/boba/account-abstraction/dist/dumps"
 
   bundler:
     depends_on:
@@ -34,7 +38,7 @@ services:
       context: ..
       dockerfile: ./ops/docker/Dockerfile.bundler
       target: bundler
-    # image: bobanetwork/bundler:latest
+    image: bobanetwork/bundler:latest
     deploy:
       replicas: 1
     ports: [ '3000:3000' ]
@@ -45,6 +49,7 @@ services:
       L1_NODE_WEB3_URL: http://l1:8545
       L2_NODE_WEB3_URL: http://l2:8545
       BENEFICIARY: "0xcd3b766ccdd6ae721141f452c550ca635964ce71"
+      ADDRESS_MANAGER_ADDRESS: ${ADDRESS_MANAGER_ADDRESS}
       MAX_BUNDLE_GAS: 5000000
       #should be set to false in prod!
       UNSAFE: 'true'

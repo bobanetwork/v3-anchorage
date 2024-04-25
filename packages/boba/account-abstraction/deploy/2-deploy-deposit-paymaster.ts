@@ -1,9 +1,8 @@
 import { DeployFunction, DeploymentSubmission } from 'hardhat-deploy/types'
-import { ethers } from 'hardhat'
-import { Contract, ContractFactory } from 'ethers'
+import { Contract, ContractFactory, constants } from 'ethers'
 import { registerBobaAddress } from './1-deploy_entrypoint'
 import BobaDepositPaymasterJson from '../artifacts/contracts/samples/BobaDepositPaymaster.sol/BobaDepositPaymaster.json'
-import { DeterministicDeployer } from '../src/DeterministicDeployer'
+import MockFeedRegistry from '../artifacts/contracts/test/mocks/MockFeedRegistry.sol/MockFeedRegistry.json'
 
 let Factory__BobaDepositPaymaster: ContractFactory
 let BobaDepositPaymaster: Contract
@@ -16,7 +15,25 @@ const deployFn: DeployFunction = async (hre) => {
   )
   const entryPoint = await hre.deployments.getOrNull('EntryPoint')
   console.log(`EntryPoint is located at: ${entryPoint.address}`)
-  const ethPriceOracle = await (hre as any).deployConfig.addressManager.getAddress('FeedRegistry')
+  let ethPriceOracle = await (hre as any).deployConfig.addressManager.getAddress('FeedRegistry')
+  if (ethPriceOracle === constants.AddressZero) {
+    console.warn('!!! WARNING: FeedRegistry not found in address manager, deploying a mock one')
+    const Factory__MockFeedRegistry = new ContractFactory(
+      MockFeedRegistry.abi,
+      MockFeedRegistry.bytecode,
+      (hre as any).deployConfig.deployer_l2
+    )
+    const mockFeedRegistry = await Factory__MockFeedRegistry.deploy()
+    await mockFeedRegistry.deployTransaction.wait()
+    ethPriceOracle = mockFeedRegistry.address
+    console.log(`Mock FeedRegistry deployed at ${ethPriceOracle}`)
+    const MockFeedRegistryDeploymentSubmission: DeploymentSubmission = {
+      address: mockFeedRegistry.address,
+      abi: MockFeedRegistry.abi
+    }
+    await hre.deployments.save('MockFeedRegistry', MockFeedRegistryDeploymentSubmission)
+    await registerBobaAddress( (hre as any).deployConfig.addressManager, 'FeedRegistry', ethPriceOracle )
+  }
   console.log(`Eth Price Oracle is located at: ${ethPriceOracle}`)
   const entryPointFromAM = await (hre as any).deployConfig.addressManager.getAddress('L2_Boba_EntryPoint')
   if (entryPoint.address.toLowerCase() === entryPointFromAM.toLowerCase()) {
@@ -31,7 +48,7 @@ const deployFn: DeployFunction = async (hre) => {
     }
     await hre.deployments.save('BobaDepositPaymaster', BobaDepositPaymasterDeploymentSubmission)
 
-    await registerBobaAddress( (hre as any).deployConfig.proxyAdmin, (hre as any).deployConfig.addressManager, 'L2_BobaDepositPaymaster', BobaDepositPaymaster.address )
+    await registerBobaAddress( (hre as any).deployConfig.addressManager, 'L2_BobaDepositPaymaster', BobaDepositPaymaster.address )
   }
 }
 

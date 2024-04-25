@@ -45,7 +45,6 @@ const waitUntilTrue = async (
 }
 
 export const registerBobaAddress = async (
-  proxyAdmin: any,
   addressManager: any,
   name: string,
   address: string
@@ -61,7 +60,7 @@ export const registerBobaAddress = async (
   }
 
   console.log(`Registering address for ${name} to ${address}...`)
-  await proxyAdmin.setAddress(name, address)
+  await addressManager.setAddress(name, address)
 
   console.log(`Waiting for registration to reflect on-chain...`)
   await waitUntilTrue(async () => {
@@ -88,7 +87,7 @@ const deployFn: DeployFunction = async (hre) => {
     abi: EntryPointJson.abi
   }
   await hre.deployments.save('EntryPoint', EntryPointDeploymentSubmission)
-  await registerBobaAddress( (hre as any).deployConfig.proxyAdmin, (hre as any).deployConfig.addressManager, 'L2_Boba_EntryPoint', EntryPointAddress )
+  await registerBobaAddress( (hre as any).deployConfig.addressManager, 'L2_Boba_EntryPoint', EntryPointAddress )
 }
 
 export default deployFn

@@ -162,9 +162,17 @@ devnet-test: pre-devnet
 	PYTHONPATH=./bedrock-devnet $(PYTHON) ./bedrock-devnet/main.py --monorepo-dir=. --test
 .PHONY: devnet-test
 
+devnet-aa-up:
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/account_abstraction.py --monorepo-dir=.
+.PHONY: devnet-aa-up
+
 devnet-down:
 	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker compose stop)
 .PHONY: devnet-down
+
+devnet-aa-down:
+	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker compose -f docker-compose.yml -f docker-compose-side.yml down bundler aa_deployer)
+.PHONY: devnet-aa-down
 
 devnet-clean:
 	rm -rf ./packages/contracts-bedrock/deployments/devnetL1

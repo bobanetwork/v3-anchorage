@@ -5,6 +5,8 @@ require('dotenv').config()
 
 import hre, { ethers } from 'hardhat'
 
+import AddressManagerJson from '../artifacts/contracts/utils/AddressManager.sol/AddressManager.json'
+
 const main = async () => {
   console.log('Starting BOBA AA contracts deployment...')
 
@@ -19,32 +21,35 @@ const main = async () => {
   const getAddressManager = (provider: any, addressManagerAddress: any) => {
     return new Contract(
       addressManagerAddress,
-      ['function getAddress(string) external view returns (address)'],
+      AddressManagerJson.abi,
       provider
     )
   }
-
+  let addressManagerAddress = process.env.ADDRESS_MANAGER_ADDRESS
+  if (addressManagerAddress === ''|| typeof addressManagerAddress === 'undefined') {
+    console.warn('ADDRESS_MANAGER_ADDRESS is not set, deploying AddressManager')
+    const Factory__AddressManager = new ethers.ContractFactory(
+      AddressManagerJson.abi,
+      AddressManagerJson.bytecode,
+      deployer_l1
+    )
+    const addressManager = await Factory__AddressManager.deploy()
+    await addressManager.deployTransaction.wait()
+    addressManagerAddress = addressManager.address
+    console.log(`AddressManager deployed at ${addressManagerAddress}`)
+  }
   console.log(
-    `ADDRESS_MANAGER_ADDRESS was set to ${process.env.ADDRESS_MANAGER_ADDRESS}`
+    `ADDRESS_MANAGER_ADDRESS was set to ${addressManagerAddress}`
   )
+
   const addressManager = getAddressManager(
     deployer_l1,
-    process.env.ADDRESS_MANAGER_ADDRESS
+    addressManagerAddress
   )
-
-  let proxyAdminAddress = await addressManager.getAddress('ProxyAdmin')
-  if (proxyAdminAddress === ethers.constants.AddressZero) {
-    proxyAdminAddress = process.env.PROXY_ADMIN_ADDRESS
-    if (proxyAdminAddress === ethers.constants.AddressZero) {
-      throw new Error('ProxyAdmin address not found in address manager or in env')
-    }
-  }
-  const proxyAdmin = new Contract(
-    proxyAdminAddress,
-    new ethers.utils.Interface(['function setAddress(string,address) external','function owner() external view returns (address)']),
-    deployer_l1
-  )
-  console.log(await proxyAdmin.owner())
+  await hre.deployments.save('AddressManager', {
+    address: addressManager.address,
+    abi: AddressManagerJson.abi,
+  })
 
   let l1MessengerAddress = await addressManager.getAddress(
     'Proxy__L1CrossDomainMessenger'
@@ -89,7 +94,6 @@ const main = async () => {
   const L2StandardBridgeAddress = await L1StandardBridge.otherBridge()
 
   await hre.run('deploy', {
-    proxyAdminAddress,
     l1MessengerAddress,
     l2MessengerAddress,
     L1StandardBridgeAddress,
@@ -98,7 +102,6 @@ const main = async () => {
     l2Provider,
     deployer_l1,
     deployer_l2,
-    proxyAdmin,
     addressManager,
     network,
     noCompile: process.env.NO_COMPILE ? true : false,

@@ -26,7 +26,7 @@ const deployFn: DeployFunction = async (hre) => {
   if (!fs.existsSync(dumpsPath)) {
     fs.mkdirSync(dumpsPath, { recursive: true })
   }
-  const addrsPath = path.resolve(dumpsPath, 'addresses.json')
+  const addrsPath = path.resolve(dumpsPath, 'aa_addresses.json')
   fs.writeFileSync(addrsPath, addresses)
 }
 
