@@ -18,6 +18,7 @@ pjoin = os.path.join
 
 parser = argparse.ArgumentParser(description='Bedrock devnet AA setup')
 parser.add_argument('--monorepo-dir', help='Directory of the monorepo', default=os.getcwd())
+parser.add_argument('--test', help='Tests the deployment, must already be deployed', type=bool, action=argparse.BooleanOptionalAction)
 
 log = logging.getLogger()
 
@@ -39,6 +40,11 @@ def main():
         addresses_json_path=pjoin(devnet_dir, 'addresses.json'),
         aa_addresses_json_path=pjoin(devnet_dir, 'aa_addresses.json'),
     )
+
+    if args.test:
+      log.info('Testing aa deployment')
+      aa_test(paths)
+      return
 
     aa_deploy(paths)
 
@@ -73,6 +79,10 @@ def aa_deploy(paths):
 
     # Fin.
     log.info('AA ready.')
+
+def aa_test():
+    wait_up(3000)
+    wait_for_rpc_server('127.0.0.1:3000/rpc')
 
 def run_command(args, check=True, shell=False, cwd=None, env=None, timeout=None):
     env = env if env else {}

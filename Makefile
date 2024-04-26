@@ -166,6 +166,9 @@ devnet-aa-up:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/account_abstraction.py --monorepo-dir=.
 .PHONY: devnet-aa-up
 
+devnet-aa-test:
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/account_abstraction.py --monorepo-dir=. --test
+
 devnet-down:
 	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker compose stop)
 .PHONY: devnet-down
