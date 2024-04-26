@@ -2033,6 +2033,9 @@ workflows:
             - op-node-docker-build
             - cannon-prestate
       - devnet-aa:
+          matrix:
+            parameters:
+              fpac: ["legacy"]
           requires:
             - pnpm-monorepo
             - op-batcher-docker-build
