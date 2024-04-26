@@ -2032,6 +2032,13 @@ workflows:
             - op-proposer-docker-build
             - op-node-docker-build
             - cannon-prestate
+      - devnet-aa:
+          requires:
+            - pnpm-monorepo
+            - op-batcher-docker-build
+            - op-proposer-docker-build
+            - op-node-docker-build
+            - cannon-prestate
       - devnet:
           matrix:
             parameters:
