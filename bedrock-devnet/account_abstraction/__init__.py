@@ -58,23 +58,23 @@ def aa_deploy(paths):
     L1CrossDomainMessengerAddress = addresses['L1CrossDomainMessengerProxy']
     L1StandardBridgeAddress = addresses['L1StandardBridgeProxy']
 
+    docker_env = {
+        'PWD': paths.ops_bedrock_dir,
+        'L1_CROSS_DOMAIN_MESSENGER_ADDRESS': L1CrossDomainMessengerAddress,
+        'L1_STANDARD_BRIDGE_ADDRESS': L1StandardBridgeAddress,
+    }
+    run_command(['docker', 'compose', '-f', 'docker-compose.yml', '-f', 'docker-compose-side.yml', 'build', 'aa_deployer', 'bundler'], cwd=paths.ops_bedrock_dir, env=docker_env)
+
     if os.path.exists(paths.aa_addresses_json_path):
         log.info('AA already deployed')
     else:
         log.info('Deploying AA contracts')
-        docker_env = {
-            'PWD': paths.ops_bedrock_dir,
-            'L1_CROSS_DOMAIN_MESSENGER_ADDRESS': L1CrossDomainMessengerAddress,
-            'L1_STANDARD_BRIDGE_ADDRESS': L1StandardBridgeAddress,
-        }
-        run_command(['docker', 'compose', '-f', 'docker-compose.yml', '-f', 'docker-compose-side.yml', 'build', 'aa_deployer'], cwd=paths.ops_bedrock_dir, env=docker_env)
         run_command(['docker', 'compose', '-f', 'docker-compose.yml', '-f', 'docker-compose-side.yml', 'up', 'aa_deployer'], cwd=paths.ops_bedrock_dir, env=docker_env)
 
     log.info('Bring up bundler')
     aa_addresses = read_json(paths.aa_addresses_json_path)
     AddressManagerAddress = aa_addresses['L2_AddressManager']
     docker_env['ADDRESS_MANAGER_ADDRESS'] = AddressManagerAddress
-    run_command(['docker', 'compose', '-f', 'docker-compose.yml', '-f', 'docker-compose-side.yml', 'build', 'bundler'], cwd=paths.ops_bedrock_dir, env=docker_env)
     run_command(['docker', 'compose', '-f', 'docker-compose.yml', '-f', 'docker-compose-side.yml', 'up', '-d', 'bundler'], cwd=paths.ops_bedrock_dir, env=docker_env)
 
     # Fin.
