@@ -45,6 +45,7 @@
     "@openzeppelin/contracts": "^4.7.3",
     "@typechain/ethers-v5": "^10.1.0",
     "@types/debug": "^4.1.7",
+    "chai": "^4.3.10",
     "debug": "^4.3.4",
     "ethers": "^5.7.0",
     "hardhat-gas-reporter": "^1.0.8"

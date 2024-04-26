@@ -95,6 +95,8 @@ RUN chmod +x /root/.cache/hardhat-nodejs/compilers-v2/linux-amd64/*
 
 # build it!
 RUN cd packages/boba/account-abstraction && yarn && yarn install && yarn build
+RUN cd ./packages/boba/bundler_utils && yarn && yarn install && yarn build
+RUN cd ./packages/boba/bundler_sdk && yarn && yarn install && yarn build
 RUN cd packages/boba/bundler && yarn && yarn install && yarn build
 
 FROM base as packages
