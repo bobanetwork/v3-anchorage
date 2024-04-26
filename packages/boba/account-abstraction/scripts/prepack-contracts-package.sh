@@ -1,7 +1,7 @@
 #!/bin/bash -xe
 #echo prepack for "contracts" package
 
-cd `dirname $0`/..
+cd $(dirname "$0")/..
 pwd
 
 mkdir -p artifacts_clean
