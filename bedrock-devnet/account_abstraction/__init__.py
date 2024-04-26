@@ -43,7 +43,7 @@ def main():
 
     if args.test:
       log.info('Testing aa deployment')
-      aa_test(paths)
+      aa_test()
       return
 
     aa_deploy(paths)
