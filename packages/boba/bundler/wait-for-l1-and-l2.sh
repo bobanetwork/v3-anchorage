@@ -4,6 +4,6 @@
 # MIT License
 # github.com/ethereum-optimism
 
-cmd="$@"
+cmd="$*"
 
 exec $cmd

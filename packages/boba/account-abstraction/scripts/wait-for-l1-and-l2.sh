@@ -4,14 +4,14 @@
 # MIT License
 # github.com/ethereum-optimism
 
-cmd="$@"
+cmd="$*"
 JSON='{"jsonrpc":"2.0","id":0,"method":"net_version","params":[]}'
 
 RETRIES=${RETRIES:-50}
-until $(curl --silent --fail \
+until curl --silent --fail \
     --output /dev/null \
     -H "Content-Type: application/json" \
-    --data "$JSON" "$L1_NODE_WEB3_URL"); do
+    --data "$JSON" "$L1_NODE_WEB3_URL"; do
   sleep 1
   echo "Will wait $((RETRIES--)) more times for $L1_NODE_WEB3_URL to be up..."
 
