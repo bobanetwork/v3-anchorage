@@ -82,7 +82,7 @@ def aa_deploy(paths):
 
 def aa_test():
     wait_up(3000)
-    wait_for_rpc_server('127.0.0.1:3000/rpc')
+    wait_for_rpc_server('127.0.0.1:3000', root='/rpc')
 
 def run_command(args, check=True, shell=False, cwd=None, env=None, timeout=None):
     env = env if env else {}
@@ -112,7 +112,7 @@ def wait_up(port, retries=10, wait_secs=1):
 
     raise Exception(f'Timed out waiting for port {port}.')
 
-def wait_for_rpc_server(url):
+def wait_for_rpc_server(url, root='/'):
     log.info(f'Waiting for RPC server at {url}')
 
     headers = {'Content-type': 'application/json'}
@@ -121,12 +121,13 @@ def wait_for_rpc_server(url):
     while True:
         try:
             conn = http.client.HTTPConnection(url)
-            conn.request('POST', '/', body, headers)
+            conn.request('POST', root, body, headers)
             response = conn.getresponse()
             if response.status < 300:
                 log.info(f'RPC server at {url} ready')
                 return
         except Exception as e:
+            print(e)
             log.info(f'Waiting for RPC server at {url}')
             time.sleep(1)
         finally:
