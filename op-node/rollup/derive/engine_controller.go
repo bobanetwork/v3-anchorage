@@ -324,6 +324,10 @@ func (e *EngineController) InsertUnsafePayload(ctx context.Context, envelope *et
 	}
 	if !e.checkNewPayloadStatus(status.Status) {
 		payload := envelope.ExecutionPayload
+		if status.Status == eth.ExecutionInvalid {
+			return NewResetError(fmt.Errorf("cannot process unsafe payload: new - %v; parent: %v; err: %w; dropped",
+				payload.ID(), payload.ParentID(), eth.NewPayloadErr(payload, status)))
+		}
 		return NewTemporaryError(fmt.Errorf("cannot process unsafe payload: new - %v; parent: %v; err: %w",
 			payload.ID(), payload.ParentID(), eth.NewPayloadErr(payload, status)))
 	}

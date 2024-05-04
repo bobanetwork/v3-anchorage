@@ -1217,3 +1217,118 @@ func TestEngineQueue_StepPopOlderUnsafe(t *testing.T) {
 	l1F.AssertExpectations(t)
 	eng.AssertExpectations(t)
 }
+
+func TestPopInvalidUnsafePayload(t *testing.T) {
+	logger := testlog.Logger(t, log.LevelInfo)
+	eng := &testutils.MockEngine{}
+	l1F := &testutils.MockL1Source{}
+
+	rng := rand.New(rand.NewSource(1234))
+
+	refA := testutils.RandomBlockRef(rng)
+	refA0 := eth.L2BlockRef{
+		Hash:           testutils.RandomHash(rng),
+		Number:         0,
+		ParentHash:     common.Hash{},
+		Time:           refA.Time,
+		L1Origin:       refA.ID(),
+		SequenceNumber: 0,
+	}
+	cfg := &rollup.Config{
+		Genesis: rollup.Genesis{
+			L1:     refA.ID(),
+			L2:     refA0.ID(),
+			L2Time: refA0.Time,
+			SystemConfig: eth.SystemConfig{
+				BatcherAddr: common.Address{42},
+				Overhead:    [32]byte{123},
+				Scalar:      [32]byte{42},
+				GasLimit:    20_000_000,
+			},
+		},
+		BlockTime:     1,
+		SeqWindowSize: 2,
+	}
+	refA1 := eth.L2BlockRef{
+		Hash:           testutils.RandomHash(rng),
+		Number:         refA0.Number + 1,
+		ParentHash:     refA0.Hash,
+		Time:           refA0.Time + cfg.BlockTime,
+		L1Origin:       refA.ID(),
+		SequenceNumber: 1,
+	}
+	gasLimit := eth.Uint64Quantity(20_000_000)
+	attrs := &eth.PayloadAttributes{
+		Timestamp:             eth.Uint64Quantity(refA1.Time),
+		PrevRandao:            eth.Bytes32{},
+		SuggestedFeeRecipient: common.Address{},
+		Transactions:          nil,
+		NoTxPool:              false,
+		GasLimit:              &gasLimit,
+	}
+
+	a1InfoTx, err := L1InfoDepositBytes(cfg, cfg.Genesis.SystemConfig, refA1.SequenceNumber, &testutils.MockBlockInfo{
+		InfoHash:        refA.Hash,
+		InfoParentHash:  refA.ParentHash,
+		InfoCoinbase:    common.Address{},
+		InfoRoot:        common.Hash{},
+		InfoNum:         refA.Number,
+		InfoTime:        refA.Time,
+		InfoMixDigest:   [32]byte{},
+		InfoBaseFee:     big.NewInt(7),
+		InfoReceiptRoot: common.Hash{},
+		InfoGasUsed:     0,
+	}, 0)
+	require.NoError(t, err)
+	payloadA0 := &eth.ExecutionPayload{
+		ParentHash:    refA0.ParentHash,
+		FeeRecipient:  attrs.SuggestedFeeRecipient,
+		StateRoot:     eth.Bytes32{},
+		ReceiptsRoot:  eth.Bytes32{},
+		LogsBloom:     eth.Bytes256{},
+		PrevRandao:    eth.Bytes32{},
+		BlockNumber:   eth.Uint64Quantity(refA0.Number),
+		GasLimit:      gasLimit,
+		GasUsed:       0,
+		Timestamp:     eth.Uint64Quantity(refA0.Time),
+		ExtraData:     nil,
+		BaseFeePerGas: eth.Uint256Quantity(*uint256.NewInt(7)),
+		BlockHash:     refA0.Hash,
+		Transactions:  []eth.Data{},
+	}
+	payloadA1 := &eth.ExecutionPayload{
+		ParentHash:    refA0.ParentHash,
+		FeeRecipient:  attrs.SuggestedFeeRecipient,
+		StateRoot:     eth.Bytes32{},
+		ReceiptsRoot:  eth.Bytes32{},
+		LogsBloom:     eth.Bytes256{},
+		PrevRandao:    eth.Bytes32{},
+		BlockNumber:   eth.Uint64Quantity(refA1.Number),
+		GasLimit:      gasLimit,
+		GasUsed:       0,
+		Timestamp:     eth.Uint64Quantity(refA1.Time),
+		ExtraData:     nil,
+		BaseFeePerGas: eth.Uint256Quantity(*uint256.NewInt(7)),
+		BlockHash:     refA1.Hash,
+		Transactions: []eth.Data{
+			a1InfoTx,
+		},
+	}
+
+	prev := &fakeAttributesQueue{origin: refA}
+	ec := NewEngineController(eng, logger, metrics.NoopMetrics, &rollup.Config{}, sync.CLSync)
+	eq := NewEngineQueue(logger, cfg, eng, ec, metrics.NoopMetrics, prev, l1F, &sync.Config{})
+
+	envelopeA0 := &eth.ExecutionPayloadEnvelope{ExecutionPayload: payloadA0}
+	envelopeA1 := &eth.ExecutionPayloadEnvelope{ExecutionPayload: payloadA1}
+	id := eth.PayloadID{0xff}
+	eng.ExpectGetPayload(id, envelopeA0, nil)
+	eng.ExpectNewPayload(payloadA1, nil, &eth.PayloadStatusV1{
+		Status:          eth.ExecutionInvalid,
+		LatestValidHash: &refA1.Hash,
+		ValidationError: nil,
+	}, nil)
+	eq.AddUnsafePayload(envelopeA1)
+	err = eq.Step(context.Background())
+	require.ErrorIs(t, err, ErrReset, "should reset pipeline due to invalid payload")
+}
