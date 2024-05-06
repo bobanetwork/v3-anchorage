@@ -4,15 +4,8 @@ import os
 import subprocess
 import json
 import socket
-import calendar
-import datetime
 import time
-import shutil
 import http.client
-import gzip
-from multiprocessing import Process, Queue
-import concurrent.futures
-from collections import namedtuple
 
 pjoin = os.path.join
 
@@ -37,7 +30,6 @@ def main():
         mono_repo_dir=monorepo_dir,
         devnet_dir=devnet_dir,
         ops_bedrock_dir=ops_bedrock_dir,
-        addresses_json_path=pjoin(devnet_dir, 'addresses.json'),
         aa_addresses_json_path=pjoin(devnet_dir, 'aa_addresses.json'),
     )
 
@@ -54,14 +46,8 @@ def aa_deploy(paths):
     wait_up(8545)
     wait_for_rpc_server('127.0.0.1:8545')
 
-    addresses = read_json(paths.addresses_json_path)
-    L1CrossDomainMessengerAddress = addresses['L1CrossDomainMessengerProxy']
-    L1StandardBridgeAddress = addresses['L1StandardBridgeProxy']
-
     docker_env = {
         'PWD': paths.ops_bedrock_dir,
-        'L1_CROSS_DOMAIN_MESSENGER_ADDRESS': L1CrossDomainMessengerAddress,
-        'L1_STANDARD_BRIDGE_ADDRESS': L1StandardBridgeAddress,
     }
     run_command(['docker', 'compose', '-f', 'docker-compose.yml', '-f', 'docker-compose-side.yml', 'build', 'aa_deployer', 'bundler'], cwd=paths.ops_bedrock_dir, env=docker_env)
 

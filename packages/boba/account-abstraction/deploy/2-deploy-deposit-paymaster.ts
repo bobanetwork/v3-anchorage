@@ -1,8 +1,11 @@
 import { DeployFunction, DeploymentSubmission } from 'hardhat-deploy/types'
-import { Contract, ContractFactory, constants } from 'ethers'
+import { Contract, ContractFactory, constants, utils } from 'ethers'
 import { registerBobaAddress } from './1-deploy_entrypoint'
 import BobaDepositPaymasterJson from '../artifacts/contracts/samples/BobaDepositPaymaster.sol/BobaDepositPaymaster.json'
 import MockFeedRegistry from '../artifacts/contracts/test/mocks/MockFeedRegistry.sol/MockFeedRegistry.json'
+
+/* eslint-disable */
+require('dotenv').config()
 
 let Factory__BobaDepositPaymaster: ContractFactory
 let BobaDepositPaymaster: Contract
@@ -16,6 +19,13 @@ const deployFn: DeployFunction = async (hre) => {
   const entryPoint = await hre.deployments.getOrNull('EntryPoint')
   console.log(`EntryPoint is located at: ${entryPoint.address}`)
   let ethPriceOracle = await (hre as any).deployConfig.addressManager.getAddress('FeedRegistry')
+
+  // If the FeedRegistry is not found in the address manager, check the env
+  if (utils.isAddress(process.env.FEE_REGISTRY_ADDRESS)) {
+    ethPriceOracle = process.env.FEE_REGISTRY_ADDRESS
+  }
+
+  // If the FeedRegistry is not found in the address manager or the env, deploy a mock one
   if (ethPriceOracle === constants.AddressZero) {
     console.warn('!!! WARNING: FeedRegistry not found in address manager, deploying a mock one')
     const Factory__MockFeedRegistry = new ContractFactory(
@@ -35,6 +45,7 @@ const deployFn: DeployFunction = async (hre) => {
     await registerBobaAddress( (hre as any).deployConfig.addressManager, 'FeedRegistry', ethPriceOracle )
   }
   console.log(`Eth Price Oracle is located at: ${ethPriceOracle}`)
+
   const entryPointFromAM = await (hre as any).deployConfig.addressManager.getAddress('L2_Boba_EntryPoint')
   if (entryPoint.address.toLowerCase() === entryPointFromAM.toLowerCase()) {
     BobaDepositPaymaster = await Factory__BobaDepositPaymaster.deploy(entryPoint.address, ethPriceOracle)
