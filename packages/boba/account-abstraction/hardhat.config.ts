@@ -18,7 +18,7 @@ if (!process.env.L1_NODE_WEB3_URL) {
 const optimizedComilerSettings = {
   version: '0.8.17',
   settings: {
-    optimizer: { enabled: true, runs: 10_000 },
+    optimizer: { enabled: true, runs: 1000000 },
     viaIR: true
   }
 }
@@ -35,7 +35,7 @@ const config: HardhatUserConfig = {
     compilers: [{
       version: '0.8.15',
       settings: {
-        optimizer: { enabled: true, runs: 10_000 }
+        optimizer: { enabled: true, runs: 1000000 }
       }
     }],
     overrides: {
