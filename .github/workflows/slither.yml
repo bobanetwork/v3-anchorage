@@ -10,6 +10,7 @@ on:
 jobs:
   slither-analyze:
     runs-on: ubuntu-latest
+    container: us-docker.pkg.dev/boba-392114/bobanetwork-tools-artifacts/images/ci-builder:v1.2.2
     steps:
       - uses: actions/checkout@v4
 
