@@ -1,7 +1,7 @@
 From 941130f30cfa44329dab967e3e203249958bc916 Mon Sep 17 00:00:00 2001
 From: cby3149 <cby3149@gmail.com>
 Date: Tue, 7 May 2024 15:42:26 -0700
-Subject: [PATCH] Update contracts for BNB L2
+Subject: [PATCH] BNB L2
 
 ---
  .../contracts-bedrock/scripts/Deploy.s.sol    |  2 +-
