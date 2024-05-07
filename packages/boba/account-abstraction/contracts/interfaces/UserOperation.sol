@@ -5,9 +5,9 @@ pragma solidity ^0.8.12;
 
 import {calldataKeccak} from "../core/Helpers.sol";
 
-    /**
-     * User Operation struct
-     * @param sender the sender account of this request.
+/**
+ * User Operation struct
+ * @param sender the sender account of this request.
      * @param nonce unique value the sender uses to verify it is not a replay.
      * @param initCode if set, the account contract will be created by this constructor/
      * @param callData the method call to execute on this account.

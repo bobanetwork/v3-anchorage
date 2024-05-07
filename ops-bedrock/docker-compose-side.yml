@@ -62,4 +62,4 @@ services:
 
 networks:
   default:
-    name: local-network
+    name: bedrock-devnet
