@@ -1,6 +1,6 @@
-From 941130f30cfa44329dab967e3e203249958bc916 Mon Sep 17 00:00:00 2001
+From 1f4ce6e5f433343a1dd125f10c028fdec6671be4 Mon Sep 17 00:00:00 2001
 From: cby3149 <cby3149@gmail.com>
-Date: Tue, 7 May 2024 15:42:26 -0700
+Date: Wed, 8 May 2024 13:57:59 -0700
 Subject: [PATCH] BNB L2
 
 ---
@@ -230,7 +230,7 @@ index b5048d5c7..542f2eb13 100644
          emit SentMessage(_target, msg.sender, _message, messageNonce(), _minGasLimit);
          emit SentMessageExtension1(msg.sender, msg.value);
 diff --git a/packages/contracts-bedrock/src/universal/StandardBridge.sol b/packages/contracts-bedrock/src/universal/StandardBridge.sol
-index 2c2c8c241..00d5e3dbc 100644
+index 2c2c8c241..241d55604 100644
 --- a/packages/contracts-bedrock/src/universal/StandardBridge.sol
 +++ b/packages/contracts-bedrock/src/universal/StandardBridge.sol
 @@ -10,6 +10,7 @@ import { IOptimismMintableERC20, ILegacyMintableERC20 } from "src/universal/IOpt
@@ -295,7 +295,7 @@ index 2c2c8c241..00d5e3dbc 100644
 +            _message = abi.encodeWithSelector(
 +                this.finalizeBridgeERC20.selector,
 +                bobaToken,
-+                address(0),
++                Predelops.LEGACY_ERC20_ETH,
 +                _from,
 +                _to,
 +                _amount,
