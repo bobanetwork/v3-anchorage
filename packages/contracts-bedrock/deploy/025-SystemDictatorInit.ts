@@ -55,11 +55,11 @@ const deployFn: DeployFunction = async (hre) => {
   ])
 
   interface GlobalConfig {
-    proxyAdmin: string;
-    controller: string;
-    finalOwner: string;
-    addressManager: string;
-    bobaToken?: string; // Optional property
+    proxyAdmin: string
+    controller: string
+    finalOwner: string
+    addressManager: string
+    bobaToken?: string // Optional property
   }
 
   const globalConfig: GlobalConfig = {
