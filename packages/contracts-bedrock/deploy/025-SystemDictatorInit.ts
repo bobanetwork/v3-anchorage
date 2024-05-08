@@ -54,14 +54,27 @@ const deployFn: DeployFunction = async (hre) => {
     },
   ])
 
+  interface GlobalConfig {
+    proxyAdmin: string;
+    controller: string;
+    finalOwner: string;
+    addressManager: string;
+    bobaToken?: string; // Optional property
+  }
+
+  const globalConfig: GlobalConfig = {
+    proxyAdmin: await getDeploymentAddress(hre, 'ProxyAdmin'),
+    controller: hre.deployConfig.controller,
+    finalOwner: hre.deployConfig.finalSystemOwner,
+    addressManager: await getDeploymentAddress(hre, 'Lib_AddressManager'),
+  }
+  if (process.env.ENABLE_BNB_L2_DEPLOYMENT === 'true') {
+    globalConfig.bobaToken = await getDeploymentAddress(hre, 'BOBA')
+  }
+
   // Load the dictator configuration.
   const config = {
-    globalConfig: {
-      proxyAdmin: await getDeploymentAddress(hre, 'ProxyAdmin'),
-      controller: hre.deployConfig.controller,
-      finalOwner: hre.deployConfig.finalSystemOwner,
-      addressManager: await getDeploymentAddress(hre, 'Lib_AddressManager'),
-    },
+    globalConfig,
     proxyAddressConfig: {
       l2OutputOracleProxy: await getDeploymentAddress(
         hre,
