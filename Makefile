@@ -154,6 +154,17 @@ devnet-hardhat-up:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=.
 .PHONY: devnet-hardhat-up
 
+devnet-bnb-hardhat-up:
+	@if [ ! -e op-program/bin ]; then \
+		make cannon-prestate; \
+	fi
+	git apply 0001-BNB-L2.patch && \
+	cd ./boba-bindings && \
+	make && \
+	cd .. && \
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --network=bnb
+.PHONY: devnet-bnb-hardhat-up
+
 devnet-hardhat-test:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --test
 .PHONY: devnet-hardhat-test
