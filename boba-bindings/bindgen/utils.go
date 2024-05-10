@@ -148,7 +148,7 @@ func genContractBindings(logger log.Logger, monorepoRootPath, abiFilePath, bytec
 		logger.Debug("Checking abigen version")
 
 		// Fetch installed abigen version (format: abigen version X.Y.Z-<stable/nightly>-<commit_sha>)
-		cmd := exec.Command("abigen", "--version")
+		cmd := exec.Command("go", "run", "github.com/ledgerwatch/erigon/cmd/abigen", "--version")
 		var versionBuf bytes.Buffer
 		cmd.Stdout = bufio.NewWriter(&versionBuf)
 		if err := cmd.Run(); err != nil {
@@ -156,12 +156,8 @@ func genContractBindings(logger log.Logger, monorepoRootPath, abiFilePath, bytec
 		}
 		abigenVersion := bytes.Trim(versionBuf.Bytes(), "\n")
 
-		// Fetch expected abigen version (format: vX.Y.Z)
-		expectedAbigenVersion, err := readExpectedAbigenVersion(monorepoRootPath)
-		if err != nil {
-			return fmt.Errorf("error fetching the expected abigen version: %w", err)
-		}
-
+		// hardcoded for erigon abigen version
+		expectedAbigenVersion := "2.51.0"
 		if !bytes.Contains(abigenVersion, []byte(expectedAbigenVersion)) {
 			return fmt.Errorf("abigen version mismatch, expected %s, got %s. Please run `pnpm install:abigen` in the monorepo root", expectedAbigenVersion, abigenVersion)
 		}

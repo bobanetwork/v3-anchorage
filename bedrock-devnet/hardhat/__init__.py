@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='Bedrock devnet launcher')
 parser.add_argument('--monorepo-dir', help='Directory of the monorepo', default=os.getcwd())
 parser.add_argument('--allocs', help='Only create the allocs and exit', type=bool, action=argparse.BooleanOptionalAction)
 parser.add_argument('--test', help='Tests the deployment, must already be deployed', type=bool, action=argparse.BooleanOptionalAction)
+parser.add_argument('--network', help='network type', default='eth')
 
 log = logging.getLogger()
 
@@ -77,6 +78,15 @@ def main():
       rollup_config_path=pjoin(devnet_dir, 'rollup.json')
     )
 
+    if args.network != 'bnb' and args.network != 'eth':
+      log.error('Invalid network type')
+
+    if args.network == 'bnb':
+      log.info('Deploying as BNB L2')
+      os.environ["ENABLE_BNB_L2_DEPLOYMENT"] = 'true'
+    else:
+      log.info('Deploying as ETH L2')
+
     if args.test:
       log.info('Testing deployed devnet')
       devnet_test(paths)
@@ -128,6 +138,9 @@ L1_RPC=http://127.0.0.1:8545
 PRIVATE_KEY_DEPLOYER=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ENABLE_BOBA_TOKEN_DEPLOYMENT=true
 """)
+        # if BNB L2 deployment is enabled
+        if os.environ.get("ENABLE_BNB_L2_DEPLOYMENT") == 'true':
+            f.write("ENABLE_BNB_L2_DEPLOYMENT=true\n")
 
     block_info = eth_block("127.0.0.1:8545")
     block_info = json.loads(block_info)
@@ -141,6 +154,9 @@ ENABLE_BOBA_TOKEN_DEPLOYMENT=true
         config['l2GenesisRegolithTimeOffset'] = block_result['timestamp']
         config['l2GenesisCanyonTimeOffset'] = block_result['timestamp']
         config['l2GenesisDeltaTimeOffset'] = block_result['timestamp']
+        # if BNB L2 deployment is enabled
+        if os.environ.get("ENABLE_BNB_L2_DEPLOYMENT") == 'true':
+            config['l2BobaBnbDeployment'] = True
         # L1 beacon endpoint is not available in the devnet
         if 'l2GenesisEcotoneTimeOffset' in config:
             del config['l2GenesisEcotoneTimeOffset']
@@ -265,6 +281,8 @@ def devent_restore_configurations(paths):
         config['l2GenesisCanyonTimeOffset'] = UPGRADETIMEOFFSET
         config['l2GenesisDeltaTimeOffset'] = UPGRADETIMEOFFSET
         config['l2GenesisEcotoneTimeOffset'] = UPGRADETIMEOFFSET
+        if 'l2BobaBnbDeployment' in config:
+            del config['l2BobaBnbDeployment']
     write_json(paths.devnet_config_path, config)
 
 def eth_block(url):
