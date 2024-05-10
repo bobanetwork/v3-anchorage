@@ -138,6 +138,8 @@ type DeployConfig struct {
 	// RequiredProtocolVersion indicates the protocol version that
 	// nodes are recommended to adopt, to stay in sync with the network.
 	RecommendedProtocolVersion Bytes32 `json:"recommendedProtocolVersion"`
+	// Whether generate the configuration for the Boba BNB L2
+	L2BobaBnbDeployment bool `json:"l2BobaBnbDeployment,omitempty"`
 }
 
 // Check will ensure that the config is sane and return an error when it is not
@@ -405,6 +407,9 @@ func (d *DeployConfig) RollupConfig(l1StartHeader *types.Header, l2GenesisBlockH
 }
 
 func (d *DeployConfig) GetL1BobaTokenAddress() (common.Address, error) {
+	if d.L2BobaBnbDeployment {
+		return common.Address{0}, nil
+	}
 	var l1TokenAddr common.Address
 	if d.L1BobaTokenAddress != nil {
 		l1TokenAddr = *d.L1BobaTokenAddress
