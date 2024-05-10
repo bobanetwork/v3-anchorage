@@ -1,20 +1,146 @@
-From 09b9ba41097ba13b4c195b6f1ed2cd21a648a409 Mon Sep 17 00:00:00 2001
+From 0b7ac841fe99475e6497f6d0d6b3b136d2448507 Mon Sep 17 00:00:00 2001
 From: cby3149 <cby3149@gmail.com>
-Date: Fri, 10 May 2024 10:37:23 -0700
+Date: Fri, 10 May 2024 10:47:38 -0700
 Subject: [PATCH] BNB L2
 
 ---
- .../contracts-bedrock/scripts/Deploy.s.sol    |  6 +-
- .../src/L1/L1StandardBridge.sol               | 19 +++-
- .../src/L1/OptimismPortal.sol                 | 93 ++++++++++++++++++-
- .../src/L2/L2StandardBridge.sol               |  4 +-
- .../src/deployment/SystemDictator.sol         |  7 +-
- .../src/libraries/Predeploys.sol              |  3 +
- .../src/universal/CrossDomainMessenger.sol    |  2 +
- .../src/universal/StandardBridge.sol          | 76 +++++++++++----
- .../test/vendor/Initializable.t.sol           |  9 +-
- 9 files changed, 190 insertions(+), 29 deletions(-)
+ packages/contracts-bedrock/0001-BNB-L2.patch  | 105 +++++++++++++++++-
+ .../contracts-bedrock/scripts/Deploy.s.sol    |   6 +-
+ .../src/L1/L1StandardBridge.sol               |  19 +++-
+ .../src/L1/OptimismPortal.sol                 |  93 +++++++++++++++-
+ .../src/L2/L2StandardBridge.sol               |   4 +-
+ .../src/deployment/SystemDictator.sol         |   7 +-
+ .../src/libraries/Predeploys.sol              |   3 +
+ .../src/universal/CrossDomainMessenger.sol    |   2 +
+ .../src/universal/StandardBridge.sol          |  76 +++++++++----
+ .../test/vendor/Initializable.t.sol           |   9 +-
+ 10 files changed, 292 insertions(+), 32 deletions(-)
 
+diff --git a/packages/contracts-bedrock/0001-BNB-L2.patch b/packages/contracts-bedrock/0001-BNB-L2.patch
+index b6f5b3789..946ee1be4 100644
+--- a/packages/contracts-bedrock/0001-BNB-L2.patch
++++ b/packages/contracts-bedrock/0001-BNB-L2.patch
+@@ -1,9 +1,11 @@
+-From 09b9ba41097ba13b4c195b6f1ed2cd21a648a409 Mon Sep 17 00:00:00 2001
++From 5876cdbc2b0868927170bf70d5e8c952c295c881 Mon Sep 17 00:00:00 2001
+ From: cby3149 <cby3149@gmail.com>
+-Date: Fri, 10 May 2024 10:37:23 -0700
++Date: Fri, 10 May 2024 10:46:15 -0700
+ Subject: [PATCH] BNB L2
+ 
+ ---
++ packages/contracts-bedrock/0001-BNB-L2.patch  | 59 +-----------
++ .../deploy-config/hardhat-local.json          |  2 +-
+  .../contracts-bedrock/scripts/Deploy.s.sol    |  6 +-
+  .../src/L1/L1StandardBridge.sol               | 19 +++-
+  .../src/L1/OptimismPortal.sol                 | 93 ++++++++++++++++++-
+@@ -13,8 +15,105 @@ Subject: [PATCH] BNB L2
+  .../src/universal/CrossDomainMessenger.sol    |  2 +
+  .../src/universal/StandardBridge.sol          | 76 +++++++++++----
+  .../test/vendor/Initializable.t.sol           |  9 +-
+- 9 files changed, 190 insertions(+), 29 deletions(-)
++ 11 files changed, 194 insertions(+), 86 deletions(-)
+ 
++diff --git a/packages/contracts-bedrock/0001-BNB-L2.patch b/packages/contracts-bedrock/0001-BNB-L2.patch
++index b6f5b3789..9fbdf747a 100644
++--- a/packages/contracts-bedrock/0001-BNB-L2.patch
+++++ b/packages/contracts-bedrock/0001-BNB-L2.patch
++@@ -1,10 +1,9 @@
++-From 09b9ba41097ba13b4c195b6f1ed2cd21a648a409 Mon Sep 17 00:00:00 2001
+++From 0ca766e84dc3a89a07c6de97a9fa5d92426ae7d5 Mon Sep 17 00:00:00 2001
++ From: cby3149 <cby3149@gmail.com>
++-Date: Fri, 10 May 2024 10:37:23 -0700
+++Date: Fri, 10 May 2024 10:45:23 -0700
++ Subject: [PATCH] BNB L2
++ 
++ ---
++- .../contracts-bedrock/scripts/Deploy.s.sol    |  6 +-
++  .../src/L1/L1StandardBridge.sol               | 19 +++-
++  .../src/L1/OptimismPortal.sol                 | 93 ++++++++++++++++++-
++  .../src/L2/L2StandardBridge.sol               |  4 +-
++@@ -12,26 +11,8 @@ Subject: [PATCH] BNB L2
++  .../src/libraries/Predeploys.sol              |  3 +
++  .../src/universal/CrossDomainMessenger.sol    |  2 +
++  .../src/universal/StandardBridge.sol          | 76 +++++++++++----
++- .../test/vendor/Initializable.t.sol           |  9 +-
++- 9 files changed, 190 insertions(+), 29 deletions(-)
+++ 7 files changed, 178 insertions(+), 26 deletions(-)
++ 
++-diff --git a/packages/contracts-bedrock/scripts/Deploy.s.sol b/packages/contracts-bedrock/scripts/Deploy.s.sol
++-index d0acd4940..170a65256 100644
++---- a/packages/contracts-bedrock/scripts/Deploy.s.sol
++-+++ b/packages/contracts-bedrock/scripts/Deploy.s.sol
++-@@ -878,7 +878,11 @@ contract Deploy is Deployer {
++-             _implementation: l1StandardBridge,
++-             _innerCallData: abi.encodeCall(
++-                 L1StandardBridge.initialize,
++--                (L1CrossDomainMessenger(l1CrossDomainMessengerProxy), SuperchainConfig(superchainConfigProxy))
++-+                (
++-+                    L1CrossDomainMessenger(l1CrossDomainMessengerProxy),
++-+                    SuperchainConfig(superchainConfigProxy),
++-+                    BOBA(address(0))
++-+                )
++-                 )
++-         });
++- 
++ diff --git a/packages/contracts-bedrock/src/L1/L1StandardBridge.sol b/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
++ index 6958dc2e7..26831b774 100644
++ --- a/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
++@@ -408,40 +389,6 @@ index 2c2c8c241..17312d8a2 100644
++      }
++  
++      /// @notice Checks if a given address is an OptimismMintableERC20. Not perfect, but good enough.
++-diff --git a/packages/contracts-bedrock/test/vendor/Initializable.t.sol b/packages/contracts-bedrock/test/vendor/Initializable.t.sol
++-index 56b264378..8d1a69ebc 100644
++---- a/packages/contracts-bedrock/test/vendor/Initializable.t.sol
++-+++ b/packages/contracts-bedrock/test/vendor/Initializable.t.sol
++-@@ -1,6 +1,7 @@
++- // SPDX-License-Identifier: MIT
++- pragma solidity 0.8.15;
++- 
++-+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
++- import { Bridge_Initializer } from "test/setup/Bridge_Initializer.sol";
++- import { Executables } from "scripts/Executables.sol";
++- import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
++-@@ -228,7 +229,9 @@ contract Initializer_Test is Bridge_Initializer {
++-         contracts.push(
++-             InitializeableContract({
++-                 target: deploy.mustGetAddress("L1StandardBridge"),
++--                initCalldata: abi.encodeCall(l1StandardBridge.initialize, (l1CrossDomainMessenger, superchainConfig)),
++-+                initCalldata: abi.encodeCall(
++-+                    l1StandardBridge.initialize, (l1CrossDomainMessenger, superchainConfig, IERC20(address(0)))
++-+                    ),
++-                 initializedSlotVal: deploy.loadInitializedSlot("L1StandardBridge")
++-             })
++-         );
++-@@ -236,7 +239,9 @@ contract Initializer_Test is Bridge_Initializer {
++-         contracts.push(
++-             InitializeableContract({
++-                 target: address(l1StandardBridge),
++--                initCalldata: abi.encodeCall(l1StandardBridge.initialize, (l1CrossDomainMessenger, superchainConfig)),
++-+                initCalldata: abi.encodeCall(
++-+                    l1StandardBridge.initialize, (l1CrossDomainMessenger, superchainConfig, IERC20(address(0)))
++-+                    ),
++-                 initializedSlotVal: deploy.loadInitializedSlot("L1StandardBridgeProxy")
++-             })
++-         );
++ -- 
++ 2.39.3 (Apple Git-146)
++ 
++diff --git a/packages/contracts-bedrock/deploy-config/hardhat-local.json b/packages/contracts-bedrock/deploy-config/hardhat-local.json
++index 5e52a7689..38e839b49 100644
++--- a/packages/contracts-bedrock/deploy-config/hardhat-local.json
+++++ b/packages/contracts-bedrock/deploy-config/hardhat-local.json
++@@ -49,4 +49,4 @@
++   "requiredProtocolVersion": "0x0000000000000000000000000000000000000000000000000000000000000000",
++   "recommendedProtocolVersion": "0x0000000000000000000000000000000000000000000000000000000000000000",
++   "l1BobaTokenAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
++-}
++\ No newline at end of file
+++}
+ diff --git a/packages/contracts-bedrock/scripts/Deploy.s.sol b/packages/contracts-bedrock/scripts/Deploy.s.sol
+ index d0acd4940..170a65256 100644
+ --- a/packages/contracts-bedrock/scripts/Deploy.s.sol
 diff --git a/packages/contracts-bedrock/scripts/Deploy.s.sol b/packages/contracts-bedrock/scripts/Deploy.s.sol
 index d0acd4940..170a65256 100644
 --- a/packages/contracts-bedrock/scripts/Deploy.s.sol
