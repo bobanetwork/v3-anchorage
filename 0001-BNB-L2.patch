@@ -1,42 +1,20 @@
-From 851c2b796dca1a1430a34dd4cfeaf402bdf02ec8 Mon Sep 17 00:00:00 2001
+From bfe0582dc9bad455a78b0540403bfb4f409e3e30 Mon Sep 17 00:00:00 2001
 From: cby3149 <cby3149@gmail.com>
-Date: Thu, 9 May 2024 17:42:28 -0700
+Date: Fri, 10 May 2024 10:50:10 -0700
 Subject: [PATCH] BNB L2
 
 ---
- .../deploy-config/hardhat-local.json          |  4 +-
  .../contracts-bedrock/scripts/Deploy.s.sol    |  6 +-
- .../src/L1/L1StandardBridge.sol               | 19 ++++-
- .../src/L1/OptimismPortal.sol                 | 43 ++++++++++-
+ .../src/L1/L1StandardBridge.sol               | 19 +++-
+ .../src/L1/OptimismPortal.sol                 | 93 ++++++++++++++++++-
  .../src/L2/L2StandardBridge.sol               |  4 +-
  .../src/deployment/SystemDictator.sol         |  7 +-
  .../src/libraries/Predeploys.sol              |  3 +
- .../src/universal/CrossDomainMessenger.sol    | 59 ++++++++++++--
- .../src/universal/StandardBridge.sol          | 76 ++++++++++++++-----
- .../test/vendor/Initializable.t.sol           |  9 ++-
- 10 files changed, 191 insertions(+), 39 deletions(-)
+ .../src/universal/CrossDomainMessenger.sol    |  2 +
+ .../src/universal/StandardBridge.sol          | 76 +++++++++++----
+ .../test/vendor/Initializable.t.sol           |  9 +-
+ 9 files changed, 190 insertions(+), 29 deletions(-)
 
-diff --git a/packages/contracts-bedrock/deploy-config/hardhat-local.json b/packages/contracts-bedrock/deploy-config/hardhat-local.json
-index 5e52a7689..2021f246a 100644
---- a/packages/contracts-bedrock/deploy-config/hardhat-local.json
-+++ b/packages/contracts-bedrock/deploy-config/hardhat-local.json
-@@ -19,7 +19,6 @@
-   "l2GenesisRegolithTimeOffset": "0x0",
-   "l2GenesisCanyonTimeOffset": "0x0",
-   "l2GenesisDeltaTimeOffset": "0x0",
--  "l2GenesisEcotoneTimeOffset": "0x0",
-   "l1BlockTime": 3,
-   "baseFeeVaultRecipient": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
-   "l1FeeVaultRecipient": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
-@@ -48,5 +47,6 @@
-   "controller": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-   "requiredProtocolVersion": "0x0000000000000000000000000000000000000000000000000000000000000000",
-   "recommendedProtocolVersion": "0x0000000000000000000000000000000000000000000000000000000000000000",
--  "l1BobaTokenAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-+  "l1BobaTokenAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-+  "l2GenesisEcotoneTimeOffset": "0x0"
- }
-\ No newline at end of file
 diff --git a/packages/contracts-bedrock/scripts/Deploy.s.sol b/packages/contracts-bedrock/scripts/Deploy.s.sol
 index d0acd4940..170a65256 100644
 --- a/packages/contracts-bedrock/scripts/Deploy.s.sol
@@ -100,20 +78,18 @@ index 6958dc2e7..26831b774 100644
      }
  
 diff --git a/packages/contracts-bedrock/src/L1/OptimismPortal.sol b/packages/contracts-bedrock/src/L1/OptimismPortal.sol
-index 30e6bd471..b64cb3d6e 100644
+index 30e6bd471..ba86af443 100644
 --- a/packages/contracts-bedrock/src/L1/OptimismPortal.sol
 +++ b/packages/contracts-bedrock/src/L1/OptimismPortal.sol
-@@ -14,6 +14,9 @@ import { AddressAliasHelper } from "src/vendor/AddressAliasHelper.sol";
+@@ -14,6 +14,7 @@ import { AddressAliasHelper } from "src/vendor/AddressAliasHelper.sol";
  import { ResourceMetering } from "src/L1/ResourceMetering.sol";
  import { ISemver } from "src/universal/ISemver.sol";
  import { Constants } from "src/libraries/Constants.sol";
-+import { StandardBridge } from "src/universal/StandardBridge.sol";
-+import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
 +import { Predeploys } from "src/libraries/Predeploys.sol";
  
  /// @custom:proxied
  /// @title OptimismPortal
-@@ -406,11 +409,49 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+@@ -406,11 +407,91 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
          // Compute the opaque data that will be emitted as part of the TransactionDeposited event.
          // We use opaque data so that we can update the TransactionDeposited event in the future
          // without breaking the current interface.
@@ -127,7 +103,7 @@ index 30e6bd471..b64cb3d6e 100644
 +        // If the user sent ETH with this transaction, we need to finalize the deposit ERC20 on L2.
 +        if (msg.value != 0) {
 +            bytes memory _message = abi.encodeWithSelector(
-+                StandardBridge.finalizeBridgeERC20.selector,
++                OptimismPortalHelper.finalizeBridgeERC20.selector,
 +                Predeploys.L2_BNB,
 +                address(0),
 +                msg.sender,
@@ -137,8 +113,8 @@ index 30e6bd471..b64cb3d6e 100644
 +            );
 +
 +            _data = abi.encodeWithSelector(
-+                CrossDomainMessenger.relayMessage.selector,
-+                CrossDomainMessenger(systemConfig.l1CrossDomainMessenger()).messageNonce(),
++                OptimismPortalHelper.relayMessage.selector,
++                OptimismPortalHelper(systemConfig.l1CrossDomainMessenger()).messageNonce(),
 +                systemConfig.l1StandardBridge(),
 +                Predeploys.L2_STANDARD_BRIDGE,
 +                uint256(0),
@@ -149,7 +125,7 @@ index 30e6bd471..b64cb3d6e 100644
 +            opaqueData = abi.encodePacked(
 +                uint256(0),
 +                uint256(0),
-+                CrossDomainMessenger(systemConfig.l1CrossDomainMessenger()).baseGas(_message, uint32(_gasLimit)),
++                OptimismPortalHelper(systemConfig.l1CrossDomainMessenger()).baseGas(_message, uint32(_gasLimit)),
 +                false,
 +                _data
 +            );
@@ -160,10 +136,66 @@ index 30e6bd471..b64cb3d6e 100644
 +                DEPOSIT_VERSION,
 +                opaqueData
 +            );
++
++            return;
 +        }
++
++        (address _sender, bytes memory _cdmMessage) = this.decodeCrossDomainMessenger(_data);
++
++        (address _tokenSender, address _tokenReceiver, uint256 _tokenAmount) =
++            this.decodeStandardBridge(_sender, _cdmMessage);
++
++        // Compute the opaque data that will be emitted as part of the TransactionDeposited event.
++        // We use opaque data so that we can update the TransactionDeposited event in the future
++        // without breaking the current interface.
++        opaqueData = abi.encodePacked(_tokenAmount, uint256(0), _gasLimit, false, new bytes(0));
++
++        // Emit a TransactionDeposited event so that the rollup node can derive a deposit
++        // transaction for this deposit.
++        emit TransactionDeposited(_tokenSender, _tokenReceiver, DEPOSIT_VERSION, opaqueData);
++    }
++
++    function decodeCrossDomainMessenger(bytes calldata _data) external returns (address, bytes memory) {
++        require(msg.sender == systemConfig.l1CrossDomainMessenger(), "OptimismPortal: invalid msg.sender");
++        bytes4 selector;
++        assembly {
++            selector := calldataload(_data.offset)
++        }
++        require(selector == OptimismPortalHelper.relayMessage.selector, "OptimismPortal: invalid CDM selector");
++        (uint256 nonce, address sender, address target, uint256 value, uint256 gasLimit, bytes memory _message) =
++            abi.decode(_data[4:], (uint256, address, address, uint256, uint256, bytes));
++        require(target == Predeploys.L2_STANDARD_BRIDGE, "OptimismPortal: invalid target");
++        return (sender, _message);
++    }
++
++    function decodeStandardBridge(address sender, bytes calldata _data) external returns (address, address, uint256) {
++        require(msg.sender == systemConfig.l1CrossDomainMessenger(), "OptimismPortal: invalid msg.sender");
++        require(sender == systemConfig.l1StandardBridge(), "OptimismPortal: invalid sender");
++        bytes4 selector;
++        assembly {
++            selector := calldataload(_data.offset)
++        }
++        require(selector == OptimismPortalHelper.finalizeBridgeETH.selector, "OptimismPortal: invalid SB selector");
++        (address from, address to, uint256 amount, bytes memory extraData) =
++            abi.decode(_data[4:], (address, address, uint256, bytes));
++        return (from, to, amount);
      }
  
      /// @notice Determine if a given output is finalized.
+@@ -430,3 +511,13 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+         return block.timestamp > _timestamp + l2Oracle.FINALIZATION_PERIOD_SECONDS();
+     }
+ }
++
++pragma solidity 0.8.15;
++
++interface OptimismPortalHelper {
++    function messageNonce() external view returns (uint256);
++    function baseGas(bytes calldata _message, uint32 _gasLimit) external view returns (uint64);
++    function relayMessage(uint256 _nonce, address _sender, address _target, uint256 _value, uint256 _minGasLimit, bytes calldata _message) external payable;
++    function finalizeBridgeETH(address _from, address _to, uint256 _amount, bytes calldata _extraData) external payable;
++    function finalizeBridgeERC20(address _localToken, address _remoteToken, address _from, address _to, uint256 _amount, bytes calldata _extraData) external;
++}
 diff --git a/packages/contracts-bedrock/src/L2/L2StandardBridge.sol b/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
 index 69319560a..3adeb8244 100644
 --- a/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
@@ -238,7 +270,7 @@ index d131542ec..165b63f39 100644
 +    address internal constant L2_BNB = 0x4200000000000000000000000000000000000023;
  }
 diff --git a/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol b/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
-index b5048d5c7..6b0c57b79 100644
+index b5048d5c7..1ec192733 100644
 --- a/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
 @@ -6,6 +6,8 @@ import { SafeCall } from "src/libraries/SafeCall.sol";
@@ -250,70 +282,6 @@ index b5048d5c7..6b0c57b79 100644
  
  /// @custom:legacy
  /// @title CrossDomainMessengerLegacySpacer0
-@@ -178,14 +180,55 @@ abstract contract CrossDomainMessenger is
-         // message is the amount of gas requested by the user PLUS the base gas value. We want to
-         // guarantee the property that the call to the target contract will always have at least
-         // the minimum gas limit specified by the user.
--        _sendMessage({
--            _to: address(otherMessenger),
--            _gasLimit: baseGas(_message, _minGasLimit),
--            _value: msg.value,
--            _data: abi.encodeWithSelector(
--                this.relayMessage.selector, messageNonce(), msg.sender, _target, msg.value, _minGasLimit, _message
--                )
--        });
-+
-+        // L1 to L2
-+        // The special case is to handle BNB transfers from L1 to L2.
-+        if (otherMessenger == CrossDomainMessenger(Predeploys.L2_CROSS_DOMAIN_MESSENGER) && msg.value != 0) {
-+            // ????
-+            // Will this have any security issues?
-+            // If users try to force a transaction on L2
-+            _sendMessage({
-+                _to: address(otherMessenger),
-+                _gasLimit: baseGas(_message, _minGasLimit),
-+                _value: 0,
-+                _data: abi.encodeWithSelector(
-+                    this.relayMessage.selector, messageNonce(), msg.sender, _target, 0, _minGasLimit, _message
-+                    )
-+            });
-+            // Mint BNB on L2
-+            bytes memory _mintMessage = abi.encodeWithSelector(
-+                StandardBridge.finalizeBridgeERC20.selector,
-+                Predeploys.L2_BNB,
-+                address(0),
-+                msg.sender,
-+                msg.sender,
-+                msg.value,
-+                new bytes(0)
-+            );
-+            _sendMessage({
-+                _to: address(otherMessenger),
-+                _gasLimit: baseGas(_message, _minGasLimit),
-+                _value: 0,
-+                _data: abi.encodeWithSelector(
-+                    this.relayMessage.selector,
-+                    messageNonce(),
-+                    msg.sender,
-+                    Predeploys.L2_STANDARD_BRIDGE,
-+                    0,
-+                    _minGasLimit,
-+                    _mintMessage
-+                    )
-+            });
-+        } else {
-+            _sendMessage({
-+                _to: address(otherMessenger),
-+                _gasLimit: baseGas(_message, _minGasLimit),
-+                _value: msg.value,
-+                _data: abi.encodeWithSelector(
-+                    this.relayMessage.selector, messageNonce(), msg.sender, _target, msg.value, _minGasLimit, _message
-+                    )
-+            });
-+        }
- 
-         emit SentMessage(_target, msg.sender, _message, messageNonce(), _minGasLimit);
-         emit SentMessageExtension1(msg.sender, msg.value);
 diff --git a/packages/contracts-bedrock/src/universal/StandardBridge.sol b/packages/contracts-bedrock/src/universal/StandardBridge.sol
 index 2c2c8c241..17312d8a2 100644
 --- a/packages/contracts-bedrock/src/universal/StandardBridge.sol
