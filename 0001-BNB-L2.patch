@@ -1,23 +1,23 @@
-From ee88ed61ad8154fb0968311897dcd7a22cbb61c3 Mon Sep 17 00:00:00 2001
+From 16e224ef962e6c79b23e80d98c8980c6671704d9 Mon Sep 17 00:00:00 2001
 From: cby3149 <cby3149@gmail.com>
-Date: Mon, 13 May 2024 17:57:43 -0400
+Date: Mon, 13 May 2024 19:16:19 -0400
 Subject: [PATCH] BNB L2
 
 ---
- .../contracts-bedrock/scripts/Deploy.s.sol    |  6 +-
- .../contracts-bedrock/scripts/L2Genesis.s.sol |  6 +-
- .../src/L1/L1CrossDomainMessenger.sol         | 16 +++
- .../src/L1/L1StandardBridge.sol               | 28 ++++--
- .../src/L1/OptimismPortal.sol                 | 83 +++++++++++++++-
- .../src/L2/L2CrossDomainMessenger.sol         | 12 +++
- .../src/L2/L2StandardBridge.sol               |  8 +-
- .../src/L2/L2ToL1MessagePasser.sol            | 51 ++++++++++
- .../src/deployment/SystemDictator.sol         |  7 +-
- .../src/libraries/Predeploys.sol              |  3 +
- .../src/universal/CrossDomainMessenger.sol    | 63 ++++++++++++
- .../src/universal/StandardBridge.sol          | 97 +++++++++++++++----
- .../test/vendor/Initializable.t.sol           | 11 ++-
- 13 files changed, 353 insertions(+), 38 deletions(-)
+ .../contracts-bedrock/scripts/Deploy.s.sol    |   6 +-
+ .../contracts-bedrock/scripts/L2Genesis.s.sol |   5 +-
+ .../src/L1/L1CrossDomainMessenger.sol         |  19 ++++
+ .../src/L1/L1StandardBridge.sol               |  41 ++++---
+ .../src/L1/OptimismPortal.sol                 | 107 +++++++++++++++++-
+ .../src/L2/L2CrossDomainMessenger.sol         |  19 ++++
+ .../src/L2/L2StandardBridge.sol               |   8 +-
+ .../src/L2/L2ToL1MessagePasser.sol            |  59 ++++++++++
+ .../src/deployment/SystemDictator.sol         |   7 +-
+ .../src/libraries/Predeploys.sol              |   3 +
+ .../src/universal/CrossDomainMessenger.sol    |  71 ++++++++++++
+ .../src/universal/StandardBridge.sol          |  98 ++++++++++++----
+ .../test/vendor/Initializable.t.sol           |  11 +-
+ 13 files changed, 405 insertions(+), 49 deletions(-)
 
 diff --git a/packages/contracts-bedrock/scripts/Deploy.s.sol b/packages/contracts-bedrock/scripts/Deploy.s.sol
 index d0acd4940..170a65256 100644
@@ -37,7 +37,7 @@ index d0acd4940..170a65256 100644
          });
  
 diff --git a/packages/contracts-bedrock/scripts/L2Genesis.s.sol b/packages/contracts-bedrock/scripts/L2Genesis.s.sol
-index 5f5f8a198..35129e707 100644
+index 5f5f8a198..64eb39d96 100644
 --- a/packages/contracts-bedrock/scripts/L2Genesis.s.sol
 +++ b/packages/contracts-bedrock/scripts/L2Genesis.s.sol
 @@ -17,6 +17,7 @@ import { OptimismMintableERC20Factory } from "src/universal/OptimismMintableERC2
@@ -48,41 +48,43 @@ index 5f5f8a198..35129e707 100644
  
  interface IInitializable {
      function initialize(address _addr) external;
-@@ -216,10 +217,11 @@ contract L2Genesis is Script, Artifacts {
+@@ -216,10 +217,10 @@ contract L2Genesis is Script, Artifacts {
      function _setL2StandardBridge() internal {
          address impl = _setImplementationCode(Predeploys.L2_STANDARD_BRIDGE, "L2StandardBridge");
  
 -        L2StandardBridge(payable(impl)).initialize(L1StandardBridge(payable(address(0))));
-+        L2StandardBridge(payable(impl)).initialize(L1StandardBridge(payable(address(0))),IERC20(address(0)));
++        L2StandardBridge(payable(impl)).initialize(L1StandardBridge(payable(address(0))), IERC20(address(0)));
  
          L2StandardBridge(payable(Predeploys.L2_STANDARD_BRIDGE)).initialize(
 -            L1StandardBridge(mustGetAddress("L1StandardBridgeProxy"))
-+            L1StandardBridge(mustGetAddress("L1StandardBridgeProxy")),
-+            IERC20(address(0))
++            L1StandardBridge(mustGetAddress("L1StandardBridgeProxy")), IERC20(address(0))
          );
  
          _checkL2StandardBridge(impl);
 diff --git a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
-index deccbed23..05cb23747 100644
+index deccbed23..912cb6e32 100644
 --- a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
-@@ -63,6 +63,22 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
+@@ -63,6 +63,25 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
          });
      }
  
 +    /// @inheritdoc CrossDomainMessenger
-+    function _depositBoba (address _from, address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal override {
-+        portal.depositBoba({
-+            _from: _from,
-+            _to: _to,
-+            _value: _value,
-+            _gasLimit: _gasLimit,
-+            _data: _data
-+        });
++    function _depositBoba(
++        address _from,
++        address _to,
++        uint64 _gasLimit,
++        uint256 _value,
++        bytes memory _data
++    )
++        internal
++        override
++    {
++        portal.depositBoba({ _from: _from, _to: _to, _value: _value, _gasLimit: _gasLimit, _data: _data });
 +    }
 +
 +    /// @inheritdoc CrossDomainMessenger
-+    function _withdrawBoba(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal pure override {
++    function _withdrawBoba(address, uint64, uint256, bytes memory) internal pure override {
 +        revert("L1CrossDomainMessenger: Boba not supported");
 +    }
 +
@@ -90,7 +92,7 @@ index deccbed23..05cb23747 100644
      function _isOtherMessenger() internal view override returns (bool) {
          return msg.sender == address(portal) && portal.l2Sender() == address(otherMessenger);
 diff --git a/packages/contracts-bedrock/src/L1/L1StandardBridge.sol b/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
-index 6958dc2e7..f6503d1e2 100644
+index 6958dc2e7..5a7b27908 100644
 --- a/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
 +++ b/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
 @@ -7,6 +7,7 @@ import { ISemver } from "src/universal/ISemver.sol";
@@ -134,7 +136,7 @@ index 6958dc2e7..f6503d1e2 100644
          });
      }
  
-@@ -106,7 +119,8 @@ contract L1StandardBridge is StandardBridge, ISemver {
+@@ -106,17 +119,15 @@ contract L1StandardBridge is StandardBridge, ISemver {
  
      /// @notice Allows EOAs to bridge ETH by sending directly to the bridge.
      receive() external payable override onlyEOA {
@@ -144,28 +146,38 @@ index 6958dc2e7..f6503d1e2 100644
      }
  
      /// @custom:legacy
-@@ -116,7 +130,8 @@ contract L1StandardBridge is StandardBridge, ISemver {
-     ///                     Data supplied here will not be used to execute any code on L2 and is
-     ///                     only emitted as extra data for the convenience of off-chain tooling.
-     function depositETH(uint32 _minGasLimit, bytes calldata _extraData) external payable onlyEOA {
+     /// @notice Deposits some amount of ETH into the sender's account on L2.
+-    /// @param _minGasLimit Minimum gas limit for the deposit message on L2.
+-    /// @param _extraData   Optional data to forward to L2.
+-    ///                     Data supplied here will not be used to execute any code on L2 and is
+-    ///                     only emitted as extra data for the convenience of off-chain tooling.
+-    function depositETH(uint32 _minGasLimit, bytes calldata _extraData) external payable onlyEOA {
 -        _initiateETHDeposit(msg.sender, msg.sender, _minGasLimit, _extraData);
++    function depositETH(uint32, bytes calldata) external payable onlyEOA {
 +        // _initiateETHDeposit(msg.sender, msg.sender, _minGasLimit, _extraData);
 +        revert("L1StandardBridge: depositETH not supported");
      }
  
      /// @custom:legacy
-@@ -131,7 +146,8 @@ contract L1StandardBridge is StandardBridge, ISemver {
-     ///                     Data supplied here will not be used to execute any code on L2 and is
-     ///                     only emitted as extra data for the convenience of off-chain tooling.
-     function depositETHTo(address _to, uint32 _minGasLimit, bytes calldata _extraData) external payable {
+@@ -125,13 +136,9 @@ contract L1StandardBridge is StandardBridge, ISemver {
+     ///         be locked in the L2StandardBridge. ETH may be recoverable if the call can be
+     ///         successfully replayed by increasing the amount of gas supplied to the call. If the
+     ///         call will fail for any amount of gas, then the ETH will be locked permanently.
+-    /// @param _to          Address of the recipient on L2.
+-    /// @param _minGasLimit Minimum gas limit for the deposit message on L2.
+-    /// @param _extraData   Optional data to forward to L2.
+-    ///                     Data supplied here will not be used to execute any code on L2 and is
+-    ///                     only emitted as extra data for the convenience of off-chain tooling.
+-    function depositETHTo(address _to, uint32 _minGasLimit, bytes calldata _extraData) external payable {
 -        _initiateETHDeposit(msg.sender, _to, _minGasLimit, _extraData);
++    function depositETHTo(address, uint32, bytes calldata) external payable {
 +        // _initiateETHDeposit(msg.sender, _to, _minGasLimit, _extraData);
 +        revert("L1StandardBridge: depositETHTo not supported");
      }
  
      /// @custom:legacy
 diff --git a/packages/contracts-bedrock/src/L1/OptimismPortal.sol b/packages/contracts-bedrock/src/L1/OptimismPortal.sol
-index 30e6bd471..ee7f399fc 100644
+index 30e6bd471..60c8d1b13 100644
 --- a/packages/contracts-bedrock/src/L1/OptimismPortal.sol
 +++ b/packages/contracts-bedrock/src/L1/OptimismPortal.sol
 @@ -14,6 +14,7 @@ import { AddressAliasHelper } from "src/vendor/AddressAliasHelper.sol";
@@ -255,7 +267,7 @@ index 30e6bd471..ee7f399fc 100644
  
          // Emit a TransactionDeposited event so that the rollup node can derive a deposit
          // transaction for this deposit.
-@@ -430,3 +501,13 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+@@ -430,3 +501,37 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
          return block.timestamp > _timestamp + l2Oracle.FINALIZATION_PERIOD_SECONDS();
      }
  }
@@ -265,20 +277,44 @@ index 30e6bd471..ee7f399fc 100644
 +interface OptimismPortalHelper {
 +    function messageNonce() external view returns (uint256);
 +    function baseGas(bytes calldata _message, uint32 _gasLimit) external view returns (uint64);
-+    function relayMessage(uint256 _nonce, address _sender, address _target, uint256 _value, uint256 _minGasLimit, bytes calldata _message) external payable;
-+    function finalizeBridgeETH(address _from, address _to, uint256 _amount, bytes calldata _extraData) external payable;
-+    function finalizeBridgeERC20(address _localToken, address _remoteToken, address _from, address _to, uint256 _amount, bytes calldata _extraData) external;
++    function relayMessage(
++        uint256 _nonce,
++        address _sender,
++        address _target,
++        uint256 _value,
++        uint256 _minGasLimit,
++        bytes calldata _message
++    )
++        external
++        payable;
++    function finalizeBridgeETH(
++        address _from,
++        address _to,
++        uint256 _amount,
++        bytes calldata _extraData
++    )
++        external
++        payable;
++    function finalizeBridgeERC20(
++        address _localToken,
++        address _remoteToken,
++        address _from,
++        address _to,
++        uint256 _amount,
++        bytes calldata _extraData
++    )
++        external;
 +}
 diff --git a/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol b/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol
-index ad0e117d3..1db9f5d59 100644
+index ad0e117d3..8a7284a45 100644
 --- a/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol
-@@ -44,6 +44,18 @@ contract L2CrossDomainMessenger is CrossDomainMessenger, ISemver {
+@@ -44,6 +44,25 @@ contract L2CrossDomainMessenger is CrossDomainMessenger, ISemver {
          );
      }
  
 +    /// @inheritdoc CrossDomainMessenger
-+    function _depositBoba(address _from, address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal pure override {
++    function _depositBoba(address, address, uint64, uint256, bytes memory) internal pure override {
 +        revert("L2CrossDomainMessenger: Boba not supported");
 +    }
 +
@@ -289,11 +325,18 @@ index ad0e117d3..1db9f5d59 100644
 +        );
 +    }
 +
++    // /// @inheritdoc CrossDomainMessenger
++    // function _withdrawBnb(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal override {
++    //     L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateWithdrawal(
++    //         _to, _value, _gasLimit, _data
++    //     );
++    // }
++
      /// @inheritdoc CrossDomainMessenger
      function _isOtherMessenger() internal view override returns (bool) {
          return AddressAliasHelper.undoL1ToL2Alias(msg.sender) == address(otherMessenger);
 diff --git a/packages/contracts-bedrock/src/L2/L2StandardBridge.sol b/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
-index 69319560a..2a4224a36 100644
+index 69319560a..1b29ea00b 100644
 --- a/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
 +++ b/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
 @@ -7,6 +7,7 @@ import { ISemver } from "src/universal/ISemver.sol";
@@ -309,7 +352,7 @@ index 69319560a..2a4224a36 100644
      /// @notice Constructs the L2StandardBridge contract.
      constructor() StandardBridge() {
 -        initialize({ _otherBridge: StandardBridge(payable(address(0))) });
-+        initialize({ _otherBridge: StandardBridge(payable(address(0))), _otherBobaToken: IERC20(address(0))});
++        initialize({ _otherBridge: StandardBridge(payable(address(0))), _otherBobaToken: IERC20(address(0)) });
      }
  
      /// @notice Initializer.
@@ -325,10 +368,10 @@ index 69319560a..2a4224a36 100644
      }
  
 diff --git a/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol b/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol
-index 8c764e999..3c564594b 100644
+index 8c764e999..f44101f9f 100644
 --- a/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol
 +++ b/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol
-@@ -91,6 +91,57 @@ contract L2ToL1MessagePasser is ISemver {
+@@ -91,6 +91,65 @@ contract L2ToL1MessagePasser is ISemver {
          }
      }
  
@@ -362,7 +405,15 @@ index 8c764e999..3c564594b 100644
 +    /// @param _value    Amount of BNB to withdraw.
 +    /// @param _gasLimit Minimum gas limit for executing the message on L1.
 +    /// @param _data     Data to forward to L1 target.
-+    function initiateBnbWithdrawal(address _target, uint256 _value, uint256 _gasLimit, bytes memory _data) public payable {
++    function initiateBnbWithdrawal(
++        address _target,
++        uint256 _value,
++        uint256 _gasLimit,
++        bytes memory _data
++    )
++        public
++        payable
++    {
 +        bytes32 withdrawalHash = Hashing.hashWithdrawal(
 +            Types.WithdrawalTransaction({
 +                nonce: messageNonce(),
@@ -438,7 +489,7 @@ index d131542ec..165b63f39 100644
 +    address internal constant L2_BNB = 0x4200000000000000000000000000000000000023;
  }
 diff --git a/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol b/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
-index b5048d5c7..f4dbfe02b 100644
+index b5048d5c7..511065b90 100644
 --- a/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
 @@ -6,6 +6,8 @@ import { SafeCall } from "src/libraries/SafeCall.sol";
@@ -503,7 +554,7 @@ index b5048d5c7..f4dbfe02b 100644
      /// @notice Relays a message that was sent by the other CrossDomainMessenger contract. Can only
      ///         be executed via cross-chain call from the other messenger OR if the message was
      ///         already received once and is currently being replayed.
-@@ -380,6 +428,21 @@ abstract contract CrossDomainMessenger is
+@@ -380,6 +428,29 @@ abstract contract CrossDomainMessenger is
      /// @param _data     Message data.
      function _sendMessage(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal virtual;
  
@@ -513,7 +564,15 @@ index b5048d5c7..f4dbfe02b 100644
 +    /// @param _gasLimit Minimum gas limit the message can be executed with.
 +    /// @param _value    Amount of BOBA to send with the message.
 +    /// @param _data     Message data.
-+    function _depositBoba(address _from, address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal virtual;
++    function _depositBoba(
++        address _from,
++        address _to,
++        uint64 _gasLimit,
++        uint256 _value,
++        bytes memory _data
++    )
++        internal
++        virtual;
 +
 +    /// @notice Sends a low-level message to the other messenger to withdraw Boba.
 +    /// @param _to       Recipient of the message on the other chain.
@@ -526,7 +585,7 @@ index b5048d5c7..f4dbfe02b 100644
      ///         contracts because the logic for this depends on the network where the messenger is
      ///         being deployed.
 diff --git a/packages/contracts-bedrock/src/universal/StandardBridge.sol b/packages/contracts-bedrock/src/universal/StandardBridge.sol
-index 2c2c8c241..ecb09094e 100644
+index 2c2c8c241..058af189f 100644
 --- a/packages/contracts-bedrock/src/universal/StandardBridge.sol
 +++ b/packages/contracts-bedrock/src/universal/StandardBridge.sol
 @@ -10,6 +10,7 @@ import { IOptimismMintableERC20, ILegacyMintableERC20 } from "src/universal/IOpt
@@ -606,7 +665,7 @@ index 2c2c8c241..ecb09094e 100644
              _minGasLimit: _minGasLimit
          });
      }
-@@ -358,29 +390,54 @@ abstract contract StandardBridge is Initializable {
+@@ -358,29 +390,55 @@ abstract contract StandardBridge is Initializable {
              OptimismMintableERC20(_localToken).burn(_from, _amount);
          } else {
              IERC20(_localToken).safeTransferFrom(_from, address(this), _amount);
@@ -614,7 +673,8 @@ index 2c2c8c241..ecb09094e 100644
 +
 +            // we need to handle the case where the other bridge is the L2 bridge and the token is boba
 +            if (address(otherBridge) == Predeploys.L2_STANDARD_BRIDGE && IERC20(_localToken) == bobaToken) {
-+                deposits[_localToken][Predeploys.LEGACY_ERC20_ETH] = deposits[_localToken][Predeploys.LEGACY_ERC20_ETH] + _amount;
++                deposits[_localToken][Predeploys.LEGACY_ERC20_ETH] =
++                    deposits[_localToken][Predeploys.LEGACY_ERC20_ETH] + _amount;
 +            } else {
 +                deposits[_localToken][_remoteToken] = deposits[_localToken][_remoteToken] + _amount;
 +            }

@@ -407,9 +407,6 @@ func (d *DeployConfig) RollupConfig(l1StartHeader *types.Header, l2GenesisBlockH
 }
 
 func (d *DeployConfig) GetL1BobaTokenAddress() (common.Address, error) {
-	if d.L2BobaBnbDeployment {
-		return common.Address{0}, nil
-	}
 	var l1TokenAddr common.Address
 	if d.L1BobaTokenAddress != nil {
 		l1TokenAddr = *d.L1BobaTokenAddress
@@ -545,6 +542,13 @@ func NewL2ImmutableConfig(config *DeployConfig, blockHeader *types.Header) (immu
 		"_symbol":   "BOBA",
 		"_decimals": uint8(18),
 	}
+
+	// If the L2 Boba BNB deployment is enabled, update the storage
+	if config.L2BobaBnbDeployment {
+		immutable["BobaL2"]["l1Token"] = common.Address{0}
+		immutable["L2StandardBridge"]["bobaToken"] = l1TokenAddr
+	}
+
 	return immutable, nil
 }
 
@@ -620,6 +624,13 @@ func NewL2StorageConfig(config *DeployConfig, blockHeader *types.Header) (state.
 		"_symbol":   "BOBA",
 		"_decimals": uint8(18),
 	}
+
+	// If the L2 Boba BNB deployment is enabled, update the storage
+	if config.L2BobaBnbDeployment {
+		storage["BobaL2"]["l1Token"] = common.Address{0}
+		storage["L2StandardBridge"]["bobaToken"] = l1TokenAddr
+	}
+
 	return storage, nil
 }
 
