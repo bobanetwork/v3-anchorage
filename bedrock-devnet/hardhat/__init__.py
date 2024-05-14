@@ -316,27 +316,35 @@ def wait_for_rpc_server(url):
             time.sleep(1)
 
 def devnet_test(paths):
+    if os.environ.get("ENABLE_BNB_L2_DEPLOYMENT") == 'true':
+        run_command(
+            ['npx', 'hardhat',  'deposit-bnb', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
+            cwd=paths.sdk_dir,
+            timeout=12*60,
+        )
+        return
+
     run_command(
         ['go', 'run', './cmd/check-l2/main.go', '--l2-rpc-url', 'http://localhost:9545', '--l1-rpc-url', 'http://localhost:8545'],
         cwd=paths.boba_chain_ops,
     )
 
     run_command(
-         ['npx', 'hardhat',  'deposit-eth', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
-         cwd=paths.sdk_dir,
-         timeout=12*60,
+        ['npx', 'hardhat',  'deposit-eth', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
+        cwd=paths.sdk_dir,
+        timeout=12*60,
     )
 
     run_command(
-         ['npx', 'hardhat',  'deposit-erc20', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
-         cwd=paths.sdk_dir,
-         timeout=12*60,
+        ['npx', 'hardhat',  'deposit-erc20', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
+        cwd=paths.sdk_dir,
+        timeout=12*60,
     )
 
     run_command(
-         ['npx', 'hardhat',  'deposit-boba', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
-         cwd=paths.sdk_dir,
-         timeout=12*60,
+        ['npx', 'hardhat',  'deposit-boba', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
+        cwd=paths.sdk_dir,
+        timeout=12*60,
     )
 
 def run_command(args, check=True, shell=False, cwd=None, env=None, timeout=None):
