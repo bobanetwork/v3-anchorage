@@ -1,23 +1,23 @@
-From 16e224ef962e6c79b23e80d98c8980c6671704d9 Mon Sep 17 00:00:00 2001
+From 1426b35f2b391b6c2cae8ccd3ef313555d4ee52e Mon Sep 17 00:00:00 2001
 From: cby3149 <cby3149@gmail.com>
-Date: Mon, 13 May 2024 19:16:19 -0400
+Date: Tue, 14 May 2024 14:40:07 -0400
 Subject: [PATCH] BNB L2
 
 ---
  .../contracts-bedrock/scripts/Deploy.s.sol    |   6 +-
  .../contracts-bedrock/scripts/L2Genesis.s.sol |   5 +-
- .../src/L1/L1CrossDomainMessenger.sol         |  19 ++++
+ .../src/L1/L1CrossDomainMessenger.sol         |  24 ++++
  .../src/L1/L1StandardBridge.sol               |  41 ++++---
- .../src/L1/OptimismPortal.sol                 | 107 +++++++++++++++++-
- .../src/L2/L2CrossDomainMessenger.sol         |  19 ++++
+ .../src/L1/OptimismPortal.sol                 | 107 ++++++++++++++++-
+ .../src/L2/L2CrossDomainMessenger.sol         |  19 +++
  .../src/L2/L2StandardBridge.sol               |   8 +-
  .../src/L2/L2ToL1MessagePasser.sol            |  59 ++++++++++
  .../src/deployment/SystemDictator.sol         |   7 +-
  .../src/libraries/Predeploys.sol              |   3 +
- .../src/universal/CrossDomainMessenger.sol    |  71 ++++++++++++
- .../src/universal/StandardBridge.sol          |  98 ++++++++++++----
+ .../src/universal/CrossDomainMessenger.sol    | 104 +++++++++++++++++
+ .../src/universal/StandardBridge.sol          | 109 ++++++++++++++----
  .../test/vendor/Initializable.t.sol           |  11 +-
- 13 files changed, 405 insertions(+), 49 deletions(-)
+ 13 files changed, 454 insertions(+), 49 deletions(-)
 
 diff --git a/packages/contracts-bedrock/scripts/Deploy.s.sol b/packages/contracts-bedrock/scripts/Deploy.s.sol
 index d0acd4940..170a65256 100644
@@ -62,10 +62,10 @@ index 5f5f8a198..64eb39d96 100644
  
          _checkL2StandardBridge(impl);
 diff --git a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
-index deccbed23..912cb6e32 100644
+index deccbed23..b4e130bd4 100644
 --- a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
-@@ -63,6 +63,25 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
+@@ -63,6 +63,30 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
          });
      }
  
@@ -86,6 +86,11 @@ index deccbed23..912cb6e32 100644
 +    /// @inheritdoc CrossDomainMessenger
 +    function _withdrawBoba(address, uint64, uint256, bytes memory) internal pure override {
 +        revert("L1CrossDomainMessenger: Boba not supported");
++    }
++
++    /// @inheritdoc CrossDomainMessenger
++    function _withdrawBnb(address, uint64, uint256, bytes memory) internal override {
++        revert("L1CrossDomainMessenger: BNB not supported");
 +    }
 +
      /// @inheritdoc CrossDomainMessenger
@@ -306,7 +311,7 @@ index 30e6bd471..60c8d1b13 100644
 +        external;
 +}
 diff --git a/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol b/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol
-index ad0e117d3..8a7284a45 100644
+index ad0e117d3..55c23f688 100644
 --- a/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol
 @@ -44,6 +44,25 @@ contract L2CrossDomainMessenger is CrossDomainMessenger, ISemver {
@@ -325,12 +330,12 @@ index ad0e117d3..8a7284a45 100644
 +        );
 +    }
 +
-+    // /// @inheritdoc CrossDomainMessenger
-+    // function _withdrawBnb(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal override {
-+    //     L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateWithdrawal(
-+    //         _to, _value, _gasLimit, _data
-+    //     );
-+    // }
++    /// @inheritdoc CrossDomainMessenger
++    function _withdrawBnb(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal override {
++        L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateBnbWithdrawal(
++            _to, _value, _gasLimit, _data
++        );
++    }
 +
      /// @inheritdoc CrossDomainMessenger
      function _isOtherMessenger() internal view override returns (bool) {
@@ -489,7 +494,7 @@ index d131542ec..165b63f39 100644
 +    address internal constant L2_BNB = 0x4200000000000000000000000000000000000023;
  }
 diff --git a/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol b/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
-index b5048d5c7..511065b90 100644
+index b5048d5c7..e3f204222 100644
 --- a/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/universal/CrossDomainMessenger.sol
 @@ -6,6 +6,8 @@ import { SafeCall } from "src/libraries/SafeCall.sol";
@@ -501,7 +506,7 @@ index b5048d5c7..511065b90 100644
  
  /// @custom:legacy
  /// @title CrossDomainMessengerLegacySpacer0
-@@ -195,6 +197,52 @@ abstract contract CrossDomainMessenger is
+@@ -195,6 +197,78 @@ abstract contract CrossDomainMessenger is
          }
      }
  
@@ -529,6 +534,10 @@ index b5048d5c7..511065b90 100644
 +        }
 +    }
 +
++    /// @notice withdrawBoba sends a message to the other chain to withdraw BOBA.
++    /// @param _target     Target contract or wallet address.
++    /// @param _message    Message to trigger the target address with.
++    /// @param _minGasLimit Minimum gas limit that the message can be executed with.
 +    function withdrawBoba(address _target, bytes calldata _message, uint32 _minGasLimit) external payable {
 +        // Triggers a message to the other messenger. Note that the amount of gas provided to the
 +        // message is the amount of gas requested by the user PLUS the base gas value. We want to
@@ -551,10 +560,32 @@ index b5048d5c7..511065b90 100644
 +        }
 +    }
 +
++    function withdrawBnb(address _target, uint256 _value, bytes calldata _message, uint32 _minGasLimit) external {
++        // Triggers a message to the other messenger. Note that the amount of gas provided to the
++        // message is the amount of gas requested by the user PLUS the base gas value. We want to
++        // guarantee the property that the call to the target contract will always have at least
++        // the minimum gas limit specified by the user.
++        _withdrawBnb({
++            _to: address(otherMessenger),
++            _gasLimit: baseGas(_message, _minGasLimit),
++            _value: _value,
++            _data: abi.encodeWithSelector(
++                this.relayMessage.selector, messageNonce(), msg.sender, _target, _value, _minGasLimit, _message
++                )
++        });
++
++        emit SentMessage(_target, msg.sender, _message, messageNonce(), _minGasLimit);
++        emit SentMessageExtension1(msg.sender, 0);
++
++        unchecked {
++            ++msgNonce;
++        }
++    }
++
      /// @notice Relays a message that was sent by the other CrossDomainMessenger contract. Can only
      ///         be executed via cross-chain call from the other messenger OR if the message was
      ///         already received once and is currently being replayed.
-@@ -380,6 +428,29 @@ abstract contract CrossDomainMessenger is
+@@ -380,6 +454,36 @@ abstract contract CrossDomainMessenger is
      /// @param _data     Message data.
      function _sendMessage(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal virtual;
  
@@ -581,11 +612,18 @@ index b5048d5c7..511065b90 100644
 +    /// @param _data     Message data.
 +    function _withdrawBoba(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal virtual;
 +
++    /// @notice Sends a low-level message to the other messenger to withdraw BNB.
++    /// @param _to       Recipient of the message on the other chain.
++    /// @param _gasLimit Minimum gas limit the message can be executed with.
++    /// @param _value    Amount of BNB to send with the message.
++    /// @param _data     Message data.
++    function _withdrawBnb(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal virtual;
++
      /// @notice Checks whether the message is coming from the other messenger. Implemented by child
      ///         contracts because the logic for this depends on the network where the messenger is
      ///         being deployed.
 diff --git a/packages/contracts-bedrock/src/universal/StandardBridge.sol b/packages/contracts-bedrock/src/universal/StandardBridge.sol
-index 2c2c8c241..058af189f 100644
+index 2c2c8c241..fd3696905 100644
 --- a/packages/contracts-bedrock/src/universal/StandardBridge.sol
 +++ b/packages/contracts-bedrock/src/universal/StandardBridge.sol
 @@ -10,6 +10,7 @@ import { IOptimismMintableERC20, ILegacyMintableERC20 } from "src/universal/IOpt
@@ -665,7 +703,7 @@ index 2c2c8c241..058af189f 100644
              _minGasLimit: _minGasLimit
          });
      }
-@@ -358,29 +390,55 @@ abstract contract StandardBridge is Initializable {
+@@ -358,29 +390,66 @@ abstract contract StandardBridge is Initializable {
              OptimismMintableERC20(_localToken).burn(_from, _amount);
          } else {
              IERC20(_localToken).safeTransferFrom(_from, address(this), _amount);
@@ -673,6 +711,10 @@ index 2c2c8c241..058af189f 100644
 +
 +            // we need to handle the case where the other bridge is the L2 bridge and the token is boba
 +            if (address(otherBridge) == Predeploys.L2_STANDARD_BRIDGE && IERC20(_localToken) == bobaToken) {
++                require(
++                    _remoteToken == Predeploys.LEGACY_ERC20_ETH || _remoteToken == address(0),
++                    "StandardBridge: invalid remote token for boba"
++                );
 +                deposits[_localToken][Predeploys.LEGACY_ERC20_ETH] =
 +                    deposits[_localToken][Predeploys.LEGACY_ERC20_ETH] + _amount;
 +            } else {
@@ -732,6 +774,13 @@ index 2c2c8c241..058af189f 100644
 +        // bnb transfer.
 +        if (address(otherBridge) != Predeploys.L2_STANDARD_BRIDGE && _localToken == Predeploys.L2_BNB) {
 +            _message = abi.encodeWithSelector(this.finalizeBridgeETH.selector, _from, _to, _amount, _extraData);
++            messenger.withdrawBnb({
++                _target: address(otherBridge),
++                _value: _amount,
++                _message: _message,
++                _minGasLimit: _minGasLimit
++            });
++            return;
 +        }
 +
 +        messenger.sendMessage({ _target: address(otherBridge), _message: _message, _minGasLimit: _minGasLimit });
