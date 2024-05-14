@@ -1267,9 +1267,6 @@ jobs:
             export PATH=$PATH:/usr/local/go/bin
             go version
       - run:
-          name: install goimports
-          command: go install golang.org/x/tools/cmd/goimports@latest
-      - run:
           name: foundryup
           command: |
             curl -L https://foundry.paradigm.xyz | bash
@@ -1380,6 +1377,9 @@ jobs:
             sudo tar -C /usr/local -xzf go1.21.1.linux-amd64.tar.gz
             export PATH=$PATH:/usr/local/go/bin
             go version
+      - run:
+          name: install goimports
+          command: go install golang.org/x/tools/cmd/goimports@latest
       - run:
           name: foundryup
           command: |

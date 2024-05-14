@@ -1,6 +1,6 @@
-From 1426b35f2b391b6c2cae8ccd3ef313555d4ee52e Mon Sep 17 00:00:00 2001
+From 25281494bad86289bd6532a1ce28e9490fcd7de3 Mon Sep 17 00:00:00 2001
 From: cby3149 <cby3149@gmail.com>
-Date: Tue, 14 May 2024 14:40:07 -0400
+Date: Tue, 14 May 2024 15:11:05 -0400
 Subject: [PATCH] BNB L2
 
 ---
@@ -62,7 +62,7 @@ index 5f5f8a198..64eb39d96 100644
  
          _checkL2StandardBridge(impl);
 diff --git a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
-index deccbed23..b4e130bd4 100644
+index deccbed23..444ccece4 100644
 --- a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
 +++ b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
 @@ -63,6 +63,30 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
@@ -89,7 +89,7 @@ index deccbed23..b4e130bd4 100644
 +    }
 +
 +    /// @inheritdoc CrossDomainMessenger
-+    function _withdrawBnb(address, uint64, uint256, bytes memory) internal override {
++    function _withdrawBnb(address, uint64, uint256, bytes memory) internal pure override {
 +        revert("L1CrossDomainMessenger: BNB not supported");
 +    }
 +

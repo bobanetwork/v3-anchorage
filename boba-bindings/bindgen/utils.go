@@ -288,6 +288,6 @@ func removeDuplicates(outFile string, types map[string]struct{}, funcs map[strin
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		log.Error("error running goimports: %v\n", err)
+		log.Error("error running goimports", "err", err)
 	}
 }
