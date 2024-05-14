@@ -1447,7 +1447,7 @@ jobs:
           command: make devnet-bnb-hardhat-up
       - run:
           name: Test the stack
-          command: make devnet-hardhat-test
+          command: make devnet-bnb-hardhat-test
       - run:
           name: Dump op-node logs
           command: |
