@@ -318,6 +318,11 @@ def wait_for_rpc_server(url):
 def devnet_test(paths):
     if os.environ.get("ENABLE_BNB_L2_DEPLOYMENT") == 'true':
         run_command(
+            ['go', 'run', './cmd/check-l2/main.go', '--l2-rpc-url', 'http://localhost:9545', '--l1-rpc-url', 'http://localhost:8545', '--network', 'bnb'],
+            cwd=paths.boba_chain_ops,
+        )
+
+        run_command(
             ['npx', 'hardhat',  'deposit-bnb', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
             cwd=paths.sdk_dir,
             timeout=12*60,
