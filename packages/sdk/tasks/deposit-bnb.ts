@@ -388,17 +388,6 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
     )
     const withdrawalBobaReceipt = await withdrawalBobaTx.wait()
 
-    await finalizeWithdrawal(withdrawalBobaReceipt.blockNumber)
-
-    const postBobaBalance = await L1BobaToken.balanceOf(l1Signer.address)
-    const expectedBobaBalance = preBobaBalance.add(utils.parseEther('1'))
-    if (!expectedBobaBalance.eq(postBobaBalance)) {
-      throw new Error(
-        `BOBA Balance mismatch, expected: ${expectedBobaBalance}, actual: ${postBobaBalance}`
-      )
-    }
-    console.log('BOBA Withdrawal success')
-
     console.log('Starting BNB withdrawal')
     const opBalanceAfter = await signer!.provider!.getBalance(
       OptimismPortal.address
@@ -415,6 +404,17 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
       '0x'
     )
     const withdrawalBnbReceipt = await withdrawBnbTx.wait()
+
+    await finalizeWithdrawal(withdrawalBobaReceipt.blockNumber)
+
+    const postBobaBalance = await L1BobaToken.balanceOf(l1Signer.address)
+    const expectedBobaBalance = preBobaBalance.add(utils.parseEther('1'))
+    if (!expectedBobaBalance.eq(postBobaBalance)) {
+      throw new Error(
+        `BOBA Balance mismatch, expected: ${expectedBobaBalance}, actual: ${postBobaBalance}`
+      )
+    }
+    console.log('BOBA Withdrawal success')
 
     await finalizeWithdrawal(withdrawalBnbReceipt.blockNumber)
 
