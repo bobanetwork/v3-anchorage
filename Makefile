@@ -158,7 +158,7 @@ devnet-bnb-hardhat-up:
 	@if [ ! -e op-program/bin ]; then \
 		make cannon-prestate; \
 	fi
-	git apply 0001-BNB-L2.patch && \
+	(git apply 0001-BNB-L2.patch) || (echo "Warning: Failed to patch contracts. Skipping...") && \
 	cd ./boba-bindings && \
 	make && \
 	cd .. && \
