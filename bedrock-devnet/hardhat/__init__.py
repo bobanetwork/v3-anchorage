@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='Bedrock devnet launcher')
 parser.add_argument('--monorepo-dir', help='Directory of the monorepo', default=os.getcwd())
 parser.add_argument('--allocs', help='Only create the allocs and exit', type=bool, action=argparse.BooleanOptionalAction)
 parser.add_argument('--test', help='Tests the deployment, must already be deployed', type=bool, action=argparse.BooleanOptionalAction)
+parser.add_argument('--enable-boba-gas-token', help='Use Boba as the custom gas token', type=bool, action=argparse.BooleanOptionalAction)
 
 log = logging.getLogger()
 
@@ -87,7 +88,7 @@ def main():
     log.info('Devnet starting')
     devnet_l1_genesis(paths)
     devnet_bring_l1(paths)
-    devnet_write_env(paths)
+    devnet_write_env(paths, args.enable_boba_gas_token)
     devnet_deploy(paths)
     devnet_generate_files(paths)
     devnet_bring_l2(paths)
@@ -120,13 +121,17 @@ def devnet_bring_l1(paths):
     wait_up(8545)
     wait_for_rpc_server('127.0.0.1:8545')
 
-def devnet_write_env(paths):
+def devnet_write_env(paths, enable_boba_gas_token):
     log.info("Writing env file")
     with open(paths.env_dir, 'w+') as f:
         f.write("""
 L1_RPC=http://127.0.0.1:8545
 PRIVATE_KEY_DEPLOYER=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ENABLE_BOBA_TOKEN_DEPLOYMENT=true
+""")
+        if enable_boba_gas_token:
+            f.write("""
+ENABLE_CUSTOM_GAS_PAYING_TOKEN=true
 """)
 
     block_info = eth_block("127.0.0.1:8545")

@@ -301,26 +301,6 @@ contract SystemDictator is OwnableUpgradeable {
         config.globalConfig.proxyAdmin.setProxyType(
             config.proxyAddressConfig.l1StandardBridgeProxy, ProxyAdmin.ProxyType.CHUGSPLASH
         );
-
-        // Upgrade and initialize the SystemConfig so the Sequencer can start up.
-        config.globalConfig.proxyAdmin.upgradeAndCall(
-            payable(config.proxyAddressConfig.systemConfigProxy),
-            address(config.implementationAddressConfig.systemConfigImpl),
-            abi.encodeCall(
-                SystemConfig.initialize,
-                (
-                    config.systemConfigConfig.owner,
-                    config.systemConfigConfig.overhead,
-                    config.systemConfigConfig.scalar,
-                    config.systemConfigConfig.batcherHash,
-                    config.systemConfigConfig.gasLimit,
-                    config.systemConfigConfig.unsafeBlockSigner,
-                    Constants.DEFAULT_RESOURCE_CONFIG(),
-                    config.systemConfigConfig.batchInbox,
-                    config.systemConfigConfig.systemConfigAddressConfig
-                )
-            )
-        );
     }
 
     /**
@@ -408,6 +388,26 @@ contract SystemDictator is OwnableUpgradeable {
                     L2OutputOracle(config.proxyAddressConfig.l2OutputOracleProxy),
                     SystemConfig(config.proxyAddressConfig.systemConfigProxy),
                     SuperchainConfig(config.proxyAddressConfig.superchainConfigProxy)
+                )
+            )
+        );
+
+        // Upgrade and initialize the SystemConfig so the Sequencer can start up.
+        config.globalConfig.proxyAdmin.upgradeAndCall(
+            payable(config.proxyAddressConfig.systemConfigProxy),
+            address(config.implementationAddressConfig.systemConfigImpl),
+            abi.encodeCall(
+                SystemConfig.initialize,
+                (
+                    config.systemConfigConfig.owner,
+                    config.systemConfigConfig.overhead,
+                    config.systemConfigConfig.scalar,
+                    config.systemConfigConfig.batcherHash,
+                    config.systemConfigConfig.gasLimit,
+                    config.systemConfigConfig.unsafeBlockSigner,
+                    Constants.DEFAULT_RESOURCE_CONFIG(),
+                    config.systemConfigConfig.batchInbox,
+                    config.systemConfigConfig.systemConfigAddressConfig
                 )
             )
         );

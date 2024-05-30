@@ -29,6 +29,16 @@ const deployFn: DeployFunction = async (hre) => {
     )
   ).toString()
 
+  // Load gasPayingToken
+  let gasPayingToken = ethers.constants.AddressZero
+  if (process.env.ENABLE_CUSTOM_GAS_PAYING_TOKEN === 'true') {
+    const bobaTokenAddr = await getDeploymentAddress(hre, 'BOBA')
+    if (bobaTokenAddr === ethers.constants.AddressZero) {
+      throw new Error('BOBA token not deployed')
+    }
+    gasPayingToken = bobaTokenAddr
+  }
+
   // Load the contracts we need to interact with.
   const [
     SystemDictator,
@@ -160,7 +170,7 @@ const deployFn: DeployFunction = async (hre) => {
           'OptimismMintableERC20FactoryProxy'
         ),
         disputeGameFactory: ethers.constants.AddressZero,
-        gasPayingToken: ethers.constants.AddressZero,
+        gasPayingToken,
       },
     },
     protocolVersionConfig: {

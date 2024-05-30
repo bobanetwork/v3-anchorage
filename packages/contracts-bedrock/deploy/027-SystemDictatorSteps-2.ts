@@ -20,6 +20,8 @@ import {
   getDeploymentAddress,
 } from '../scripts/deploy-utils'
 
+const uint128Max = ethers.BigNumber.from('0xffffffffffffffffffffffffffffffff')
+
 const deployFn: DeployFunction = async (hre) => {
   const { deployer } = await hre.getNamedAccounts()
 
@@ -37,6 +39,7 @@ const deployFn: DeployFunction = async (hre) => {
     L1ERC721BridgeProxy,
     L1ERC721Bridge,
     ProtocolVersionsProxy,
+    SystemConfigProxy,
   ] = await getContractsFromArtifacts(hre, [
     {
       name: 'SystemDictatorProxy',
@@ -90,6 +93,11 @@ const deployFn: DeployFunction = async (hre) => {
     {
       name: 'ProtocolVersionsProxy',
       iface: 'ProtocolVersions',
+      signerOrProvider: deployer,
+    },
+    {
+      name: 'SystemConfigProxy',
+      iface: 'SystemConfig',
       signerOrProvider: deployer,
     },
   ])
@@ -286,7 +294,7 @@ const deployFn: DeployFunction = async (hre) => {
         `OptimismPortal was not initialized with the correct initial base fee`
       )
       assert(
-        resourceParams.prevBoughtGas.eq(0),
+        resourceParams.prevBoughtGas.eq(200_000),
         `OptimismPortal was not initialized with the correct initial bought gas`
       )
       assert(
@@ -302,6 +310,45 @@ const deployFn: DeployFunction = async (hre) => {
       } else {
         await assertContractVariable(OptimismPortal, 'paused', true)
       }
+
+
+      // Check the SystemConfig was initialized properly.
+      await assertContractVariable(
+        SystemConfigProxy,
+        'owner',
+        hre.deployConfig.finalSystemOwner
+      )
+      await assertContractVariable(
+        SystemConfigProxy,
+        'overhead',
+        hre.deployConfig.gasPriceOracleOverhead
+      )
+      await assertContractVariable(
+        SystemConfigProxy,
+        'scalar',
+        hre.deployConfig.gasPriceOracleScalar
+      )
+      await assertContractVariable(
+        SystemConfigProxy,
+        'batcherHash',
+        ethers.utils.hexZeroPad(
+          hre.deployConfig.batchSenderAddress.toLowerCase(),
+          32
+        )
+      )
+      await assertContractVariable(
+        SystemConfigProxy,
+        'gasLimit',
+        hre.deployConfig.l2GenesisBlockGasLimit
+      )
+
+      const config = await SystemConfigProxy.resourceConfig()
+      assert(config.maxResourceLimit === 20_000_000)
+      assert(config.elasticityMultiplier === 10)
+      assert(config.baseFeeMaxChangeDenominator === 8)
+      assert(config.systemTxMaxGas === 1_000_000)
+      assert(ethers.utils.parseUnits('1', 'gwei').eq(config.minimumBaseFee))
+      assert(config.maximumBaseFee.eq(uint128Max))
 
       // Check L1CrossDomainMessenger was initialized properly.
       try {
