@@ -1,0 +1,11 @@
+{
+  "sepolia": {
+    "L1StandardBridge": {
+      "address": "0x244d7b81EE3949788Da5F1178D911e83bA24E157",
+      "startBlock": 5662708
+    },
+    "OptimismPortal": {
+      "address": "0xB079E6FA9B3eb072fEbf7F746044834eab308dB6"
+    }
+  }
+}

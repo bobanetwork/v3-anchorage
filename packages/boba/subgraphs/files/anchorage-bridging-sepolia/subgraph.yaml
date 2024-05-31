@@ -1,0 +1,83 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: L1StandardBridge
+    network: sepolia
+    source:
+      address: "0x244d7b81EE3949788Da5F1178D911e83bA24E157"
+      abi: L1StandardBridge
+      startBlock: 5662708
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ERC20BridgeFinalized
+        - ERC20BridgeInitiated
+        - ERC20DepositInitiated
+        - ERC20WithdrawalFinalized
+        - ETHBridgeFinalized
+        - ETHBridgeInitiated
+        - ETHDepositInitiated
+        - ETHWithdrawalFinalized
+        - Initialized
+      abis:
+        - name: L1StandardBridge
+          file: ./abis/L1StandardBridge.json
+      eventHandlers:
+        - event: ERC20BridgeFinalized(indexed address,indexed address,indexed
+            address,address,uint256,bytes)
+          handler: handleERC20BridgeFinalized
+        - event: ERC20BridgeInitiated(indexed address,indexed address,indexed
+            address,address,uint256,bytes)
+          handler: handleERC20BridgeInitiated
+        - event: ERC20DepositInitiated(indexed address,indexed address,indexed
+            address,address,uint256,bytes)
+          handler: handleERC20DepositInitiated
+        - event: ERC20WithdrawalFinalized(indexed address,indexed address,indexed
+            address,address,uint256,bytes)
+          handler: handleERC20WithdrawalFinalized
+        - event: ETHBridgeFinalized(indexed address,indexed address,uint256,bytes)
+          handler: handleETHBridgeFinalized
+        - event: ETHBridgeInitiated(indexed address,indexed address,uint256,bytes)
+          handler: handleETHBridgeInitiated
+        - event: ETHDepositInitiated(indexed address,indexed address,uint256,bytes)
+          handler: handleETHDepositInitiated
+        - event: ETHWithdrawalFinalized(indexed address,indexed address,uint256,bytes)
+          handler: handleETHWithdrawalFinalized
+        - event: Initialized(uint8)
+          handler: handleInitialized
+      file: ./src/l-1-standard-bridge.ts
+  - kind: ethereum
+    name: OptimismPortal
+    network: sepolia
+    source:
+      address: "0xB079E6FA9B3eb072fEbf7F746044834eab308dB6"
+      abi: OptimismPortal
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - OptimismPortalInitialized
+        - TransactionDeposited
+        - WithdrawalFinalized
+        - WithdrawalProven
+      abis:
+        - name: OptimismPortal
+          file: ./abis/OptimismPortal.json
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: TransactionDeposited(indexed address,indexed address,indexed uint256,bytes)
+          handler: handleTransactionDeposited
+        - event: WithdrawalFinalized(indexed bytes32,bool)
+          handler: handleWithdrawalFinalized
+        - event: WithdrawalProven(indexed bytes32,indexed address,indexed address)
+          handler: handleWithdrawalProven
+      file: ./src/optimism-portal.ts

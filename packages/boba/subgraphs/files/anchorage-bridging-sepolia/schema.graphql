@@ -1,0 +1,140 @@
+type ERC20BridgeFinalized @entity(immutable: true) {
+  id: Bytes!
+  localToken: Bytes! # address
+  remoteToken: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ERC20BridgeInitiated @entity(immutable: true) {
+  id: Bytes!
+  localToken: Bytes! # address
+  remoteToken: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ERC20DepositInitiated @entity(immutable: true) {
+  id: Bytes!
+  l1Token: Bytes! # address
+  l2Token: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ERC20WithdrawalFinalized @entity(immutable: true) {
+  id: Bytes!
+  l1Token: Bytes! # address
+  l2Token: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ETHBridgeFinalized @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ETHBridgeInitiated @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ETHDepositInitiated @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ETHWithdrawalFinalized @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt! # uint256
+  extraData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Initialized @entity(immutable: true) {
+  id: Bytes!
+  version: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type OptimismPortalInitialized @entity(immutable: true) {
+  id: Bytes!
+  version: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TransactionDeposited @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  version: BigInt! # uint256
+  opaqueData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalFinalized @entity(immutable: true) {
+  id: Bytes!
+  withdrawalHash: Bytes! # bytes32
+  success: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalProven @entity(immutable: true) {
+  id: Bytes!
+  withdrawalHash: Bytes! # bytes32
+  from: Bytes! # address
+  to: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
