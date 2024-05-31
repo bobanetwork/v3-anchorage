@@ -277,7 +277,7 @@ contract L1StandardBridge is StandardBridge, ISemver {
         internal
     {
         (address token,) = gasPayingToken();
-        require(_l1Token != token && token != address(0), "Cannot deposit gas paying token from L1StandardBridge");
+        require(_l1Token != token, "Cannot deposit gas paying token from L1StandardBridge");
         _initiateBridgeERC20(_l1Token, _l2Token, _from, _to, _amount, _minGasLimit, _extraData);
     }
 
