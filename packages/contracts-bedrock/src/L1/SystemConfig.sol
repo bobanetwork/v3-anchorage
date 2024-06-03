@@ -39,6 +39,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
         address optimismPortal;
         address optimismMintableERC20Factory;
         address gasPayingToken;
+        address l2ETHToken;
     }
 
     /// @notice Version identifier, used for upgrades.
@@ -148,7 +149,8 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
                 disputeGameFactory: address(0),
                 optimismPortal: address(0),
                 optimismMintableERC20Factory: address(0),
-                gasPayingToken: address(0)
+                gasPayingToken: address(0),
+                l2ETHToken: address(0)
             })
         });
     }
@@ -198,6 +200,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
 
         _setStartBlock();
         _setGasPayingToken(_addresses.gasPayingToken);
+        _setL2ETHToken(_addresses.l2ETHToken);
 
         _setResourceConfig(_config);
         require(_gasLimit >= minimumGasLimit(), "SystemConfig: gas limit too low");
@@ -291,6 +294,11 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
         symbol_ = GasPayingToken.getSymbol();
     }
 
+    /// @notice Getter for the L2 ETH token address.
+    function l2ETHToken() external view returns (address addr_) {
+        addr_ = GasPayingToken.getL2ETHToken();
+    }
+
     /// @notice Internal setter for the gas paying token address, includes validation.
     ///         The token must not already be set and must be non zero and not the ether address
     ///         to set the token address. This prevents the token address from being changed
@@ -312,6 +320,15 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
                 _name: name,
                 _symbol: symbol
             });
+        }
+    }
+
+    /// @notice Internal setter for the L2 ETH token address.
+    /// @param _token Address of the L2 ETH token.
+    function _setL2ETHToken(address _token) internal {
+        if (isCustomGasToken()) {
+            GasPayingToken.setL2ETHToken(_token);
+            OptimismPortal(payable(optimismPortal())).setL2ETHToken({ _token: _token });
         }
     }
 

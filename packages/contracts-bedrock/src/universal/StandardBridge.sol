@@ -11,6 +11,8 @@ import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
 import { OptimismMintableERC20 } from "src/universal/OptimismMintableERC20.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import { Constants } from "src/libraries/Constants.sol";
+import { L2ToL1MessagePasser } from "src/L2/L2ToL1MessagePasser.sol";
+import { Predeploys } from "src/libraries/Predeploys.sol";
 
 /// @custom:upgradeable
 /// @title StandardBridge
@@ -138,6 +140,9 @@ abstract contract StandardBridge is Initializable {
         (address token,) = gasPayingToken();
         return token != Constants.ETHER;
     }
+
+    /// @notice Returns the address of the L2 ETH token.
+    function l2ETHToken() internal view virtual returns (address);
 
     /// @notice Getter for messenger contract.
     ///         Public getter is legacy and will be removed in the future. Use `messenger` instead.
@@ -389,6 +394,31 @@ abstract contract StandardBridge is Initializable {
             ),
             _minGasLimit: _minGasLimit
         });
+    }
+
+    /// @notice Initiates a withdrawal from L2 to L1 to a target account on L1.
+    /// @param _localToken Address of the token on this chain.
+    /// @param _remoteToken Address of the corresponding token on the remote chain.
+    /// @param _from       Address of the sender.
+    /// @param _target     Address of the receiver.
+    /// @param _amount     Amount of the token sent.
+    function _initiateBridgeETHERC20(
+        address _localToken,
+        address _remoteToken,
+        address _from,
+        address _target,
+        uint256 _amount
+    )
+        internal
+    {
+        require(
+            _isCorrectTokenPair(_localToken, _remoteToken),
+            "StandardBridge: wrong remote token for Optimism Mintable ERC20 local token"
+        );
+        OptimismMintableERC20(_localToken).burn(_from, _amount);
+        L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateETHERC20Withdrawal(
+            _target, _amount, RECEIVE_DEFAULT_GAS_LIMIT, hex""
+        );
     }
 
     /// @notice Checks if a given address is an OptimismMintableERC20. Not perfect, but good enough.

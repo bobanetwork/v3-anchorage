@@ -343,7 +343,7 @@ abstract contract CrossDomainMessenger is
     /// @param _message     Message to compute the amount of required gas for.
     /// @param _minGasLimit Minimum desired gas limit when message goes to target.
     /// @return Amount of gas required to guarantee message receipt.
-    function baseGas(bytes calldata _message, uint32 _minGasLimit) public pure returns (uint64) {
+    function baseGas(bytes memory _message, uint32 _minGasLimit) public pure returns (uint64) {
         return
         // Constant overhead
         RELAY_CONSTANT_OVERHEAD

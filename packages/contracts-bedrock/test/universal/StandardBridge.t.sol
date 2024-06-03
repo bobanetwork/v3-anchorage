@@ -25,6 +25,10 @@ contract StandardBridgeTester is StandardBridge {
         return (Constants.ETHER, 18);
     }
 
+    function l2ETHToken() internal pure override returns (address) {
+        return Constants.ETHER;
+    }
+
     receive() external payable override { }
 }
 

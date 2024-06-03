@@ -294,7 +294,7 @@ const deployFn: DeployFunction = async (hre) => {
         `OptimismPortal was not initialized with the correct initial base fee`
       )
       assert(
-        resourceParams.prevBoughtGas.eq(200_000),
+        resourceParams.prevBoughtGas.eq(400_000),
         `OptimismPortal was not initialized with the correct initial bought gas`
       )
       assert(
@@ -310,7 +310,6 @@ const deployFn: DeployFunction = async (hre) => {
       } else {
         await assertContractVariable(OptimismPortal, 'paused', true)
       }
-
 
       // Check the SystemConfig was initialized properly.
       await assertContractVariable(

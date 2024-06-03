@@ -29,10 +29,10 @@ var (
 )
 
 // L1BlockABI is the input ABI used to generate the binding from.
-const L1BlockABI = "[{\"type\":\"function\",\"name\":\"DEPOSITOR_ACCOUNT\",\"inputs\":[],\"outputs\":[{\"name\":\"addr_\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"baseFeeScalar\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"basefee\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"batcherHash\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"blobBaseFee\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"blobBaseFeeScalar\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gasPayingToken\",\"inputs\":[],\"outputs\":[{\"name\":\"addr_\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"decimals_\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gasPayingTokenName\",\"inputs\":[],\"outputs\":[{\"name\":\"name_\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gasPayingTokenSymbol\",\"inputs\":[],\"outputs\":[{\"name\":\"symbol_\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hash\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"isCustomGasToken\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"l1FeeOverhead\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"l1FeeScalar\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"number\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"sequenceNumber\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"setGasPayingToken\",\"inputs\":[{\"name\":\"_token\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_decimals\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"_name\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"_symbol\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setL1BlockValues\",\"inputs\":[{\"name\":\"_number\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_basefee\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_hash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"_sequenceNumber\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_batcherHash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"_l1FeeOverhead\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_l1FeeScalar\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setL1BlockValuesEcotone\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"timestamp\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"version\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"pure\"},{\"type\":\"event\",\"name\":\"GasPayingTokenSet\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"decimals\",\"type\":\"uint8\",\"indexed\":true,\"internalType\":\"uint8\"},{\"name\":\"name\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"symbol\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"NotDepositor\",\"inputs\":[]}]"
+const L1BlockABI = "[{\"type\":\"function\",\"name\":\"DEPOSITOR_ACCOUNT\",\"inputs\":[],\"outputs\":[{\"name\":\"addr_\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"baseFeeScalar\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"basefee\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"batcherHash\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"blobBaseFee\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"blobBaseFeeScalar\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gasPayingToken\",\"inputs\":[],\"outputs\":[{\"name\":\"addr_\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"decimals_\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gasPayingTokenName\",\"inputs\":[],\"outputs\":[{\"name\":\"name_\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gasPayingTokenSymbol\",\"inputs\":[],\"outputs\":[{\"name\":\"symbol_\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hash\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"isCustomGasToken\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"l1FeeOverhead\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"l1FeeScalar\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"l2ETHToken\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"number\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"sequenceNumber\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"setGasPayingToken\",\"inputs\":[{\"name\":\"_token\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_decimals\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"_name\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"_symbol\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setL1BlockValues\",\"inputs\":[{\"name\":\"_number\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_basefee\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_hash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"_sequenceNumber\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"_batcherHash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"_l1FeeOverhead\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_l1FeeScalar\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setL1BlockValuesEcotone\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setL2ETHToken\",\"inputs\":[{\"name\":\"_token\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"timestamp\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"version\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"pure\"},{\"type\":\"event\",\"name\":\"GasPayingTokenSet\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"decimals\",\"type\":\"uint8\",\"indexed\":true,\"internalType\":\"uint8\"},{\"name\":\"name\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"symbol\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"L2ETHTokenSet\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"NotDepositor\",\"inputs\":[]}]"
 
 // L1BlockBin is the compiled bytecode used for deploying new contracts.
-var L1BlockBin = "0x608060405234801561001057600080fd5b50610ac5806100206000396000f3fe608060405234801561001057600080fd5b506004361061016c5760003560e01c806371cfaa3f116100cd578063c598591811610081578063e591b28211610066578063e591b2821461032a578063e81b2c6d1461034c578063f82061401461035557600080fd5b8063c598591814610302578063d84447151461032257600080fd5b80638b239f73116100b25780638b239f73146102d05780639e8c4966146102d9578063b80777ea146102e257600080fd5b806371cfaa3f146102a95780638381f58a146102bc57600080fd5b806354fd4d50116101245780635cf24969116101095780635cf249691461024257806364ca23ef1461024b57806368d5dca61461027857600080fd5b806354fd4d50146101f8578063550fcdc91461023a57600080fd5b8063213268491161015557806321326849146101a25780634397dfef146101ba578063440a5e20146101f057600080fd5b8063015d8eb91461017157806309bd5a6014610186575b600080fd5b61018461017f366004610930565b61035e565b005b61018f60025481565b6040519081526020015b60405180910390f35b6101aa61049d565b6040519015158152602001610199565b6101c26104dc565b6040805173ffffffffffffffffffffffffffffffffffffffff909316835260ff909116602083015201610199565b6101846104f0565b60408051808201909152600581527f312e342e3000000000000000000000000000000000000000000000000000000060208201525b60405161019991906109a2565b61022d610547565b61018f60015481565b60035461025f9067ffffffffffffffff1681565b60405167ffffffffffffffff9091168152602001610199565b6003546102949068010000000000000000900463ffffffff1681565b60405163ffffffff9091168152602001610199565b6101846102b7366004610a15565b610556565b60005461025f9067ffffffffffffffff1681565b61018f60055481565b61018f60065481565b60005461025f9068010000000000000000900467ffffffffffffffff1681565b600354610294906c01000000000000000000000000900463ffffffff1681565b61022d61060b565b60405173deaddeaddeaddeaddeaddeaddeaddeaddead00018152602001610199565b61018f60045481565b61018f60075481565b3373deaddeaddeaddeaddeaddeaddeaddeaddead000114610405576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603b60248201527f4c31426c6f636b3a206f6e6c7920746865206465706f7369746f72206163636f60448201527f756e742063616e20736574204c3120626c6f636b2076616c7565730000000000606482015260840160405180910390fd5b6000805467ffffffffffffffff98891668010000000000000000027fffffffffffffffffffffffffffffffff00000000000000000000000000000000909116998916999099179890981790975560019490945560029290925560038054919094167fffffffffffffffffffffffffffffffffffffffffffffffff00000000000000009190911617909255600491909155600555600655565b6000806104a86104dc565b5073ffffffffffffffffffffffffffffffffffffffff1673eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee141592915050565b6000806104e7610615565b90939092509050565b73deaddeaddeaddeaddeaddeaddeaddeaddead000133811461051a57633cc50b456000526004601cfd5b60043560801c60035560143560801c60005560243560015560443560075560643560025560843560045550565b6060610551610696565b905090565b3373deaddeaddeaddeaddeaddeaddeaddeaddead0001146105a3576040517f3cc50b4500000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6105af84848484610757565b604080518381526020810183905260ff85169173ffffffffffffffffffffffffffffffffffffffff8716917f10e43c4d58f3ef4edae7c1ca2e7f02d46b2cadbcc046737038527ed8486ffeb0910160405180910390a350505050565b6060610551610829565b6000808061064b61064760017f04adb1412b2ddc16fcc0d4538d5c8f07cf9c83abecc6b41f6f69037b708fbcec610a7a565b5490565b73ffffffffffffffffffffffffffffffffffffffff8116935090508261068a575073eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee92601292509050565b60a081901c9150509091565b606060006106a2610615565b5090507fffffffffffffffffffffffff111111111111111111111111111111111111111273ffffffffffffffffffffffffffffffffffffffff82160161071b57505060408051808201909152600381527f4554480000000000000000000000000000000000000000000000000000000000602082015290565b61075161074c61064760017fa48b38a4b44951360fbdcbfaaeae5ed6ae92585412e9841b70ec72ed8cd05764610a7a565b6108df565b91505090565b6107bd61078560017f04adb1412b2ddc16fcc0d4538d5c8f07cf9c83abecc6b41f6f69037b708fbcec610a7a565b74ff000000000000000000000000000000000000000060a086901b1673ffffffffffffffffffffffffffffffffffffffff8716179055565b6107f06107eb60017f657c3582c29b3176614e3a33ddd1ec48352696a04e92b3c0566d72010fa8863d610a7a565b839055565b61082361081e60017fa48b38a4b44951360fbdcbfaaeae5ed6ae92585412e9841b70ec72ed8cd05764610a7a565b829055565b50505050565b60606000610835610615565b5090507fffffffffffffffffffffffff111111111111111111111111111111111111111273ffffffffffffffffffffffffffffffffffffffff8216016108ae57505060408051808201909152600581527f4574686572000000000000000000000000000000000000000000000000000000602082015290565b61075161074c61064760017f657c3582c29b3176614e3a33ddd1ec48352696a04e92b3c0566d72010fa8863d610a7a565b60405160005b82811a156108f5576001016108e5565b80825260208201838152600082820152505060408101604052919050565b803567ffffffffffffffff8116811461092b57600080fd5b919050565b600080600080600080600080610100898b03121561094d57600080fd5b61095689610913565b975061096460208a01610913565b9650604089013595506060890135945061098060808a01610913565b979a969950949793969560a0850135955060c08501359460e001359350915050565b600060208083528351808285015260005b818110156109cf578581018301518582016040015282016109b3565b818111156109e1576000604083870101525b50601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016929092016040019392505050565b60008060008060808587031215610a2b57600080fd5b843573ffffffffffffffffffffffffffffffffffffffff81168114610a4f57600080fd5b9350602085013560ff81168114610a6557600080fd5b93969395505050506040820135916060013590565b600082821015610ab3577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b50039056fea164736f6c634300080f000a"
+var L1BlockBin = "0x608060405234801561001057600080fd5b50610c77806100206000396000f3fe608060405234801561001057600080fd5b50600436106101825760003560e01c80638381f58a116100d8578063c59859181161008c578063e81b2c6d11610066578063e81b2c6d1461038e578063e870a59414610397578063f82061401461039f57600080fd5b8063c59859181461032b578063d84447151461034b578063e591b2821461035357600080fd5b80639e8c4966116100bd5780639e8c4966146102ef578063a4e73556146102f8578063b80777ea1461030b57600080fd5b80638381f58a146102d25780638b239f73146102e657600080fd5b806354fd4d501161013a57806364ca23ef1161011457806364ca23ef1461026157806368d5dca61461028e57806371cfaa3f146102bf57600080fd5b806354fd4d501461020e578063550fcdc9146102505780635cf249691461025857600080fd5b8063213268491161016b57806321326849146101b85780634397dfef146101d0578063440a5e201461020657600080fd5b8063015d8eb91461018757806309bd5a601461019c575b600080fd5b61019a610195366004610ab7565b6103a8565b005b6101a560025481565b6040519081526020015b60405180910390f35b6101c06104e7565b60405190151581526020016101af565b6101d8610526565b6040805173ffffffffffffffffffffffffffffffffffffffff909316835260ff9091166020830152016101af565b61019a61053a565b60408051808201909152600581527f312e342e3000000000000000000000000000000000000000000000000000000060208201525b6040516101af9190610b29565b610243610591565b6101a560015481565b6003546102759067ffffffffffffffff1681565b60405167ffffffffffffffff90911681526020016101af565b6003546102aa9068010000000000000000900463ffffffff1681565b60405163ffffffff90911681526020016101af565b61019a6102cd366004610bc0565b6105a0565b6000546102759067ffffffffffffffff1681565b6101a560055481565b6101a560065481565b61019a610306366004610c0a565b610655565b6000546102759068010000000000000000900467ffffffffffffffff1681565b6003546102aa906c01000000000000000000000000900463ffffffff1681565b6102436106ef565b73deaddeaddeaddeaddeaddeaddeaddeaddead00015b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020016101af565b6101a560045481565b6103696106f9565b6101a560075481565b3373deaddeaddeaddeaddeaddeaddeaddeaddead00011461044f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603b60248201527f4c31426c6f636b3a206f6e6c7920746865206465706f7369746f72206163636f60448201527f756e742063616e20736574204c3120626c6f636b2076616c7565730000000000606482015260840160405180910390fd5b6000805467ffffffffffffffff98891668010000000000000000027fffffffffffffffffffffffffffffffff00000000000000000000000000000000909116998916999099179890981790975560019490945560029290925560038054919094167fffffffffffffffffffffffffffffffffffffffffffffffff00000000000000009190911617909255600491909155600555600655565b6000806104f2610526565b5073ffffffffffffffffffffffffffffffffffffffff1673eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee141592915050565b600080610531610703565b90939092509050565b73deaddeaddeaddeaddeaddeaddeaddeaddead000133811461056457633cc50b456000526004601cfd5b60043560801c60035560143560801c60005560243560015560443560075560643560025560843560045550565b606061059b610784565b905090565b3373deaddeaddeaddeaddeaddeaddeaddeaddead0001146105ed576040517f3cc50b4500000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6105f984848484610845565b604080518381526020810183905260ff85169173ffffffffffffffffffffffffffffffffffffffff8716917f10e43c4d58f3ef4edae7c1ca2e7f02d46b2cadbcc046737038527ed8486ffeb0910160405180910390a350505050565b3373deaddeaddeaddeaddeaddeaddeaddeaddead0001146106a2576040517f3cc50b4500000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6106ab81610917565b60405173ffffffffffffffffffffffffffffffffffffffff8216907fe66f9d3fda72b22d69e8465b1ea92119d0aac41807fd902160f4abbebf00b5c090600090a250565b606061059b610963565b600061059b610a19565b6000808061073961073560017f04adb1412b2ddc16fcc0d4538d5c8f07cf9c83abecc6b41f6f69037b708fbcec610c2c565b5490565b73ffffffffffffffffffffffffffffffffffffffff81169350905082610778575073eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee92601292509050565b60a081901c9150509091565b60606000610790610703565b5090507fffffffffffffffffffffffff111111111111111111111111111111111111111273ffffffffffffffffffffffffffffffffffffffff82160161080957505060408051808201909152600381527f4554480000000000000000000000000000000000000000000000000000000000602082015290565b61083f61083a61073560017fa48b38a4b44951360fbdcbfaaeae5ed6ae92585412e9841b70ec72ed8cd05764610c2c565b610a66565b91505090565b6108ab61087360017f04adb1412b2ddc16fcc0d4538d5c8f07cf9c83abecc6b41f6f69037b708fbcec610c2c565b74ff000000000000000000000000000000000000000060a086901b1673ffffffffffffffffffffffffffffffffffffffff8716179055565b6108de6108d960017f657c3582c29b3176614e3a33ddd1ec48352696a04e92b3c0566d72010fa8863d610c2c565b839055565b61091161090c60017fa48b38a4b44951360fbdcbfaaeae5ed6ae92585412e9841b70ec72ed8cd05764610c2c565b829055565b50505050565b61096061094560017f1fecf5cd37e292d18ebc4bd36a05cfc2b907e44af9432407d25e22b1b4a1207d610c2c565b73ffffffffffffffffffffffffffffffffffffffff83169055565b50565b6060600061096f610703565b5090507fffffffffffffffffffffffff111111111111111111111111111111111111111273ffffffffffffffffffffffffffffffffffffffff8216016109e857505060408051808201909152600581527f4574686572000000000000000000000000000000000000000000000000000000602082015290565b61083f61083a61073560017f657c3582c29b3176614e3a33ddd1ec48352696a04e92b3c0566d72010fa8863d610c2c565b600080610a4a61073560017f1fecf5cd37e292d18ebc4bd36a05cfc2b907e44af9432407d25e22b1b4a1207d610c2c565b73ffffffffffffffffffffffffffffffffffffffff1692915050565b60405160005b82811a15610a7c57600101610a6c565b80825260208201838152600082820152505060408101604052919050565b803567ffffffffffffffff81168114610ab257600080fd5b919050565b600080600080600080600080610100898b031215610ad457600080fd5b610add89610a9a565b9750610aeb60208a01610a9a565b96506040890135955060608901359450610b0760808a01610a9a565b979a969950949793969560a0850135955060c08501359460e001359350915050565b600060208083528351808285015260005b81811015610b5657858101830151858201604001528201610b3a565b81811115610b68576000604083870101525b50601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016929092016040019392505050565b803573ffffffffffffffffffffffffffffffffffffffff81168114610ab257600080fd5b60008060008060808587031215610bd657600080fd5b610bdf85610b9c565b9350602085013560ff81168114610bf557600080fd5b93969395505050506040820135916060013590565b600060208284031215610c1c57600080fd5b610c2582610b9c565b9392505050565b600082821015610c65577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b50039056fea164736f6c634300080f000a"
 
 // DeployL1Block deploys a new Ethereum contract, binding an instance of L1Block to it.
 func DeployL1Block(auth *bind.TransactOpts, backend bind.ContractBackend) (libcommon.Address, types.Transaction, *L1Block, error) {
@@ -607,6 +607,37 @@ func (_L1Block *L1BlockCallerSession) L1FeeScalar() (*big.Int, error) {
 	return _L1Block.Contract.L1FeeScalar(&_L1Block.CallOpts)
 }
 
+// L2ETHToken is a free data retrieval call binding the contract method 0xe870a594.
+//
+// Solidity: function l2ETHToken() view returns(address)
+func (_L1Block *L1BlockCaller) L2ETHToken(opts *bind.CallOpts) (libcommon.Address, error) {
+	var out []interface{}
+	err := _L1Block.contract.Call(opts, &out, "l2ETHToken")
+
+	if err != nil {
+		return *new(libcommon.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
+
+	return out0, err
+
+}
+
+// L2ETHToken is a free data retrieval call binding the contract method 0xe870a594.
+//
+// Solidity: function l2ETHToken() view returns(address)
+func (_L1Block *L1BlockSession) L2ETHToken() (libcommon.Address, error) {
+	return _L1Block.Contract.L2ETHToken(&_L1Block.CallOpts)
+}
+
+// L2ETHToken is a free data retrieval call binding the contract method 0xe870a594.
+//
+// Solidity: function l2ETHToken() view returns(address)
+func (_L1Block *L1BlockCallerSession) L2ETHToken() (libcommon.Address, error) {
+	return _L1Block.Contract.L2ETHToken(&_L1Block.CallOpts)
+}
+
 // Number is a free data retrieval call binding the contract method 0x8381f58a.
 //
 // Solidity: function number() view returns(uint64)
@@ -794,6 +825,27 @@ func (_L1Block *L1BlockTransactorSession) SetL1BlockValuesEcotone() (types.Trans
 	return _L1Block.Contract.SetL1BlockValuesEcotone(&_L1Block.TransactOpts)
 }
 
+// SetL2ETHToken is a paid mutator transaction binding the contract method 0xa4e73556.
+//
+// Solidity: function setL2ETHToken(address _token) returns()
+func (_L1Block *L1BlockTransactor) SetL2ETHToken(opts *bind.TransactOpts, _token libcommon.Address) (types.Transaction, error) {
+	return _L1Block.contract.Transact(opts, "setL2ETHToken", _token)
+}
+
+// SetL2ETHToken is a paid mutator transaction binding the contract method 0xa4e73556.
+//
+// Solidity: function setL2ETHToken(address _token) returns()
+func (_L1Block *L1BlockSession) SetL2ETHToken(_token libcommon.Address) (types.Transaction, error) {
+	return _L1Block.Contract.SetL2ETHToken(&_L1Block.TransactOpts, _token)
+}
+
+// SetL2ETHToken is a paid mutator transaction binding the contract method 0xa4e73556.
+//
+// Solidity: function setL2ETHToken(address _token) returns()
+func (_L1Block *L1BlockTransactorSession) SetL2ETHToken(_token libcommon.Address) (types.Transaction, error) {
+	return _L1Block.Contract.SetL2ETHToken(&_L1Block.TransactOpts, _token)
+}
+
 // SetGasPayingTokenParams is an auto generated read-only Go binding of transcaction calldata params
 
 // Parse SetGasPayingToken method from calldata of a transaction
@@ -850,6 +902,12 @@ func ParseSetL1BlockValues(calldata []byte) (*SetL1BlockValuesParams, error) {
 		Param__number: out0, Param__timestamp: out1, Param__basefee: out2, Param__hash: out3, Param__sequenceNumber: out4, Param__batcherHash: out5, Param__l1FeeOverhead: out6, Param__l1FeeScalar: out7,
 	}, nil
 }
+
+// SetL2ETHTokenParams is an auto generated read-only Go binding of transcaction calldata params
+
+// Parse SetL2ETHToken method from calldata of a transaction
+//
+// Solidity: function setL2ETHToken(address _token) returns()
 
 // L1BlockGasPayingTokenSetIterator is returned from FilterGasPayingTokenSet and is used to iterate over the raw logs and unpacked data for GasPayingTokenSet events raised by the L1Block contract.
 type L1BlockGasPayingTokenSetIterator struct {
@@ -1000,6 +1058,150 @@ func (_L1Block *L1BlockFilterer) WatchGasPayingTokenSet(opts *bind.WatchOpts, si
 func (_L1Block *L1BlockFilterer) ParseGasPayingTokenSet(log types.Log) (*L1BlockGasPayingTokenSet, error) {
 	event := new(L1BlockGasPayingTokenSet)
 	if err := _L1Block.contract.UnpackLog(event, "GasPayingTokenSet", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// L1BlockL2ETHTokenSetIterator is returned from FilterL2ETHTokenSet and is used to iterate over the raw logs and unpacked data for L2ETHTokenSet events raised by the L1Block contract.
+type L1BlockL2ETHTokenSetIterator struct {
+	Event *L1BlockL2ETHTokenSet // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *L1BlockL2ETHTokenSetIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(L1BlockL2ETHTokenSet)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(L1BlockL2ETHTokenSet)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *L1BlockL2ETHTokenSetIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *L1BlockL2ETHTokenSetIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// L1BlockL2ETHTokenSet represents a L2ETHTokenSet event raised by the L1Block contract.
+type L1BlockL2ETHTokenSet struct {
+	Token libcommon.Address
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterL2ETHTokenSet is a free log retrieval operation binding the contract event 0xe66f9d3fda72b22d69e8465b1ea92119d0aac41807fd902160f4abbebf00b5c0.
+//
+// Solidity: event L2ETHTokenSet(address indexed token)
+func (_L1Block *L1BlockFilterer) FilterL2ETHTokenSet(opts *bind.FilterOpts, token []libcommon.Address) (*L1BlockL2ETHTokenSetIterator, error) {
+
+	var tokenRule []interface{}
+	for _, tokenItem := range token {
+		tokenRule = append(tokenRule, tokenItem)
+	}
+
+	logs, sub, err := _L1Block.contract.FilterLogs(opts, "L2ETHTokenSet", tokenRule)
+	if err != nil {
+		return nil, err
+	}
+	return &L1BlockL2ETHTokenSetIterator{contract: _L1Block.contract, event: "L2ETHTokenSet", logs: logs, sub: sub}, nil
+}
+
+// WatchL2ETHTokenSet is a free log subscription operation binding the contract event 0xe66f9d3fda72b22d69e8465b1ea92119d0aac41807fd902160f4abbebf00b5c0.
+//
+// Solidity: event L2ETHTokenSet(address indexed token)
+func (_L1Block *L1BlockFilterer) WatchL2ETHTokenSet(opts *bind.WatchOpts, sink chan<- *L1BlockL2ETHTokenSet, token []libcommon.Address) (event.Subscription, error) {
+
+	var tokenRule []interface{}
+	for _, tokenItem := range token {
+		tokenRule = append(tokenRule, tokenItem)
+	}
+
+	logs, sub, err := _L1Block.contract.WatchLogs(opts, "L2ETHTokenSet", tokenRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(L1BlockL2ETHTokenSet)
+				if err := _L1Block.contract.UnpackLog(event, "L2ETHTokenSet", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseL2ETHTokenSet is a log parse operation binding the contract event 0xe66f9d3fda72b22d69e8465b1ea92119d0aac41807fd902160f4abbebf00b5c0.
+//
+// Solidity: event L2ETHTokenSet(address indexed token)
+func (_L1Block *L1BlockFilterer) ParseL2ETHTokenSet(log types.Log) (*L1BlockL2ETHTokenSet, error) {
+	event := new(L1BlockL2ETHTokenSet)
+	if err := _L1Block.contract.UnpackLog(event, "L2ETHTokenSet", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

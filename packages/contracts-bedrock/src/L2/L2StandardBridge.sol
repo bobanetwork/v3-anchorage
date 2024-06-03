@@ -71,6 +71,9 @@ contract L2StandardBridge is StandardBridge, ISemver {
 
     /// @notice Allows EOAs to bridge ETH by sending directly to the bridge.
     receive() external payable override onlyEOA {
+        if (isCustomGasToken() == true && msg.value > 0) {
+            revert("L2StandardBridge: not supported with custom gas token");
+        }
         _initiateWithdrawal(
             Predeploys.LEGACY_ERC20_ETH, msg.sender, msg.sender, msg.value, RECEIVE_DEFAULT_GAS_LIMIT, bytes("")
         );
@@ -79,6 +82,11 @@ contract L2StandardBridge is StandardBridge, ISemver {
     /// @inheritdoc StandardBridge
     function gasPayingToken() internal view override returns (address addr_, uint8 decimals_) {
         (addr_, decimals_) = L1Block(Predeploys.L1_BLOCK_ATTRIBUTES).gasPayingToken();
+    }
+
+    /// @inheritdoc StandardBridge
+    function l2ETHToken() internal view override returns (address) {
+        return L1Block(Predeploys.L1_BLOCK_ATTRIBUTES).l2ETHToken();
     }
 
     /// @custom:legacy
@@ -101,7 +109,15 @@ contract L2StandardBridge is StandardBridge, ISemver {
         virtual
         onlyEOA
     {
-        require(isCustomGasToken() == false, "L2StandardBridge: not supported with custom gas token");
+        // The custom gas token is not supported with this function.
+        if (isCustomGasToken() == true && msg.value > 0) {
+            revert("L2StandardBridge: not supported with custom gas token");
+        }
+        // Trigger ETH withdrawal if the custom gas token is used.
+        if (isCustomGasToken() == true && _l2Token == l2ETHToken()) {
+            _initiateBridgeETHERC20(_l2Token, address(0), msg.sender, msg.sender, _amount);
+            return;
+        }
         _initiateWithdrawal(_l2Token, msg.sender, msg.sender, _amount, _minGasLimit, _extraData);
     }
 
@@ -130,7 +146,15 @@ contract L2StandardBridge is StandardBridge, ISemver {
         payable
         virtual
     {
-        require(isCustomGasToken() == false, "L2StandardBridge: not supported with custom gas token");
+        // The custom gas token is not supported with this function.
+        if (isCustomGasToken() == true && msg.value > 0) {
+            revert("L2StandardBridge: not supported with custom gas token");
+        }
+        // Trigger ETH withdrawal if the custom gas token is used.
+        if (isCustomGasToken() == true && _l2Token == l2ETHToken()) {
+            _initiateBridgeETHERC20(_l2Token, address(0), msg.sender, _to, _amount);
+            return;
+        }
         _initiateWithdrawal(_l2Token, msg.sender, _to, _amount, _minGasLimit, _extraData);
     }
 

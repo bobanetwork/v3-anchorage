@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import { Predeploys } from "src/libraries/Predeploys.sol";
 import { OptimismPortal } from "src/L1/OptimismPortal.sol";
 import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
+import { StandardBridge } from "src/universal/StandardBridge.sol";
 import { ISemver } from "src/universal/ISemver.sol";
 import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
 import { SystemConfig } from "src/L1/SystemConfig.sol";
@@ -67,6 +68,50 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
     /// @custom:legacy
     function PORTAL() external view returns (OptimismPortal) {
         return portal;
+    }
+
+    /// @notice send the cross domain message for minting ETH ERC20 tokens on the L2.
+    /// @param _l1Token The address of the L1 token.
+    /// @param _l2Token The address of the L2 token.
+    /// @param _sender The address of the sender.
+    /// @param _to The address of the recipient.
+    /// @param _value The amount of tokens to mint.
+    /// @param _gasLimit The gas limit for the message.
+    /// @return The cross domain message.
+    function sendMintETHERC20Message(
+        address _l1Token,
+        address _l2Token,
+        address _sender,
+        address _to,
+        uint256 _value,
+        uint64 _gasLimit
+    )
+        external
+        returns (bytes memory)
+    {
+        require(
+            msg.sender == systemConfig.optimismPortal(), "L1CrossDomainMessenger: sender must be the OptimismPortal"
+        );
+        bytes memory _message = abi.encodeWithSelector(
+            StandardBridge.finalizeBridgeERC20.selector, _l2Token, _l1Token, _sender, _to, _value, new bytes(0)
+        );
+
+        bytes memory _data = abi.encodeWithSelector(
+            this.relayMessage.selector,
+            messageNonce(),
+            systemConfig.l1StandardBridge(),
+            Predeploys.L2_STANDARD_BRIDGE,
+            uint256(0),
+            _gasLimit,
+            _message
+        );
+
+        bytes memory opaqueData =
+            abi.encodePacked(uint256(0), uint256(0), baseGas(_message, uint32(_gasLimit)), false, _data);
+
+        msgNonce = msgNonce + 1;
+
+        return opaqueData;
     }
 
     /// @inheritdoc CrossDomainMessenger

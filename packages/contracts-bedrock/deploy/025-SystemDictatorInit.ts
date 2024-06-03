@@ -171,6 +171,7 @@ const deployFn: DeployFunction = async (hre) => {
         ),
         disputeGameFactory: ethers.constants.AddressZero,
         gasPayingToken,
+        l2ETHToken: '0x4200000000000000000000000000000000000023',
       },
     },
     protocolVersionConfig: {
