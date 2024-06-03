@@ -290,6 +290,11 @@
                 "internalType": "address",
                 "name": "gasPayingToken",
                 "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "l2ETHToken",
+                "type": "address"
               }
             ],
             "internalType": "struct SystemConfig.Addresses",
@@ -647,6 +652,11 @@
                   {
                     "internalType": "address",
                     "name": "gasPayingToken",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "l2ETHToken",
                     "type": "address"
                   }
                 ],

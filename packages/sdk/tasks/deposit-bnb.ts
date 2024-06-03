@@ -5,13 +5,12 @@ import '@nomiclabs/hardhat-ethers'
 import 'hardhat-deploy'
 import { Contract, providers, utils, constants } from 'ethers'
 import { predeploys, sleep, hashWithdrawal } from '@eth-optimism/core-utils'
+
 import Artifact__L2ToL1MessagePasser from '../src/forge-artifacts/L2ToL1MessagePasser.json'
 import Artifact__L2StandardBridge from '../src/forge-artifacts/L2StandardBridge.json'
 import Artifact__OptimismPortal from '../src/forge-artifacts/OptimismPortal.json'
-import Artifact__L1StandardBridge from '../src/forge-artifacts/L1StandardBridge.json'
 import Artifact__L2OutputOracle from '../src/forge-artifacts/L2OutputOracle.json'
 import Artifact_BOBA from '../src/forge-artifacts/BOBA.json'
-
 import {
   CONTRACT_ADDRESSES,
   OEContractsLike,
@@ -73,7 +72,6 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
     let contractAddrs = CONTRACT_ADDRESSES[l2ChainId]
 
     let l1BobaTokenAddress = ''
-    const l2BobaTokenAddress = '0x4200000000000000000000000000000000000006'
     const l2BnbTokenAddress = '0x4200000000000000000000000000000000000023'
 
     if (args.l1ContractsJsonPath) {
@@ -144,7 +142,7 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
       l2Signer
     )
 
-    let preL2BobaBalance = await l2Provider.getBalance(l2Signer.address)
+    const preL2BobaBalance = await l2Provider.getBalance(l2Signer.address)
     console.log(`Approving BOBA for deposit`)
     const approvalBobaTx = await L1BobaToken.approve(
       OptimismPortal.address,
@@ -191,7 +189,7 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
     }
     console.log(`Deposit BOBA confirmed`)
 
-    let postL2BobaBalance = await l2Provider.getBalance(l2Signer.address)
+    const postL2BobaBalance = await l2Provider.getBalance(l2Signer.address)
     if (!postL2BobaBalance.eq(preL2BobaBalance.add(utils.parseEther('10')))) {
       throw new Error(
         `bad deposit. recipient balance on L2: ${utils.formatEther(
@@ -201,7 +199,7 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
     }
     console.log(`Deposit BOBA success`)
 
-    let preL2BnbBalance = await L2BnbToken.balanceOf(l2Signer.address)
+    const preL2BnbBalance = await L2BnbToken.balanceOf(l2Signer.address)
     const depositBnbTx = await l1Signer.sendTransaction({
       to: OptimismPortal.address,
       value: utils.parseEther('10'),
@@ -235,7 +233,7 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
     }
     console.log(`Deposit confirmed`)
 
-    let postL2BnbBalance = await L2BnbToken.balanceOf(l2Signer.address)
+    const postL2BnbBalance = await L2BnbToken.balanceOf(l2Signer.address)
     if (!postL2BnbBalance.eq(preL2BnbBalance.add(utils.parseEther('10')))) {
       throw new Error(
         `bad deposit. recipient balance on L2: ${utils.formatEther(
@@ -375,7 +373,6 @@ task('deposit-bnb', 'Deposits BOBA and BNB onto L2.')
     }
 
     console.log('Starting BOBA withdrawal')
-    const preL2BobaBalance = await l2Provider.getBalance(l2Signer.address)
     const preBobaBalance = await L1BobaToken.balanceOf(l1Signer.address)
     const withdrawalBobaTx = await l2Signer.sendTransaction({
       to: L2ToL1MessagePasser.address,
