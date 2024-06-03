@@ -326,7 +326,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     /// @notice Internal setter for the L2 ETH token address.
     /// @param _token Address of the L2 ETH token.
     function _setL2ETHToken(address _token) internal {
-        if (isCustomGasToken()) {
+        if (_token != address(0) && isCustomGasToken()) {
             GasPayingToken.setL2ETHToken(_token);
             OptimismPortal(payable(optimismPortal())).setL2ETHToken({ _token: _token });
         }
