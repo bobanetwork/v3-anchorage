@@ -47,6 +47,12 @@ const config: HardhatUserConfig = {
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
     },
+    'boba-bnb-devnet-0': {
+      chainId: 97,
+      url: process.env.L1_RPC || '',
+      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
+      live: true,
+    },
   },
   foundry: {
     buildInfo: true,
@@ -73,6 +79,7 @@ const config: HardhatUserConfig = {
       'hardhat-local': ['../contracts/deployments/hardhat-local'],
       'boba-sepolia': ['../contracts/deployments/boba-sepolia'],
       'boba-mainnet': ['../contracts/deployments/boba-mainnet'],
+      'boba-bnb-devnet-0': ['../contracts/deployments/boba-bnb-devnet-0'],
     },
   },
   solidity: {
