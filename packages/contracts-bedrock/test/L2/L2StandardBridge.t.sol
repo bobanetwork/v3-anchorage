@@ -424,7 +424,7 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         vm.expectCall(
             address(l2StandardBridge),
-            abi.encodeWithSelector(l2StandardBridge.withdraw.selector,  address(L2ETHToken), 100, 1000, hex"")
+            abi.encodeWithSelector(l2StandardBridge.withdraw.selector, address(L2ETHToken), 100, 1000, hex"")
         );
 
         // The l2StandardBridge should burn the tokens
@@ -444,15 +444,7 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         // L2ToL1MessagePasser will emit a MessagePassed event
         vm.expectEmit(true, true, true, true);
-        emit MessagePassed(
-            nonce,
-            address(l2StandardBridge),
-            alice,
-            100,
-            200_000,
-            hex"",
-            withdrawalHash
-        );
+        emit MessagePassed(nonce, address(l2StandardBridge), alice, 100, 200_000, hex"", withdrawalHash);
 
         vm.prank(alice, alice);
 
@@ -468,7 +460,7 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         vm.expectCall(
             address(l2StandardBridge),
-            abi.encodeWithSelector(l2StandardBridge.withdrawTo.selector,  address(L2ETHToken), bob, 100, 1000, hex"")
+            abi.encodeWithSelector(l2StandardBridge.withdrawTo.selector, address(L2ETHToken), bob, 100, 1000, hex"")
         );
 
         // The l2StandardBridge should burn the tokens
@@ -488,15 +480,7 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         // L2ToL1MessagePasser will emit a MessagePassed event
         vm.expectEmit(true, true, true, true);
-        emit MessagePassed(
-            nonce,
-            address(l2StandardBridge),
-            bob,
-            100,
-            200_000,
-            hex"",
-            withdrawalHash
-        );
+        emit MessagePassed(nonce, address(l2StandardBridge), bob, 100, 200_000, hex"", withdrawalHash);
 
         vm.prank(alice, alice);
 
