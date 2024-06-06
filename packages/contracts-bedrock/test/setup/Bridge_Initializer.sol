@@ -17,6 +17,7 @@ contract Bridge_Initializer is CommonTest {
     ERC20 NativeL2Token;
     ERC20 BadL2Token;
     OptimismMintableERC20 RemoteL1Token;
+    LegacyMintableERC20 L2ETHToken;
 
     function setUp() public virtual override {
         super.setUp();
@@ -65,5 +66,14 @@ contract Bridge_Initializer is CommonTest {
                 string(abi.encodePacked("L1-", NativeL2Token.symbol()))
             )
         );
+
+        // Deploy the L2 ETH ERC20 now
+        L2ETHToken = new LegacyMintableERC20({
+            _l2Bridge: address(l2StandardBridge),
+            _l1Token: address(0),
+            _name: string.concat("ETH"),
+            _symbol: string.concat("ETH")
+        });
+        vm.label(address(L2ETHToken), "LegacyMintableERC20");
     }
 }

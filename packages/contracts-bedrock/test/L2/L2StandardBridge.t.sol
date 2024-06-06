@@ -412,6 +412,99 @@ contract L2StandardBridge_BridgeERC20_Test is PreBridgeERC20 {
     }
 }
 
+contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
+    // withdraw
+    // - token is burned
+    // - emits MessagePassed
+    function test_withdraw_withdrawingETHERC20_succeeds() external {
+        deal(address(L2ETHToken), alice, 100, true);
+        assertEq(ERC20(address(L2ETHToken)).balanceOf(alice), 100);
+        vm.mockCall(address(l1Block), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(1), uint8(18)));
+        vm.mockCall(address(l1Block), abi.encodeWithSignature("l2ETHToken()"), abi.encode(address(L2ETHToken)));
+
+        vm.expectCall(
+            address(l2StandardBridge),
+            abi.encodeWithSelector(l2StandardBridge.withdraw.selector,  address(L2ETHToken), 100, 1000, hex"")
+        );
+
+        // The l2StandardBridge should burn the tokens
+        vm.expectCall(address(L2ETHToken), abi.encodeWithSelector(OptimismMintableERC20.burn.selector, alice, 100));
+
+        uint256 nonce = l2CrossDomainMessenger.messageNonce();
+        bytes32 withdrawalHash = Hashing.hashWithdrawal(
+            Types.WithdrawalTransaction({
+                nonce: nonce,
+                sender: address(l2StandardBridge),
+                target: alice,
+                value: 100,
+                gasLimit: 200_000,
+                data: hex""
+            })
+        );
+
+        // L2ToL1MessagePasser will emit a MessagePassed event
+        vm.expectEmit(true, true, true, true);
+        emit MessagePassed(
+            nonce,
+            address(l2StandardBridge),
+            alice,
+            100,
+            200_000,
+            hex"",
+            withdrawalHash
+        );
+
+        vm.prank(alice, alice);
+
+        l2StandardBridge.withdraw(address(L2ETHToken), 100, 1000, hex"");
+        assertEq(L2Token.balanceOf(alice), 0);
+    }
+
+    function test_withdraw_withdrawingETHERC20To_succeeds() external {
+        deal(address(L2ETHToken), alice, 100, true);
+        assertEq(ERC20(address(L2ETHToken)).balanceOf(alice), 100);
+        vm.mockCall(address(l1Block), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(1), uint8(18)));
+        vm.mockCall(address(l1Block), abi.encodeWithSignature("l2ETHToken()"), abi.encode(address(L2ETHToken)));
+
+        vm.expectCall(
+            address(l2StandardBridge),
+            abi.encodeWithSelector(l2StandardBridge.withdrawTo.selector,  address(L2ETHToken), bob, 100, 1000, hex"")
+        );
+
+        // The l2StandardBridge should burn the tokens
+        vm.expectCall(address(L2ETHToken), abi.encodeWithSelector(OptimismMintableERC20.burn.selector, alice, 100));
+
+        uint256 nonce = l2CrossDomainMessenger.messageNonce();
+        bytes32 withdrawalHash = Hashing.hashWithdrawal(
+            Types.WithdrawalTransaction({
+                nonce: nonce,
+                sender: address(l2StandardBridge),
+                target: bob,
+                value: 100,
+                gasLimit: 200_000,
+                data: hex""
+            })
+        );
+
+        // L2ToL1MessagePasser will emit a MessagePassed event
+        vm.expectEmit(true, true, true, true);
+        emit MessagePassed(
+            nonce,
+            address(l2StandardBridge),
+            bob,
+            100,
+            200_000,
+            hex"",
+            withdrawalHash
+        );
+
+        vm.prank(alice, alice);
+
+        l2StandardBridge.withdrawTo(address(L2ETHToken), bob, 100, 1000, hex"");
+        assertEq(L2Token.balanceOf(alice), 0);
+    }
+}
+
 contract PreBridgeERC20To is Bridge_Initializer {
     // withdrawTo and BridgeERC20To should behave the same when transferring ERC20 tokens
     // so they should share the same setup and expectEmit calls
