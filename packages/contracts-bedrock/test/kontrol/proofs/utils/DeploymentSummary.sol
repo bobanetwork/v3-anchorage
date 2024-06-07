@@ -13,7 +13,7 @@ contract DeploymentSummary is DeploymentSummaryCode {
     Vm private constant vm = Vm(VM_ADDRESS);
 
     address internal constant addressManagerAddress = 0xBb2180ebd78ce97360503434eD37fcf4a1Df61c3;
-    address internal constant l1CrossDomainMessengerAddress = 0x031e5653Cf64a9BB7e08F7d6FC740fED3Ed8A43C;
+    address internal constant l1CrossDomainMessengerAddress = 0x65931ba5A7Df95b650022C5225a37deE1725CE1f;
     address internal constant l1CrossDomainMessengerProxyAddress = 0x20A42a5a785622c6Ba2576B2D6e924aA82BFA11D;
     address internal constant l1ERC721BridgeAddress = 0x44637A4292E0CD2B17A55d5F6B2F05AFcAcD0586;
     address internal constant l1ERC721BridgeProxyAddress = 0xDeF3bca8c80064589E6787477FFa7Dd616B5574F;
@@ -404,7 +404,7 @@ contract DeploymentSummary is DeploymentSummaryCode {
         value = hex"0000000000000000000000000000000000000000000000000000000000000009";
         vm.store(systemOwnerSafeAddress, slot, value);
         slot = hex"515216935740e67dfdda5cf8e248ea32b3277787818ab59153061ac875c9385e";
-        value = hex"000000000000000000000000031e5653cf64a9bb7e08f7d6fc740fed3ed8a43c";
+        value = hex"00000000000000000000000065931ba5a7df95b650022c5225a37dee1725ce1f";
         vm.store(addressManagerAddress, slot, value);
         slot = hex"0000000000000000000000000000000000000000000000000000000000000000";
         value = hex"0000000000000000000001030000000000000000000000000000000000000000";
