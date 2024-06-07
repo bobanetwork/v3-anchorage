@@ -48,8 +48,8 @@
     "sourceCodeHash": "0xd6a894e371c2c7182b5960c507491f81c3775dda0efedd29475f7c30ca07b004"
   },
   "src/L1/SystemConfig.sol": {
-    "initCodeHash": "0x612711eef1c6f8851f1bd47b841cd9a8c6e75fe304ed57100e8ff7e8fc41f828",
-    "sourceCodeHash": "0xd7956dd6b58c11a456508e36f41dc198e505cd430cfaf065d9785f6fcb36d44a"
+    "initCodeHash": "0xc348dacf7690b029540a26e00bbc6995675e491b132670472ec6c875b871fc59",
+    "sourceCodeHash": "0x4b7796006a5c047e8d518b997425c575b9e3869630ad9834c746f61776e0c548"
   },
   "src/L2/BaseFeeVault.sol": {
     "initCodeHash": "0x2744d34573be83206d1b75d049d18a7bb37f9058e68c0803e5008c46b0dc2474",
