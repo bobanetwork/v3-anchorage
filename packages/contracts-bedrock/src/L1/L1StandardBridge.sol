@@ -130,6 +130,11 @@ contract L1StandardBridge is StandardBridge, ISemver {
         (addr_, decimals_) = systemConfig.gasPayingToken();
     }
 
+    /// @inheritdoc StandardBridge
+    function l2ETHToken() internal view override returns (address) {
+        return systemConfig.l2ETHToken();
+    }
+
     /// @custom:legacy
     /// @notice Deposits some amount of ETH into the sender's account on L2.
     /// @param _minGasLimit Minimum gas limit for the deposit message on L2.

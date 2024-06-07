@@ -76,6 +76,7 @@ contract DeployConfig is Script {
 
     bool public useCustomGasToken;
     address public customGasTokenAddress;
+    address public l2ETHTokenAddress;
 
     bool public useInterop;
 
@@ -153,6 +154,7 @@ contract DeployConfig is Script {
 
         useCustomGasToken = _readOr(_json, "$.useCustomGasToken", false);
         customGasTokenAddress = _readOr(_json, "$.customGasTokenAddress", address(0));
+        l2ETHTokenAddress = _readOr(_json, "$.l2ETHTokenAddress", address(0));
 
         useInterop = _readOr(_json, "$.useInterop", false);
     }
@@ -209,6 +211,11 @@ contract DeployConfig is Script {
     function setUseCustomGasToken(address _token) public {
         useCustomGasToken = true;
         customGasTokenAddress = _token;
+    }
+
+    /// @notice Allow the `l2ETHTokenAddress` config to be overridden in testing environments
+    function setL2ETHToken(address _token) public {
+        l2ETHTokenAddress = _token;
     }
 
     function _getBlockByTag(string memory _tag) internal returns (bytes32) {

@@ -132,6 +132,10 @@ type DeployConfig struct {
 	FundDevAccounts bool `json:"fundDevAccounts"`
 	// L1 Boba token address
 	L1BobaTokenAddress *common.Address `json:"l1BobaTokenAddress,omitempty"`
+	// L2 Boba token name
+	L2BobaTokenName string `json:"l2BobaTokenName,omitempty"`
+	// L2 Boba token symbol
+	L2BobaTokenSymbol string `json:"l2BobaTokenSymbol,omitempty"`
 	// RequiredProtocolVersion indicates the protocol version that
 	// nodes are required to adopt, to stay in sync with the network.
 	RequiredProtocolVersion Bytes32 `json:"requiredProtocolVersion"`
@@ -412,9 +416,24 @@ func (d *DeployConfig) GetL1BobaTokenAddress() (common.Address, error) {
 		l1TokenAddr = common.HexToAddress(chain.GetBobaTokenL1Address(big.NewInt(int64(d.L2ChainID))))
 	}
 	if l1TokenAddr == (common.Address{}) {
-		return l1TokenAddr, fmt.Errorf("L1BobaTokenAddress cannot be address(0): %w", ErrInvalidImmutablesConfig)
+		log.Warn("L1 Boba token address is address(0), this is likely incorrect")
+		return l1TokenAddr, nil
 	}
 	return l1TokenAddr, nil
+}
+
+func (d *DeployConfig) GetL2BobaTokenName() string {
+	if d.L2BobaTokenName == "" {
+		return "Boba Token"
+	}
+	return d.L2BobaTokenName
+}
+
+func (d *DeployConfig) GetL2BobaTokenSymbol() string {
+	if d.L2BobaTokenSymbol == "" {
+		return "BOBA"
+	}
+	return d.L2BobaTokenSymbol
 }
 
 // NewDeployConfig reads a config file given a path on the filesystem.
@@ -533,11 +552,13 @@ func NewL2ImmutableConfig(config *DeployConfig, blockHeader *types.Header) (immu
 	if err != nil {
 		return immutable, err
 	}
+	l2BobaTokenName := config.GetL2BobaTokenName()
+	l2BobaTokenSymbol := config.GetL2BobaTokenSymbol()
 	immutable["BobaL2"] = immutables.ImmutableValues{
 		"l2Bridge":  predeploys.L2StandardBridgeAddr,
 		"l1Token":   l1TokenAddr,
-		"_name":     "Boba Token",
-		"_symbol":   "BOBA",
+		"_name":     l2BobaTokenName,
+		"_symbol":   l2BobaTokenSymbol,
 		"_decimals": uint8(18),
 	}
 	return immutable, nil
@@ -608,11 +629,13 @@ func NewL2StorageConfig(config *DeployConfig, blockHeader *types.Header) (state.
 	if err != nil {
 		return storage, err
 	}
+	l2BobaTokenName := config.GetL2BobaTokenName()
+	l2BobaTokenSymbol := config.GetL2BobaTokenSymbol()
 	storage["BobaL2"] = state.StorageValues{
 		"l2Bridge":  predeploys.L2StandardBridgeAddr,
 		"l1Token":   l1TokenAddr,
-		"_name":     "Boba Token",
-		"_symbol":   "BOBA",
+		"_name":     l2BobaTokenName,
+		"_symbol":   l2BobaTokenSymbol,
 		"_decimals": uint8(18),
 	}
 	return storage, nil

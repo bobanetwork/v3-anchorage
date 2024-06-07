@@ -51,6 +51,12 @@ func main() {
 				Usage:   "L2 block number",
 				EnvVars: []string{"L2_BLOCK_NUMBER"},
 			},
+			&cli.BoolFlag{
+				Name:    "enable-boba-gas-token",
+				Value:   false,
+				Usage:   "Enable Boba gas token",
+				EnvVars: []string{"ENABLE_BOBA_GAS_TOKEN"},
+			},
 		},
 		Action: entrypoint,
 	}
@@ -63,6 +69,7 @@ func main() {
 
 // entrypoint is the entrypoint for the check-l2 script
 func entrypoint(ctx *cli.Context) error {
+	enableBobaGasToken := ctx.Bool("enable-boba-gas-token")
 	clients, err := clients.NewClients(ctx)
 	if err != nil {
 		return err
@@ -96,7 +103,7 @@ func entrypoint(ctx *cli.Context) error {
 	// Check that all of the defined predeploys are set up correctly
 	for name, addr := range predeploys.Predeploys {
 		log.Info("Checking predeploy", "name", name, "address", addr.Hex())
-		if err := checkPredeployConfig(clients.L2RpcClient, name); err != nil {
+		if err := checkPredeployConfig(clients.L2RpcClient, name, enableBobaGasToken); err != nil {
 			return err
 		}
 	}
@@ -121,7 +128,7 @@ func checkPredeploy(client *clients.RpcClient, i uint64) error {
 }
 
 // checkPredeployConfig checks that the defined predeploys are configured correctly
-func checkPredeployConfig(client *clients.RpcClient, name string) error {
+func checkPredeployConfig(client *clients.RpcClient, name string, enableBobaGasToken bool) error {
 	predeploy := predeploys.Predeploys[name]
 	if predeploy == nil {
 		return fmt.Errorf("unknown predeploy %s", name)
@@ -266,7 +273,7 @@ func checkPredeployConfig(client *clients.RpcClient, name string) error {
 			}
 
 		case predeploys.BobaL2Addr:
-			if err := checkBobaL2(p, client); err != nil {
+			if err := checkBobaL2(p, client, enableBobaGasToken); err != nil {
 				return err
 			}
 
@@ -829,7 +836,7 @@ func checkEAS(addr libcommon.Address, client *clients.RpcClient) error {
 	return nil
 }
 
-func checkBobaL2(addr libcommon.Address, client *clients.RpcClient) error {
+func checkBobaL2(addr libcommon.Address, client *clients.RpcClient, enableBobaGasToken bool) error {
 	contract, err := bindings.NewL2GovernanceERC20(addr, client)
 	if err != nil {
 		return err
@@ -846,24 +853,32 @@ func checkBobaL2(addr libcommon.Address, client *clients.RpcClient) error {
 	if err != nil {
 		return err
 	}
-	if l1Token == (libcommon.Address{}) {
-		return fmt.Errorf("BobaL2 l1Token should not be set to address(0)")
+	if enableBobaGasToken {
+		if l1Token != (libcommon.Address{}) {
+			return fmt.Errorf("BobaL2 l1Token should be set to address(0)")
+		}
+	} else {
+		if l1Token == (libcommon.Address{}) {
+			return fmt.Errorf("BobaL2 l1Token should not be set to address(0)")
+		}
 	}
 	log.Info("BobaL2", "l1Token", l1Token.Hex())
 	name, err := contract.Name(&bind.CallOpts{})
 	if err != nil {
 		return err
 	}
-	if name != "Boba Token" && name != "Boba Network" {
-		return fmt.Errorf("BobaL2 name should be 'Boba Token' or 'Boba Network', got %s", name)
-	}
-	log.Info("BobaL2", "name", name)
-	symbol, err := contract.Symbol(&bind.CallOpts{})
-	if err != nil {
-		return err
-	}
-	if symbol != "BOBA" {
-		return fmt.Errorf("BobaL2 symbol should be 'BOBA', got %s", symbol)
+	if !enableBobaGasToken {
+		if name != "Boba Token" && name != "Boba Network" {
+			return fmt.Errorf("BobaL2 name should be 'Boba Token' or 'Boba Network', got %s", name)
+		}
+		log.Info("BobaL2", "name", name)
+		symbol, err := contract.Symbol(&bind.CallOpts{})
+		if err != nil {
+			return err
+		}
+		if symbol != "BOBA" {
+			return fmt.Errorf("BobaL2 symbol should be 'BOBA', got %s", symbol)
+		}
 	}
 	decimals, err := contract.Decimals(&bind.CallOpts{})
 	if err != nil {

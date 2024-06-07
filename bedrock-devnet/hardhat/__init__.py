@@ -15,6 +15,8 @@ parser.add_argument('--monorepo-dir', help='Directory of the monorepo', default=
 parser.add_argument('--allocs', help='Only create the allocs and exit', type=bool, action=argparse.BooleanOptionalAction)
 parser.add_argument('--test', help='Tests the deployment, must already be deployed', type=bool, action=argparse.BooleanOptionalAction)
 parser.add_argument('--enable-boba-gas-token', help='Use Boba as the custom gas token', type=bool, action=argparse.BooleanOptionalAction)
+parser.add_argument('--l2-token-name', type=str, help='Name of the L2 token')
+parser.add_argument('--l2-token-symbol', type=str, help='Symbol of the L2 token')
 
 log = logging.getLogger()
 
@@ -80,7 +82,7 @@ def main():
 
     if args.test:
       log.info('Testing deployed devnet')
-      devnet_test(paths)
+      devnet_test(paths, args.enable_boba_gas_token)
       return
 
     os.makedirs(devnet_dir, exist_ok=True)
@@ -90,7 +92,7 @@ def main():
     devnet_bring_l1(paths)
     devnet_write_env(paths, args.enable_boba_gas_token)
     devnet_deploy(paths)
-    devnet_generate_files(paths)
+    devnet_generate_files(paths, args.enable_boba_gas_token, args.l2_token_name, args.l2_token_symbol)
     devnet_bring_l2(paths)
     devnet_bring_op_node(paths)
     devnet_bring_batcher_proposer(paths)
@@ -170,7 +172,7 @@ def devnet_deploy(paths):
     if os.path.exists(paths.devnet_config_export_path):
       os.remove(paths.devnet_config_export_path)
 
-def devnet_generate_files(paths):
+def devnet_generate_files(paths, enable_boba_gas_token, l2_token_name, l2_token_symbol):
     log.info('Generating L2 genesis and rollup config')
 
     BOBA_deployment = read_json(pjoin(paths.deployment_dir, 'BOBA.json'))
@@ -180,6 +182,16 @@ def devnet_generate_files(paths):
     with open(paths.devnet_config_path, 'r') as f:
         config = json.load(f)
         config['l1BobaTokenAddress'] = boba_token_address
+        if enable_boba_gas_token:
+            config['l1BobaTokenAddress'] = "0x0000000000000000000000000000000000000000"
+            if l2_token_name:
+                config['l2BobaTokenName'] = l2_token_name
+            else:
+                config['l2BobaTokenName'] = "ETH"
+            if l2_token_symbol:
+                config['l2BobaTokenSymbol'] = l2_token_symbol
+            else:
+                config['l2BobaTokenSymbol'] = "ETH"
     write_json(paths.devnet_config_path, config)
 
     run_command([
@@ -274,6 +286,10 @@ def devent_restore_configurations(paths):
         config['l2GenesisCanyonTimeOffset'] = UPGRADETIMEOFFSET
         config['l2GenesisDeltaTimeOffset'] = UPGRADETIMEOFFSET
         config['l2GenesisEcotoneTimeOffset'] = UPGRADETIMEOFFSET
+        if 'l2BobaTokenName' in config:
+            del config['l2BobaTokenName']
+        if 'l2BobaTokenSymbol' in config:
+            del config['l2BobaTokenSymbol']
     write_json(paths.devnet_config_path, config)
 
 def eth_block(url):
@@ -306,7 +322,20 @@ def wait_for_rpc_server(url):
             log.info(f'Waiting for RPC server at {url}')
             time.sleep(1)
 
-def devnet_test(paths):
+def devnet_test(paths, enable_boba_gas_token):
+    if enable_boba_gas_token:
+        run_command(
+            ['go', 'run', './cmd/check-l2/main.go', '--l2-rpc-url', 'http://localhost:9545', '--l1-rpc-url', 'http://localhost:8545', '--enable-boba-gas-token'],
+            cwd=paths.boba_chain_ops,
+        )
+
+        run_command(
+            ['npx', 'hardhat',  'deposit-bnb', '--network',  'hardhat-local', '--l1-contracts-json-path', paths.addresses_json_path],
+            cwd=paths.sdk_dir,
+            timeout=12*60,
+        )
+        return
+
     run_command(
         ['go', 'run', './cmd/check-l2/main.go', '--l2-rpc-url', 'http://localhost:9545', '--l1-rpc-url', 'http://localhost:8545'],
         cwd=paths.boba_chain_ops,

@@ -210,12 +210,16 @@ devnet-hardhat-test:
 	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --test
 .PHONY: devnet-hardhat-test
 
-devnet-hardhat-custom-gas-token-up:
+devnet-hardhat-bnb-up:
 	@if [ ! -e op-program/bin ]; then \
 		make cannon-prestate; \
 	fi
-	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --enable-boba-gas-token
-.PHONY: devnet-hardhat-custom-gas-token-up
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --enable-boba-gas-token --l2-token-name=BNB --l2-token-symbol=BNB
+.PHONY: devnet-hardhat-bnb-up
+
+devnet-hardhat-bnb-test:
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --test --enable-boba-gas-token
+.PHONY: devnet-hardhat-test
 
 devnet-down:
 	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker compose stop)

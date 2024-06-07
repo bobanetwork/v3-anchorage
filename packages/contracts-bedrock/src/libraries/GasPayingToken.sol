@@ -35,6 +35,9 @@ library GasPayingToken {
     bytes32 internal constant GAS_PAYING_TOKEN_SYMBOL_SLOT =
         bytes32(uint256(keccak256("opstack.gaspayingtokensymbol")) - 1);
 
+    /// @notice The storage slot that contains the address of the ether token
+    bytes32 internal constant L2_ETH_TOKEN_SLOT = bytes32(uint256(keccak256("opstack.l2ethtoken")) - 1);
+
     /// @notice Reads the gas paying token and its decimals from the magic
     ///         storage slot. If nothing is set in storage, then the ether
     ///         address is returned instead.
@@ -71,11 +74,21 @@ library GasPayingToken {
         }
     }
 
+    function getL2ETHToken() internal view returns (address) {
+        bytes32 slot = Storage.getBytes32(L2_ETH_TOKEN_SLOT);
+        return address(uint160(uint256(slot) & uint256(type(uint160).max)));
+    }
+
     /// @notice Writes the gas paying token, its decimals, name and symbol to the magic storage slot.
     function set(address _token, uint8 _decimals, bytes32 _name, bytes32 _symbol) internal {
         Storage.setBytes32(GAS_PAYING_TOKEN_SLOT, bytes32(uint256(_decimals) << 160 | uint256(uint160(_token))));
         Storage.setBytes32(GAS_PAYING_TOKEN_NAME_SLOT, _name);
         Storage.setBytes32(GAS_PAYING_TOKEN_SYMBOL_SLOT, _symbol);
+    }
+
+    /// @notice Writes the ether token address to the magic storage slot.
+    function setL2ETHToken(address _token) internal {
+        Storage.setBytes32(L2_ETH_TOKEN_SLOT, bytes32(uint256(uint160(_token))));
     }
 
     /// @notice Maps a string to a normalized null-terminated small string.

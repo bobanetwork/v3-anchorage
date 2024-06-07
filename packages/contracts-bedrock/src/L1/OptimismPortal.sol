@@ -201,6 +201,10 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
     ///         function for EOAs. Contracts should call the depositTransaction() function directly
     ///         otherwise any deposited funds will be lost due to address aliasing.
     receive() external payable {
+        (address token,) = gasPayingToken();
+        if (token != Constants.ETHER) {
+            return depositTransaction(msg.sender, 0, RECEIVE_DEFAULT_GAS_LIMIT, false, bytes(""));
+        }
         depositTransaction(msg.sender, msg.value, RECEIVE_DEFAULT_GAS_LIMIT, false, bytes(""));
     }
 
@@ -214,6 +218,11 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
     /// @notice Returns the gas paying token and its decimals.
     function gasPayingToken() internal view returns (address addr_, uint8 decimals_) {
         (addr_, decimals_) = systemConfig.gasPayingToken();
+    }
+
+    /// @notice Returns the l2 ether token address.
+    function l2ETHToken() internal view returns (address) {
+        return systemConfig.l2ETHToken();
     }
 
     /// @notice Getter for the resource config.
@@ -385,7 +394,7 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
 
             // Only transfer value when a non zero value is specified. This saves gas in the case of
             // using the standard bridge or arbitrary message passing.
-            if (_tx.value != 0) {
+            if (_tx.value != 0 && l2Sender != Predeploys.L2_STANDARD_BRIDGE) {
                 // Update the contracts internal accounting of the amount of native asset in L2.
                 _balance -= _tx.value;
 
@@ -404,8 +413,10 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
                 }
             }
 
-            // Make a call to the target contract only if there is calldata.
-            if (_tx.data.length != 0) {
+            if (_tx.value != 0 && l2Sender == Predeploys.L2_STANDARD_BRIDGE) {
+                success = SafeCall.callWithMinGas(_tx.target, _tx.gasLimit, _tx.value, _tx.data);
+            } else if (_tx.data.length != 0) {
+                // Make a call to the target contract only if there is calldata.
                 success = SafeCall.callWithMinGas(_tx.target, _tx.gasLimit, 0, _tx.data);
             } else {
                 success = true;
@@ -497,7 +508,26 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
         metered(_gasLimit)
     {
         (address token,) = gasPayingToken();
-        if (token != Constants.ETHER && msg.value != 0) revert NoValue();
+        address l2ETHToken = l2ETHToken();
+        if (token != Constants.ETHER && msg.value != 0 && l2ETHToken == address(0)) revert NoValue();
+        if (token != Constants.ETHER && msg.value != 0 && l2ETHToken != address(0)) {
+            require(
+                _value == 0 && _isCreation == false && tx.origin == msg.sender && _data.length == 0,
+                "OptimismPortal: invalid deposit"
+            );
+
+            bytes memory opaqueData = OptimismPortalHelper(systemConfig.l1CrossDomainMessenger())
+                .sendMintETHERC20Message(address(0), l2ETHToken, msg.sender, _to, msg.value, uint64(_gasLimit));
+
+            emit TransactionDeposited(
+                AddressAliasHelper.applyL1ToL2Alias(systemConfig.l1CrossDomainMessenger()),
+                Predeploys.L2_CROSS_DOMAIN_MESSENGER,
+                DEPOSIT_VERSION,
+                opaqueData
+            );
+
+            return;
+        }
 
         _depositTransaction({
             _to: _to,
@@ -581,6 +611,30 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
         );
     }
 
+    /// @notice Sets the L2 ETH token for the L2 system.
+    function setL2ETHToken(address _token) external {
+        if (msg.sender != address(systemConfig)) revert Unauthorized();
+
+        // Set L2 deposit gas as used without paying burning gas. Ensures that deposits cannot use too much L2 gas.
+        // This value must be large enough to cover the cost of calling `L1Block.setL2ETHToken`.
+        useGas(SYSTEM_DEPOSIT_GAS_LIMIT);
+
+        // Emit the special deposit transaction directly that sets the gas paying
+        // token in the L1Block predeploy contract.
+        emit TransactionDeposited(
+            Constants.DEPOSITOR_ACCOUNT,
+            Predeploys.L1_BLOCK_ATTRIBUTES,
+            DEPOSIT_VERSION,
+            abi.encodePacked(
+                uint256(0), // mint
+                uint256(0), // value
+                uint64(SYSTEM_DEPOSIT_GAS_LIMIT), // gasLimit
+                false, // isCreation,
+                abi.encodeCall(L1Block.setL2ETHToken, (_token))
+            )
+        );
+    }
+
     /// @notice Determine if a given output is finalized.
     ///         Reverts if the call to l2Oracle.getL2Output reverts.
     ///         Returns a boolean otherwise.
@@ -597,4 +651,18 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
     function _isFinalizationPeriodElapsed(uint256 _timestamp) internal view returns (bool) {
         return block.timestamp > _timestamp + l2Oracle.FINALIZATION_PERIOD_SECONDS();
     }
+}
+
+interface OptimismPortalHelper {
+    /// @notice Encodes a message to mint ETH ERC20 tokens on L2.
+    function sendMintETHERC20Message(
+        address _l1Token,
+        address _l2Token,
+        address _sender,
+        address _to,
+        uint256 _value,
+        uint64 _gasLimit
+    )
+        external
+        returns (bytes memory);
 }

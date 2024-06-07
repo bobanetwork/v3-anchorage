@@ -293,10 +293,17 @@ const deployFn: DeployFunction = async (hre) => {
         resourceParams.prevBaseFee.eq(ethers.utils.parseUnits('1', 'gwei')),
         `OptimismPortal was not initialized with the correct initial base fee`
       )
-      assert(
-        resourceParams.prevBoughtGas.eq(200_000),
-        `OptimismPortal was not initialized with the correct initial bought gas`
-      )
+      if (process.env.ENABLE_CUSTOM_GAS_PAYING_TOKEN === 'true') {
+        assert(
+          resourceParams.prevBoughtGas.eq(400_000),
+          `OptimismPortal was not initialized with the correct initial bought gas`
+        )
+      } else {
+        assert(
+          resourceParams.prevBoughtGas.eq(0),
+          `OptimismPortal was not initialized with the correct initial bought gas`
+        )
+      }
       assert(
         !resourceParams.prevBlockNum.eq(0),
         `OptimismPortal was not initialized with the correct initial block number`
@@ -310,7 +317,6 @@ const deployFn: DeployFunction = async (hre) => {
       } else {
         await assertContractVariable(OptimismPortal, 'paused', true)
       }
-
 
       // Check the SystemConfig was initialized properly.
       await assertContractVariable(
