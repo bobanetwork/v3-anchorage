@@ -30,7 +30,7 @@ contract DeploymentSummary is DeploymentSummaryCode {
     address internal constant safeSingletonAddress = 0x90193C961A926261B756D1E5bb255e67ff9498A1;
     address internal constant superchainConfigAddress = 0x068E44eB31e111028c41598E4535be7468674D0A;
     address internal constant superchainConfigProxyAddress = 0xDEb1E9a6Be7Baf84208BB6E10aC9F9bbE1D70809;
-    address internal constant systemConfigAddress = 0x879c7391DeEa87f6f61908748277c38193eA8502;
+    address internal constant systemConfigAddress = 0xc762F3417C4fcEA7436a9018F298DE99e8F733CC;
     address internal constant systemConfigProxyAddress = 0x1c23A6d89F95ef3148BCDA8E242cAb145bf9c0E4;
     address internal constant systemOwnerSafeAddress = 0x7d039be7F9b5190147621b02e82B250e1D748e02;
 
@@ -278,7 +278,7 @@ contract DeploymentSummary is DeploymentSummaryCode {
         value = hex"0000000000000000000000000000000000000000000000000000000000000003";
         vm.store(systemOwnerSafeAddress, slot, value);
         slot = hex"360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
-        value = hex"000000000000000000000000879c7391deea87f6f61908748277c38193ea8502";
+        value = hex"000000000000000000000000c762f3417c4fcea7436a9018f298de99e8f733cc";
         vm.store(systemConfigProxyAddress, slot, value);
         slot = hex"0000000000000000000000000000000000000000000000000000000000000000";
         value = hex"0000000000000000000000000000000000000000000000000000000000000001";
