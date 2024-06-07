@@ -556,10 +556,7 @@ contract SystemConfig_Init_L2ETHToken is SystemConfig_Init {
 
     /// @dev Tests that initialization works with OptimismPortal.
     function test_initialize_l2ETHTokenCall_succeeds() external {
-        vm.expectCall(
-            address(optimismPortal),
-            abi.encodeCall(optimismPortal.setL2ETHToken, (address(token)))
-        );
+        vm.expectCall(address(optimismPortal), abi.encodeCall(optimismPortal.setL2ETHToken, (address(token))));
 
         vm.expectEmit(address(optimismPortal));
         emit TransactionDeposited(

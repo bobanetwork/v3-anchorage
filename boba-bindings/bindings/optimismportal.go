@@ -1039,41 +1039,10 @@ func ParseSetGasPayingToken(calldata []byte) (*SetGasPayingTokenParams, error) {
 }
 
 // SetL2ETHTokenParams is an auto generated read-only Go binding of transcaction calldata params
-type SetL2ETHTokenParams struct {
-	Param__token libcommon.Address
-}
 
 // Parse SetL2ETHToken method from calldata of a transaction
 //
 // Solidity: function setL2ETHToken(address _token) returns()
-func ParseSetL2ETHToken(calldata []byte) (*SetL2ETHTokenParams, error) {
-	if len(calldata) <= 4 {
-		return nil, fmt.Errorf("invalid calldata input")
-	}
-
-	_abi, err := abi.JSON(strings.NewReader(OptimismPortalABI))
-	if err != nil {
-		return nil, fmt.Errorf("failed to get abi of registry metadata: %w", err)
-	}
-
-	out, err := _abi.Methods["setL2ETHToken"].Inputs.Unpack(calldata[4:])
-	if err != nil {
-		return nil, fmt.Errorf("failed to unpack setL2ETHToken params data: %w", err)
-	}
-
-	var paramsResult = new(SetL2ETHTokenParams)
-	value := reflect.ValueOf(paramsResult).Elem()
-
-	if value.NumField() != len(out) {
-		return nil, fmt.Errorf("failed to match calldata with param field number")
-	}
-
-	out0 := *abi.ConvertType(out[0], new(libcommon.Address)).(*libcommon.Address)
-
-	return &SetL2ETHTokenParams{
-		Param__token: out0,
-	}, nil
-}
 
 // Receive is a paid mutator transaction binding the contract receive function.
 //
