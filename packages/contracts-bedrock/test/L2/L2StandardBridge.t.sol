@@ -496,7 +496,9 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         vm.expectCall(
             address(l2StandardBridge),
-            abi.encodeWithSelector(l2StandardBridge.bridgeERC20.selector, address(L2ETHToken), address(0), 100, 1000, hex"")
+            abi.encodeWithSelector(
+                l2StandardBridge.bridgeERC20.selector, address(L2ETHToken), address(0), 100, 1000, hex""
+            )
         );
 
         // The l2StandardBridge should burn the tokens
@@ -532,7 +534,9 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         vm.expectCall(
             address(l2StandardBridge),
-            abi.encodeWithSelector(l2StandardBridge.bridgeERC20To.selector, address(L2ETHToken), address(0), bob, 100, 1000, hex"")
+            abi.encodeWithSelector(
+                l2StandardBridge.bridgeERC20To.selector, address(L2ETHToken), address(0), bob, 100, 1000, hex""
+            )
         );
 
         // The l2StandardBridge should burn the tokens

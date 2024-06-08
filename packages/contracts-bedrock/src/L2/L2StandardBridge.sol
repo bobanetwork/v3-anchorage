@@ -186,7 +186,6 @@ contract L2StandardBridge is StandardBridge, ISemver {
         _initiateBridgeERC20(_localToken, _remoteToken, msg.sender, msg.sender, _amount, _minGasLimit, _extraData);
     }
 
-
     /// @notice Sends ERC20 tokens to a receiver's address on the other chain.
     /// @param _localToken  Address of the ERC20 on this chain.
     /// @param _remoteToken Address of the corresponding token on the remote chain.
