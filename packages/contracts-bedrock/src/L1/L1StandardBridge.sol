@@ -130,6 +130,11 @@ contract L1StandardBridge is StandardBridge, ISemver {
         (addr_, decimals_) = systemConfig.gasPayingToken();
     }
 
+    /// @inheritdoc StandardBridge
+    function l2ETHToken() internal view override returns (address) {
+        return systemConfig.l2ETHToken();
+    }
+
     /// @custom:legacy
     /// @notice Deposits some amount of ETH into the sender's account on L2.
     /// @param _minGasLimit Minimum gas limit for the deposit message on L2.
@@ -276,6 +281,8 @@ contract L1StandardBridge is StandardBridge, ISemver {
     )
         internal
     {
+        (address token,) = gasPayingToken();
+        require(_l1Token != token, "Cannot deposit gas paying token from L1StandardBridge");
         _initiateBridgeERC20(_l1Token, _l2Token, _from, _to, _amount, _minGasLimit, _extraData);
     }
 

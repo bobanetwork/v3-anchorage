@@ -244,7 +244,8 @@ contract SystemDictator is OwnableUpgradeable {
                         disputeGameFactory: zero,
                         optimismPortal: zero,
                         optimismMintableERC20Factory: zero,
-                        gasPayingToken: zero
+                        gasPayingToken: zero,
+                        l2ETHToken: zero
                     })
                 ),
                 ProtocolVersionConfig(ProtocolVersion.wrap(uint256(0)), ProtocolVersion.wrap(uint256(0)))
@@ -332,7 +333,7 @@ contract SystemDictator is OwnableUpgradeable {
         (bool success,) = address(config.implementationAddressConfig.addressDeprecatorImpl).delegatecall(
             abi.encodeWithSelector(bytes4(keccak256("deprecateAddresses()")))
         );
-        require(success, "Reverted: Error deprecating addresses");
+        require(success, "Error deprecating addresses");
     }
 
     /**
@@ -431,10 +432,10 @@ contract SystemDictator is OwnableUpgradeable {
         } catch Error(string memory reason) {
             require(
                 keccak256(abi.encodePacked(reason)) == keccak256("Initializable: contract is already initialized"),
-                string.concat("Error initializing L1XDM: ", reason)
+                string.concat("Error L1XDM: ", reason)
             );
         } catch {
-            revert("Reverted: Error initializing L1XDM");
+            revert("Error L1XDM");
         }
 
         // Transfer ETH from the L1StandardBridge to the OptimismPortal.
@@ -487,10 +488,10 @@ contract SystemDictator is OwnableUpgradeable {
         } catch Error(string memory reason) {
             require(
                 keccak256(abi.encodePacked(reason)) == keccak256("Initializable: contract is already initialized"),
-                string.concat("Error initializing L1SB: ", reason)
+                string.concat("Error L1SB: ", reason)
             );
         } catch {
-            revert("Reverted: Error initializing L1SB");
+            revert("Error L1SB");
         }
 
         // Try to set superchainConfig on the L1StandardBridge, only fail if it's already been set.
@@ -505,10 +506,10 @@ contract SystemDictator is OwnableUpgradeable {
         } catch Error(string memory reason) {
             require(
                 keccak256(abi.encodePacked(reason)) == keccak256("SuperchainConfig already set"),
-                string.concat("Error setting SuperchainConfig L1SB: ", reason)
+                string.concat("Error SuperchainConfig L1SB: ", reason)
             );
         } catch {
-            revert("Reverted: Error setting SuperchainConfig L1SB");
+            revert("Error SuperchainConfig L1SB");
         }
 
         // Try to initialize the L1ERC721Bridge, only fail if it's already been initialized.
@@ -523,10 +524,10 @@ contract SystemDictator is OwnableUpgradeable {
         } catch Error(string memory reason) {
             require(
                 keccak256(abi.encodePacked(reason)) == keccak256("Initializable: contract is already initialized"),
-                string.concat("Error initializing L1ERC721Bridge: ", reason)
+                string.concat("Error L1ERC721Bridge: ", reason)
             );
         } catch {
-            revert("Reverted: Error initializing L1ERC721Bridge");
+            revert("Error L1ERC721Bridge");
         }
 
         // Try to initialize the OptimismMintableERC20Factory, only fail if it's already been initialized.
@@ -535,10 +536,10 @@ contract SystemDictator is OwnableUpgradeable {
         ) { } catch Error(string memory reason) {
             require(
                 keccak256(abi.encodePacked(reason)) == keccak256("Initializable: contract is already initialized"),
-                string.concat("Error initializing L1ERC20Factory: ", reason)
+                string.concat("Error L1ERC20Factory: ", reason)
             );
         } catch {
-            revert("Reverted: Error initializing L1ERC20Factory");
+            revert("Error L1ERC20Factory");
         }
 
         // Try to initialize the ProtocolVersions, only fail if it's already been initialized.
@@ -554,10 +555,10 @@ contract SystemDictator is OwnableUpgradeable {
         } catch Error(string memory reason) {
             require(
                 keccak256(abi.encodePacked(reason)) == keccak256("Initializable: contract is already initialized"),
-                string.concat("Error initializing ProtocolVersions: ", reason)
+                string.concat("Error ProtocolVersions: ", reason)
             );
         } catch {
-            revert("Reverted: Error initializing ProtocolVersions");
+            revert("Error ProtocolVersions");
         }
 
         // Try to initialize the SuperchainConfig, only fail if it's already been initialized.
@@ -566,10 +567,10 @@ contract SystemDictator is OwnableUpgradeable {
         ) { } catch Error(string memory reason) {
             require(
                 keccak256(abi.encodePacked(reason)) == keccak256("Initializable: contract is already initialized"),
-                string.concat("Error initializing SuperchainConfig: ", reason)
+                string.concat("Error SuperchainConfig: ", reason)
             );
         } catch {
-            revert("Reverted: Error initializing SuperchainConfig");
+            revert(" Error SuperchainConfig");
         }
     }
 

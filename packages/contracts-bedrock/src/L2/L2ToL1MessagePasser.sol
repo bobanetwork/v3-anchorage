@@ -6,6 +6,7 @@ import { Hashing } from "src/libraries/Hashing.sol";
 import { Encoding } from "src/libraries/Encoding.sol";
 import { Burn } from "src/libraries/Burn.sol";
 import { ISemver } from "src/universal/ISemver.sol";
+import { Predeploys } from "src/libraries/Predeploys.sol";
 
 /// @custom:proxied
 /// @custom:predeploy 0x4200000000000000000000000000000000000016
@@ -85,6 +86,44 @@ contract L2ToL1MessagePasser is ISemver {
         sentMessages[withdrawalHash] = true;
 
         emit MessagePassed(messageNonce(), msg.sender, _target, msg.value, _gasLimit, _data, withdrawalHash);
+
+        unchecked {
+            ++msgNonce;
+        }
+    }
+
+    /// @notice Sends a message from L2 to L1.
+    /// @param _target   Address to call on L1 execution.
+    /// @param _value    Amount of ETH to send to the target.
+    /// @param _gasLimit Minimum gas limit for executing the message on L1.
+    /// @param _data     Data to forward to L1 target.
+    function initiateETHERC20Withdrawal(
+        address _target,
+        uint256 _value,
+        uint256 _gasLimit,
+        bytes memory _data
+    )
+        public
+    {
+        require(
+            msg.sender == Predeploys.L2_STANDARD_BRIDGE,
+            "L2ToL1MessagePasser: only the L2 standard bridge can initiate withdrawals"
+        );
+
+        bytes32 withdrawalHash = Hashing.hashWithdrawal(
+            Types.WithdrawalTransaction({
+                nonce: messageNonce(),
+                sender: msg.sender,
+                target: _target,
+                value: _value,
+                gasLimit: _gasLimit,
+                data: _data
+            })
+        );
+
+        sentMessages[withdrawalHash] = true;
+
+        emit MessagePassed(messageNonce(), msg.sender, _target, _value, _gasLimit, _data, withdrawalHash);
 
         unchecked {
             ++msgNonce;

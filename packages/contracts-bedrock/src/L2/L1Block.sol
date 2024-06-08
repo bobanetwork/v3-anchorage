@@ -19,6 +19,9 @@ contract L1Block is ISemver, IGasToken {
     /// @notice Event emitted when the gas paying token is set.
     event GasPayingTokenSet(address indexed token, uint8 indexed decimals, bytes32 name, bytes32 symbol);
 
+    /// @notice Event emitted when the l2 ETH token is set.
+    event L2ETHTokenSet(address indexed token);
+
     /// @notice Address of the special depositor account.
     function DEPOSITOR_ACCOUNT() public pure returns (address addr_) {
         addr_ = Constants.DEPOSITOR_ACCOUNT;
@@ -87,6 +90,11 @@ contract L1Block is ISemver, IGasToken {
     function isCustomGasToken() public view returns (bool) {
         (address token,) = gasPayingToken();
         return token != Constants.ETHER;
+    }
+
+    /// @notice Returns the L2 ETH token address.
+    function l2ETHToken() public view returns (address) {
+        return GasPayingToken.getL2ETHToken();
     }
 
     /// @custom:legacy
@@ -163,5 +171,13 @@ contract L1Block is ISemver, IGasToken {
         GasPayingToken.set({ _token: _token, _decimals: _decimals, _name: _name, _symbol: _symbol });
 
         emit GasPayingTokenSet({ token: _token, decimals: _decimals, name: _name, symbol: _symbol });
+    }
+
+    function setL2ETHToken(address _token) external {
+        if (msg.sender != DEPOSITOR_ACCOUNT()) revert NotDepositor();
+
+        GasPayingToken.setL2ETHToken({ _token: _token });
+
+        emit L2ETHTokenSet({ token: _token });
     }
 }

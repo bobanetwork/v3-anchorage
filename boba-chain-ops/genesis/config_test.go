@@ -26,7 +26,7 @@ func TestConfigMarshalUnmarshal(t *testing.T) {
 	require.JSONEq(t, string(b), string(encoded))
 
 	err = decoded.Check()
-	require.ErrorContains(t, err, "L1BobaTokenAddress")
+	require.NoError(t, err)
 
 	require.Equal(t, *decoded.L2GenesisRegolithTimeOffset, hexutil.Uint64(1))
 	require.Equal(t, *decoded.L2GenesisCanyonTimeOffset, hexutil.Uint64(1))

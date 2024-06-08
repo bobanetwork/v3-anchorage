@@ -340,6 +340,11 @@
             "internalType": "address",
             "name": "gasPayingToken",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "l2ETHToken",
+            "type": "address"
           }
         ],
         "internalType": "struct SystemConfig.Addresses",
@@ -394,6 +399,19 @@
   {
     "inputs": [],
     "name": "l1StandardBridge",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "addr_",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l2ETHToken",
     "outputs": [
       {
         "internalType": "address",
@@ -587,6 +605,19 @@
       }
     ],
     "name": "setGasLimit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }
+    ],
+    "name": "setL2ETHToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

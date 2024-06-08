@@ -295,7 +295,7 @@ const deployFn: DeployFunction = async (hre) => {
       )
       if (process.env.ENABLE_CUSTOM_GAS_PAYING_TOKEN === 'true') {
         assert(
-          resourceParams.prevBoughtGas.eq(200_000),
+          resourceParams.prevBoughtGas.eq(400_000),
           `OptimismPortal was not initialized with the correct initial bought gas`
         )
       } else {

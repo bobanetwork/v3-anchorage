@@ -141,7 +141,8 @@ contract SystemConfig_Initialize_TestFail is SystemConfig_Initialize_Test {
                 disputeGameFactory: address(0),
                 optimismPortal: address(0),
                 optimismMintableERC20Factory: address(0),
-                gasPayingToken: Constants.ETHER
+                gasPayingToken: Constants.ETHER,
+                l2ETHToken: address(0)
             })
         });
     }
@@ -171,7 +172,8 @@ contract SystemConfig_Initialize_TestFail is SystemConfig_Initialize_Test {
                 disputeGameFactory: address(0),
                 optimismPortal: address(0),
                 optimismMintableERC20Factory: address(0),
-                gasPayingToken: Constants.ETHER
+                gasPayingToken: Constants.ETHER,
+                l2ETHToken: address(0)
             })
         });
         assertEq(systemConfig.startBlock(), block.number);
@@ -202,7 +204,8 @@ contract SystemConfig_Initialize_TestFail is SystemConfig_Initialize_Test {
                 disputeGameFactory: address(0),
                 optimismPortal: address(0),
                 optimismMintableERC20Factory: address(0),
-                gasPayingToken: Constants.ETHER
+                gasPayingToken: Constants.ETHER,
+                l2ETHToken: address(0)
             })
         });
         assertEq(systemConfig.startBlock(), 1);
@@ -297,7 +300,8 @@ contract SystemConfig_Init_ResourceConfig is SystemConfig_Init {
                 disputeGameFactory: address(0),
                 optimismPortal: address(0),
                 optimismMintableERC20Factory: address(0),
-                gasPayingToken: address(0)
+                gasPayingToken: address(0),
+                l2ETHToken: address(0)
             })
         });
     }
@@ -335,7 +339,8 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
                 l1StandardBridge: address(0),
                 optimismPortal: address(optimismPortal),
                 optimismMintableERC20Factory: address(0),
-                gasPayingToken: _gasPayingToken
+                gasPayingToken: _gasPayingToken,
+                l2ETHToken: address(0)
             })
         });
     }
@@ -461,6 +466,116 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
     }
 }
 
+contract SystemConfig_Init_L2ETHToken is SystemConfig_Init {
+    ERC20 token;
+
+    function setUp() public override {
+        token = new ERC20("Silly", "SIL");
+        super.enableCustomGasToken(address(token));
+        super.enableL2ETHToken(address(token));
+        super.setUp();
+    }
+
+    /// @dev Helper to clean storage and then initialize the system config with an arbitrary gas token address.
+    function cleanStorageAndInit(address _gasPayingToken, address _l2ETHToken) internal {
+        vm.store(address(systemConfig), bytes32(0), bytes32(0)); // initailizer
+        vm.store(address(systemConfig), GasPayingToken.GAS_PAYING_TOKEN_SLOT, bytes32(0));
+        vm.store(address(systemConfig), GasPayingToken.GAS_PAYING_TOKEN_NAME_SLOT, bytes32(0));
+        vm.store(address(systemConfig), GasPayingToken.GAS_PAYING_TOKEN_SYMBOL_SLOT, bytes32(0));
+        vm.store(address(systemConfig), GasPayingToken.L2_ETH_TOKEN_SLOT, bytes32(0));
+
+        systemConfig.initialize({
+            _owner: alice,
+            _overhead: 2100,
+            _scalar: 1000000,
+            _batcherHash: bytes32(hex"abcd"),
+            _gasLimit: 30_000_000,
+            _unsafeBlockSigner: address(1),
+            _config: Constants.DEFAULT_RESOURCE_CONFIG(),
+            _batchInbox: address(0),
+            _addresses: SystemConfig.Addresses({
+                l1CrossDomainMessenger: address(0),
+                l1ERC721Bridge: address(0),
+                disputeGameFactory: address(0),
+                l1StandardBridge: address(0),
+                optimismPortal: address(optimismPortal),
+                optimismMintableERC20Factory: address(0),
+                gasPayingToken: _gasPayingToken,
+                l2ETHToken: _l2ETHToken
+            })
+        });
+    }
+
+    /// @dev Tests that initialization sets the correct values and getters work.
+    function test_initialize_l2ETHToken_succeeds() external view {
+        (address addr, uint8 decimals) = systemConfig.gasPayingToken();
+        assertEq(addr, address(token));
+        assertEq(decimals, 18);
+
+        assertEq(systemConfig.gasPayingTokenName(), token.name());
+        assertEq(systemConfig.gasPayingTokenSymbol(), token.symbol());
+
+        address l2ETHToken = systemConfig.l2ETHToken();
+        assertEq(l2ETHToken, address(token));
+    }
+
+    /// @dev Tests that initialization sets the correct values and getters work.
+    function testFuzz_initialize_l2ETHToken_succeeds(
+        address _token,
+        string calldata _name,
+        string calldata _symbol
+    )
+        external
+    {
+        vm.assume(_token != address(vm));
+        vm.assume(bytes(_name).length <= 32);
+        vm.assume(bytes(_symbol).length <= 32);
+
+        vm.mockCall(_token, abi.encodeWithSelector(token.decimals.selector), abi.encode(18));
+        vm.mockCall(_token, abi.encodeWithSelector(token.name.selector), abi.encode(_name));
+        vm.mockCall(_token, abi.encodeWithSelector(token.symbol.selector), abi.encode(_symbol));
+
+        cleanStorageAndInit(_token, _token);
+
+        (address addr, uint8 decimals) = systemConfig.gasPayingToken();
+        assertEq(decimals, 18);
+
+        if (_token == address(0) || _token == Constants.ETHER) {
+            assertEq(addr, Constants.ETHER);
+            assertEq(systemConfig.gasPayingTokenName(), "Ether");
+            assertEq(systemConfig.gasPayingTokenSymbol(), "ETH");
+        } else {
+            assertEq(addr, _token);
+            assertEq(systemConfig.gasPayingTokenName(), _name);
+            assertEq(systemConfig.gasPayingTokenSymbol(), _symbol);
+        }
+
+        address l2ETHToken = systemConfig.l2ETHToken();
+        assertEq(l2ETHToken, _token);
+    }
+
+    /// @dev Tests that initialization works with OptimismPortal.
+    function test_initialize_l2ETHTokenCall_succeeds() external {
+        vm.expectCall(address(optimismPortal), abi.encodeCall(optimismPortal.setL2ETHToken, (address(token))));
+
+        vm.expectEmit(address(optimismPortal));
+        emit TransactionDeposited(
+            0xDeaDDEaDDeAdDeAdDEAdDEaddeAddEAdDEAd0001,
+            Predeploys.L1_BLOCK_ATTRIBUTES,
+            0, // deposit version
+            abi.encodePacked(
+                uint256(0), // mint
+                uint256(0), // value
+                uint64(200_000), // gasLimit
+                false, // isCreation,
+                abi.encodeCall(L1Block.setL2ETHToken, (address(token)))
+            )
+        );
+
+        cleanStorageAndInit(address(token), address(token));
+    }
+}
+
 contract SystemConfig_Setters_TestFail is SystemConfig_Init {
     /// @dev Tests that `setBatcherHash` reverts if the caller is not the owner.
     function test_setBatcherHash_notOwner_reverts() external {
@@ -478,6 +593,12 @@ contract SystemConfig_Setters_TestFail is SystemConfig_Init {
     function test_setGasLimit_notOwner_reverts() external {
         vm.expectRevert("Ownable: caller is not the owner");
         systemConfig.setGasLimit(0);
+    }
+
+    /// @dev Tests that `setL2ETHToken` reverts if the caller is not the owner.
+    function test_setL2ETHToken_notOwner_reverts() external {
+        vm.expectRevert("Ownable: caller is not the owner");
+        systemConfig.setL2ETHToken(address(0x20));
     }
 
     /// @dev Tests that `setUnsafeBlockSigner` reverts if the caller is not the owner.
