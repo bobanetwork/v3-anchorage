@@ -228,7 +228,7 @@ func checkPredeployConfig(client *clients.RpcClient, name string, enableBobaGasT
 			}
 
 		case predeploys.WETHAddr:
-			if err := checkWETH(p, client); err != nil {
+			if err := checkWETH(p, predeploys.L1BlockAddr, client); err != nil {
 				return err
 			}
 
@@ -467,12 +467,12 @@ func checkL2ERC721Bridge(addr libcommon.Address, client *clients.RpcClient) erro
 	return nil
 }
 
-func checkWETH(addr libcommon.Address, client *clients.RpcClient) error {
+func checkWETH(addr libcommon.Address, l1BlockAddr libcommon.Address, client *clients.RpcClient) error {
 	contract, err := bindings.NewWETH(addr, client)
 	if err != nil {
 		return err
 	}
-	l1BlockContract, err := bindings.NewL1Block(addr, client)
+	l1BlockContract, err := bindings.NewL1Block(l1BlockAddr, client)
 	if err != nil {
 		return err
 	}
