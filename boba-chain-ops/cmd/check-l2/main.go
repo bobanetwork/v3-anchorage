@@ -486,7 +486,7 @@ func checkWETH(addr libcommon.Address, l1BlockAddr libcommon.Address, client *cl
 		return err
 	}
 	log.Info("WETH", "name", name)
-	if name != gasPayingTokenName {
+	if name != "Wrapped "+gasPayingTokenName {
 		return fmt.Errorf("WETH name should be %s, got %s", gasPayingTokenName, name)
 	}
 
@@ -499,7 +499,7 @@ func checkWETH(addr libcommon.Address, l1BlockAddr libcommon.Address, client *cl
 		return err
 	}
 	log.Info("WETH", "symbol", symbol)
-	if symbol != gasPayingTokenSymbol {
+	if symbol != "W"+gasPayingTokenSymbol {
 		return fmt.Errorf("WETH symbol should be %s, got %s", gasPayingTokenSymbol, symbol)
 	}
 
