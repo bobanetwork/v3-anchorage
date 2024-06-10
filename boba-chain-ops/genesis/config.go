@@ -606,11 +606,6 @@ func NewL2StorageConfig(config *DeployConfig, blockHeader *types.Header) (state.
 		"_name":   "Ether",
 		"_symbol": "ETH",
 	}
-	storage["WETH9"] = state.StorageValues{
-		"name":     "Wrapped Ether",
-		"symbol":   "WETH",
-		"decimals": 18,
-	}
 	storage["ProxyAdmin"] = state.StorageValues{
 		"_owner": config.ProxyAdminOwner,
 	}

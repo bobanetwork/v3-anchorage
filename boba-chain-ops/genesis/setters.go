@@ -25,7 +25,7 @@ var (
 	// that should not be touched by the migration process.
 	UntouchablePredeploys = map[common.Address]bool{
 		predeploys.BobaL2Addr: true,
-		predeploys.WETH9Addr:  true,
+		predeploys.WETHAddr:   true,
 	}
 
 	// UntouchableCodeHashes represent the bytecode hashes of contracts
@@ -34,7 +34,7 @@ var (
 		predeploys.BobaL2Addr: {
 			28882: common.HexToHash("0x536465c3460a5849f66be041a130eedbac32f223f6990db22988bd6db9e156f4"),
 		},
-		predeploys.WETH9Addr: {
+		predeploys.WETHAddr: {
 			288:   common.HexToHash("0x5b4b51d84d1f4b5bff7e20e96ed0771857d01c15aee81ff1eb34cf75c25e725e"),
 			28882: common.HexToHash("0x5b4b51d84d1f4b5bff7e20e96ed0771857d01c15aee81ff1eb34cf75c25e725e"),
 		},
@@ -47,7 +47,7 @@ var (
 	// that do not have their storage wiped. It is safe for all other
 	// predeploys to have their storage wiped.
 	FrozenStoragePredeploys = map[common.Address]bool{
-		predeploys.WETH9Addr:               true,
+		predeploys.WETHAddr:                true,
 		predeploys.LegacyMessagePasserAddr: true,
 		predeploys.LegacyERC20ETHAddr:      true,
 		predeploys.DeployerWhitelistAddr:   true,

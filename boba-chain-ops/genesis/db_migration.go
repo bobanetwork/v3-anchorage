@@ -69,7 +69,7 @@ func MigrateDB(chaindb kv.RwDB, genesis *types.Genesis, config *DeployConfig, bl
 	// credit from the genesis. We can now start to mutate the genesis to prepare it for the
 
 	// We need to wipe the storage of every predeployed contract EXCEPT for the GovernanceToken,
-	// WETH9, the DeployerWhitelist, the LegacyMessagePasser, and LegacyERC20ETH. We have verified
+	// WETH, the DeployerWhitelist, the LegacyMessagePasser, and LegacyERC20ETH. We have verified
 	// that none of the legacy storage (other than the aforementioned contracts) is accessible and
 	// therefore can be safely removed from the database. Storage must be wiped before anything
 	// else or the ERC-1967 proxy storage slots will be removed.
@@ -80,7 +80,7 @@ func MigrateDB(chaindb kv.RwDB, genesis *types.Genesis, config *DeployConfig, bl
 	// Next order of business is to convert all predeployed smart contracts into proxies so they
 	// can be easily upgraded later on. In the legacy system, all upgrades to predeployed contracts
 	// required hard forks which was a huge pain. Note that we do NOT put the GovernanceToken or
-	// WETH9 contracts behind proxies because we do not want to make these easily upgradable.
+	// WETH contracts behind proxies because we do not want to make these easily upgradable.
 	log.Info("Converting predeployed contracts to proxies")
 	if err := SetL2Proxies(genesis); err != nil {
 		return nil, fmt.Errorf("cannot set L2Proxies: %w", err)
@@ -88,7 +88,7 @@ func MigrateDB(chaindb kv.RwDB, genesis *types.Genesis, config *DeployConfig, bl
 
 	// Here we update the storage of each predeploy with the new storage variables that we want to
 	// set on L2 and update the implementations for all predeployed contracts that are behind
-	// proxies (NOT the GovernanceToken or WETH9).
+	// proxies (NOT the GovernanceToken or WETH).
 	log.Info("Updating implementations for predeployed contracts")
 	if err := SetImplementations(genesis, storage, immutable); err != nil {
 		return nil, fmt.Errorf("cannot set implementations: %w", err)

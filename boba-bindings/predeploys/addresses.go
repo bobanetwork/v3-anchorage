@@ -12,7 +12,7 @@ const (
 	DeployerWhitelist   = "0x4200000000000000000000000000000000000002"
 	// We are different here
 	LegacyERC20ETH                = "0x4200000000000000000000000000000000000006"
-	WETH9                         = "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000"
+	WETH                          = "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000"
 	L2CrossDomainMessenger        = "0x4200000000000000000000000000000000000007"
 	L2StandardBridge              = "0x4200000000000000000000000000000000000010"
 	SequencerFeeVault             = "0x4200000000000000000000000000000000000011"
@@ -42,7 +42,7 @@ var (
 	L2ToL1MessagePasserAddr           = common.HexToAddress(L2ToL1MessagePasser)
 	DeployerWhitelistAddr             = common.HexToAddress(DeployerWhitelist)
 	LegacyERC20ETHAddr                = common.HexToAddress(LegacyERC20ETH)
-	WETH9Addr                         = common.HexToAddress(WETH9)
+	WETHAddr                          = common.HexToAddress(WETH)
 	L2CrossDomainMessengerAddr        = common.HexToAddress(L2CrossDomainMessenger)
 	L2StandardBridgeAddr              = common.HexToAddress(L2StandardBridge)
 	SequencerFeeVaultAddr             = common.HexToAddress(SequencerFeeVault)
@@ -74,7 +74,7 @@ var (
 func IsProxied(predeployAddr common.Address) bool {
 	switch predeployAddr {
 	case LegacyERC20ETHAddr:
-	case WETH9Addr:
+	case WETHAddr:
 	case BobaL2Addr:
 	case Create2DeployerAddr:
 	case DeterministicDeploymentProxyAddr:
@@ -88,7 +88,7 @@ func init() {
 	Predeploys["L2ToL1MessagePasser"] = &L2ToL1MessagePasserAddr
 	Predeploys["DeployerWhitelist"] = &DeployerWhitelistAddr
 	Predeploys["LegacyERC20ETH"] = &LegacyERC20ETHAddr
-	Predeploys["WETH9"] = &WETH9Addr
+	Predeploys["WETH"] = &WETHAddr
 	Predeploys["L2CrossDomainMessenger"] = &L2CrossDomainMessengerAddr
 	Predeploys["L2StandardBridge"] = &L2StandardBridgeAddr
 	Predeploys["SequencerFeeVault"] = &SequencerFeeVaultAddr
