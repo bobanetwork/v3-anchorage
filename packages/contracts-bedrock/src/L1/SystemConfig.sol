@@ -323,6 +323,13 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
         }
     }
 
+    /// @notice Sets the L2 ETH token address.
+    /// @param _token Address of the L2 ETH token.
+    function setL2ETHToken(address _token) external onlyOwner {
+        require(GasPayingToken.getL2ETHToken() == address(0), "SystemConfig: L2 ETH token already set");
+        _setL2ETHToken(_token);
+    }
+
     /// @notice Internal setter for the L2 ETH token address.
     /// @param _token Address of the L2 ETH token.
     function _setL2ETHToken(address _token) internal {

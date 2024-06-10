@@ -158,6 +158,63 @@ contract L2StandardBridge is StandardBridge, ISemver {
         _initiateWithdrawal(_l2Token, msg.sender, _to, _amount, _minGasLimit, _extraData);
     }
 
+    /// @notice Sends ERC20 tokens to the sender's address on the other chain.
+    /// @param _localToken  Address of the ERC20 on this chain.
+    /// @param _remoteToken Address of the corresponding token on the remote chain.
+    /// @param _amount      Amount of local tokens to deposit.
+    /// @param _minGasLimit Minimum amount of gas that the bridge can be relayed with.
+    /// @param _extraData   Extra data to be sent with the transaction. Note that the recipient will
+    ///                     not be triggered with this data, but it will be emitted and can be used
+    ///                     to identify the transaction.
+    function bridgeERC20(
+        address _localToken,
+        address _remoteToken,
+        uint256 _amount,
+        uint32 _minGasLimit,
+        bytes calldata _extraData
+    )
+        public
+        override
+        onlyEOA
+    {
+        // Trigger ETH withdrawal if the custom gas token is used.
+        if (isCustomGasToken() == true && _localToken == l2ETHToken()) {
+            require(_remoteToken == address(0), "StandardBridge: cannot bridge ETH with custom gas token");
+            _initiateBridgeETHERC20(_localToken, _remoteToken, msg.sender, msg.sender, _amount);
+            return;
+        }
+        _initiateBridgeERC20(_localToken, _remoteToken, msg.sender, msg.sender, _amount, _minGasLimit, _extraData);
+    }
+
+    /// @notice Sends ERC20 tokens to a receiver's address on the other chain.
+    /// @param _localToken  Address of the ERC20 on this chain.
+    /// @param _remoteToken Address of the corresponding token on the remote chain.
+    /// @param _to          Address of the receiver.
+    /// @param _amount      Amount of local tokens to deposit.
+    /// @param _minGasLimit Minimum amount of gas that the bridge can be relayed with.
+    /// @param _extraData   Extra data to be sent with the transaction. Note that the recipient will
+    ///                     not be triggered with this data, but it will be emitted and can be used
+    ///                     to identify the transaction.
+    function bridgeERC20To(
+        address _localToken,
+        address _remoteToken,
+        address _to,
+        uint256 _amount,
+        uint32 _minGasLimit,
+        bytes calldata _extraData
+    )
+        public
+        override
+    {
+        // Trigger ETH withdrawal if the custom gas token is used.
+        if (isCustomGasToken() == true && _localToken == l2ETHToken()) {
+            require(_remoteToken == address(0), "StandardBridge: cannot bridge ETH with custom gas token");
+            _initiateBridgeETHERC20(_localToken, _remoteToken, msg.sender, _to, _amount);
+            return;
+        }
+        _initiateBridgeERC20(_localToken, _remoteToken, msg.sender, _to, _amount, _minGasLimit, _extraData);
+    }
+
     /// @custom:legacy
     /// @notice Retrieves the access of the corresponding L1 bridge contract.
     /// @return Address of the corresponding L1 bridge contract.

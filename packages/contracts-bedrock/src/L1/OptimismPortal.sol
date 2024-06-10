@@ -415,13 +415,11 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
 
             if (_tx.value != 0 && l2Sender == Predeploys.L2_STANDARD_BRIDGE) {
                 success = SafeCall.callWithMinGas(_tx.target, _tx.gasLimit, _tx.value, _tx.data);
-            } else {
+            } else if (_tx.data.length != 0) {
                 // Make a call to the target contract only if there is calldata.
-                if (_tx.data.length != 0) {
-                    success = SafeCall.callWithMinGas(_tx.target, _tx.gasLimit, 0, _tx.data);
-                } else {
-                    success = true;
-                }
+                success = SafeCall.callWithMinGas(_tx.target, _tx.gasLimit, 0, _tx.data);
+            } else {
+                success = true;
             }
         }
 

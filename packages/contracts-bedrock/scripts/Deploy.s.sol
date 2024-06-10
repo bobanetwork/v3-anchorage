@@ -991,8 +991,12 @@ contract Deploy is Deployer {
         bytes32 batcherHash = bytes32(uint256(uint160(cfg.batchSenderAddress())));
 
         address customGasTokenAddress = Constants.ETHER;
+        address l2ETHTokenAddress = address(0);
         if (cfg.useCustomGasToken()) {
             customGasTokenAddress = cfg.customGasTokenAddress();
+            if (cfg.l2ETHTokenAddress() != address(0)) {
+                l2ETHTokenAddress = cfg.l2ETHTokenAddress();
+            }
         }
 
         _upgradeAndCallViaSafe({
@@ -1017,7 +1021,7 @@ contract Deploy is Deployer {
                         optimismPortal: mustGetAddress("OptimismPortalProxy"),
                         optimismMintableERC20Factory: mustGetAddress("OptimismMintableERC20FactoryProxy"),
                         gasPayingToken: customGasTokenAddress,
-                        l2ETHToken: address(0)
+                        l2ETHToken: l2ETHTokenAddress
                     })
                 )
             )

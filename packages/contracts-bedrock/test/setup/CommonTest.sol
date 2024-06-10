@@ -21,6 +21,7 @@ contract CommonTest is Test, Setup, Events {
     bool usePlasmaOverride;
     bool useFaultProofs;
     address customGasToken;
+    address l2ETHToken;
     bool useInteropOverride;
 
     function setUp() public virtual override {
@@ -40,6 +41,9 @@ contract CommonTest is Test, Setup, Events {
         }
         if (customGasToken != address(0)) {
             deploy.cfg().setUseCustomGasToken(customGasToken);
+            if (l2ETHToken != address(0)) {
+                deploy.cfg().setL2ETHToken(l2ETHToken);
+            }
         }
         if (useInteropOverride) {
             deploy.cfg().setUseInterop(true);
@@ -138,6 +142,16 @@ contract CommonTest is Test, Setup, Events {
         require(_token != Constants.ETHER);
 
         customGasToken = _token;
+    }
+
+    function enableL2ETHToken(address _token) public {
+        // Check if the system has already been deployed, based off of the heuristic that alice and bob have not been
+        // set by the `setUp` function yet.
+        if (!(alice == address(0) && bob == address(0))) {
+            revert("CommonTest: Cannot enable custom gas token after deployment. Consider overriding `setUp`.");
+        }
+
+        l2ETHToken = _token;
     }
 
     function enableInterop() public {
