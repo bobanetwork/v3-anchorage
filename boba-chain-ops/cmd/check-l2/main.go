@@ -227,8 +227,8 @@ func checkPredeployConfig(client *clients.RpcClient, name string, enableBobaGasT
 				return err
 			}
 
-		case predeploys.WETH9Addr:
-			if err := checkWETH9(p, client); err != nil {
+		case predeploys.WETHAddr:
+			if err := checkWETH(p, client); err != nil {
 				return err
 			}
 
@@ -467,8 +467,17 @@ func checkL2ERC721Bridge(addr libcommon.Address, client *clients.RpcClient) erro
 	return nil
 }
 
-func checkWETH9(addr libcommon.Address, client *clients.RpcClient) error {
-	contract, err := bindings.NewWETH9(addr, client)
+func checkWETH(addr libcommon.Address, client *clients.RpcClient) error {
+	contract, err := bindings.NewWETH(addr, client)
+	if err != nil {
+		return err
+	}
+	l1BlockContract, err := bindings.NewL1Block(addr, client)
+	if err != nil {
+		return err
+	}
+
+	gasPayingTokenName, err := l1BlockContract.GasPayingTokenName(&bind.CallOpts{})
 	if err != nil {
 		return err
 	}
@@ -476,27 +485,31 @@ func checkWETH9(addr libcommon.Address, client *clients.RpcClient) error {
 	if err != nil {
 		return err
 	}
-	log.Info("WETH9", "name", name)
-	if name != "Wrapped Ether" {
-		return fmt.Errorf("WETH9 name should be 'Wrapped Ether', got %s", name)
+	log.Info("WETH", "name", name)
+	if name != gasPayingTokenName {
+		return fmt.Errorf("WETH name should be %s, got %s", gasPayingTokenName, name)
 	}
 
+	gasPayingTokenSymbol, err := l1BlockContract.GasPayingTokenSymbol(&bind.CallOpts{})
+	if err != nil {
+		return err
+	}
 	symbol, err := contract.Symbol(&bind.CallOpts{})
 	if err != nil {
 		return err
 	}
-	log.Info("WETH9", "symbol", symbol)
-	if symbol != "WETH" {
-		return fmt.Errorf("WETH9 symbol should be 'WETH', got %s", symbol)
+	log.Info("WETH", "symbol", symbol)
+	if symbol != gasPayingTokenSymbol {
+		return fmt.Errorf("WETH symbol should be %s, got %s", gasPayingTokenSymbol, symbol)
 	}
 
 	decimals, err := contract.Decimals(&bind.CallOpts{})
 	if err != nil {
 		return err
 	}
-	log.Info("WETH9", "decimals", decimals)
+	log.Info("WETH", "decimals", decimals)
 	if decimals != 18 {
-		return fmt.Errorf("WETH9 decimals should be 18, got %d", decimals)
+		return fmt.Errorf("WETH decimals should be 18, got %d", decimals)
 	}
 	return nil
 }

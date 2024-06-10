@@ -136,11 +136,6 @@ func TestSetImplementations(t *testing.T) {
 		"_name":   "Ether",
 		"_symbol": "ETH",
 	}
-	storage["WETH9"] = state.StorageValues{
-		"name":     "Wrapped Ether",
-		"symbol":   "WETH",
-		"decimals": 18,
-	}
 	storage["ProxyAdmin"] = state.StorageValues{
 		"_owner": common.Address{1},
 	}
