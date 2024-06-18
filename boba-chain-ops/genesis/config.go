@@ -410,6 +410,9 @@ func (d *DeployConfig) RollupConfig(l1StartHeader *types.Header, l2GenesisBlockH
 
 func (d *DeployConfig) GetL1BobaTokenAddress() (common.Address, error) {
 	var l1TokenAddr common.Address
+	if chain.IsBobaBnb(big.NewInt(int64(d.L2ChainID))) {
+		return common.Address{}, nil
+	}
 	if d.L1BobaTokenAddress != nil {
 		l1TokenAddr = *d.L1BobaTokenAddress
 	} else {
@@ -423,6 +426,9 @@ func (d *DeployConfig) GetL1BobaTokenAddress() (common.Address, error) {
 }
 
 func (d *DeployConfig) GetL2BobaTokenName() string {
+	if chain.IsBobaBnb(big.NewInt(int64(d.L2ChainID))) {
+		return "BNB"
+	}
 	if d.L2BobaTokenName == "" {
 		return "Boba Token"
 	}
@@ -430,6 +436,9 @@ func (d *DeployConfig) GetL2BobaTokenName() string {
 }
 
 func (d *DeployConfig) GetL2BobaTokenSymbol() string {
+	if chain.IsBobaBnb(big.NewInt(int64(d.L2ChainID))) {
+		return "BNB"
+	}
 	if d.L2BobaTokenSymbol == "" {
 		return "BOBA"
 	}

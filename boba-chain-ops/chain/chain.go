@@ -49,6 +49,12 @@ var (
 	// Optimism Mainnet genesis block hash
 	OptimismMainnetGenesisBlockHash = "0x7ca38a1916c42007829c55e69d3e9a73265554b586a499015373241b8a3fa48b"
 
+	// Boba Bnb
+	BobaBnbChainId = big.NewInt(56288)
+
+	// Boba Bnb Testnet
+	BobaBnbTestnetChainId = big.NewInt(9728)
+
 	// error
 	ErrInvalidChainID = errors.New("invalid chain id")
 )
@@ -159,6 +165,18 @@ func GetBobaTokenL1Address(chainId *big.Int) string {
 		return BobaTokenSepoliaL1Address
 	}
 	return "0x0000000000000000000000000000000000000000"
+}
+
+func IsBobaBnb(chainId *big.Int) bool {
+	// Boba Bnb
+	if BobaBnbChainId.Cmp(chainId) == 0 {
+		return true
+	}
+	// Boba Bnb Testnet
+	if BobaBnbTestnetChainId.Cmp(chainId) == 0 {
+		return true
+	}
+	return false
 }
 
 func IsBobaTokenPredeploy(chainId *big.Int) bool {
