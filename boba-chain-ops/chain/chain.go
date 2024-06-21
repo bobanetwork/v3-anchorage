@@ -53,7 +53,17 @@ var (
 	BobaBnbChainId = big.NewInt(56288)
 
 	// Boba Bnb Testnet
-	BobaBnbTestnetChainId = big.NewInt(9728)
+	BobaBobaBnbTestChainId = big.NewInt(9728)
+	// Bnb Testnet genesis gas limit
+	BobaBnbTestGenesisGasLimit = 11000000
+	// Bnb Testnet genesis block coinbase
+	BobaBnbTestGenesisCoinbase = "0x0000000000000000000000000000000000000000"
+	// Bnb Testnet genesis block extra data
+	BobaBnbTestGenesisExtraData = "000000000000000000000000000000000000000000000000000000000000000000000398232e2064f896018496b4b44b3d62751f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	// Bnb Testnet genesis root
+	BobaBnbTestGenesisRoot = "0xdd0a18054de6e995f2c66f3e3aae590df9cbee1c7e5f602b8bcf5a0c3b1a2f46"
+	// Bnb Testnet genesis block hash
+	BobaBnbTestGenesisBlockHash = "0x4d26ddc947c7cea924d5ef272c1a5ef40a1dce5ca2cbbaccad59d33f2505a30d"
 
 	// error
 	ErrInvalidChainID = errors.New("invalid chain id")
@@ -72,6 +82,10 @@ func IsBobaValidChainId(chainId *big.Int) bool {
 	if OptimismMainnetChainId.Cmp(chainId) == 0 {
 		return true
 	}
+	// Boba Bnb
+	if BobaBobaBnbTestChainId.Cmp(chainId) == 0 {
+		return true
+	}
 	return false
 }
 
@@ -87,6 +101,10 @@ func GetBobaGenesisGasLimit(chainId *big.Int) int {
 	// Optimism Mainnet
 	if OptimismMainnetChainId.Cmp(chainId) == 0 {
 		return OptimismMainnetGenesisGasLimit
+	}
+	// Bnb Testnet
+	if BobaBobaBnbTestChainId.Cmp(chainId) == 0 {
+		return BobaBnbTestGenesisGasLimit
 	}
 	return 11000000
 }
@@ -104,6 +122,10 @@ func GetBobaGenesisCoinbase(chainId *big.Int) string {
 	if OptimismMainnetChainId.Cmp(chainId) == 0 {
 		return OptimismMainnetGenesisCoinbase
 	}
+	// Bnb Testnet
+	if BobaBobaBnbTestChainId.Cmp(chainId) == 0 {
+		return BobaBnbTestGenesisCoinbase
+	}
 	return "0x0000000000000000000000000000000000000000"
 }
 
@@ -119,6 +141,10 @@ func GetBobaGenesisExtraData(chainId *big.Int) string {
 	// Optimism Mainnet
 	if OptimismMainnetChainId.Cmp(chainId) == 0 {
 		return OptimismMainnetGenesisExtraData
+	}
+	// Bnb Testnet
+	if BobaBobaBnbTestChainId.Cmp(chainId) == 0 {
+		return BobaBnbTestGenesisExtraData
 	}
 	return ""
 }
@@ -136,6 +162,10 @@ func GetBobaGenesisRoot(chainId *big.Int) string {
 	if OptimismMainnetChainId.Cmp(chainId) == 0 {
 		return OptimismMainnetGenesisRoot
 	}
+	// Bnb Testnet
+	if BobaBobaBnbTestChainId.Cmp(chainId) == 0 {
+		return BobaBnbTestGenesisRoot
+	}
 	return ""
 }
 
@@ -151,6 +181,10 @@ func GetBobaGenesisHash(chainId *big.Int) string {
 	// Optimism Mainnet
 	if OptimismMainnetChainId.Cmp(chainId) == 0 {
 		return OptimismMainnetGenesisBlockHash
+	}
+	// Bnb Testnet
+	if BobaBobaBnbTestChainId.Cmp(chainId) == 0 {
+		return BobaBnbTestGenesisBlockHash
 	}
 	return ""
 }
@@ -173,7 +207,7 @@ func IsBobaBnb(chainId *big.Int) bool {
 		return true
 	}
 	// Boba Bnb Testnet
-	if BobaBnbTestnetChainId.Cmp(chainId) == 0 {
+	if BobaBobaBnbTestChainId.Cmp(chainId) == 0 {
 		return true
 	}
 	return false
