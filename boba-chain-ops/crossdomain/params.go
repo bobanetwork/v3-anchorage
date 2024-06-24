@@ -22,6 +22,10 @@ var ParamsByChainID = map[int]*Params{
 	28882: {
 		new(big.Int),
 	},
+	// Bnb Testnet L2
+	9728: {
+		new(big.Int),
+	},
 }
 
 var CustomLegacyETHSlotCheck = map[int]bool{}

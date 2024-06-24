@@ -33,10 +33,12 @@ var (
 	UntouchableCodeHashes = map[common.Address]ChainHashMap{
 		predeploys.BobaL2Addr: {
 			28882: common.HexToHash("0x536465c3460a5849f66be041a130eedbac32f223f6990db22988bd6db9e156f4"),
+			9728:  common.HexToHash("0xf901c9c42b9305a38b84f28520b3bdba254ff36506eff56114d38edf94f5461f"),
 		},
 		predeploys.WETHAddr: {
 			288:   common.HexToHash("0x5b4b51d84d1f4b5bff7e20e96ed0771857d01c15aee81ff1eb34cf75c25e725e"),
 			28882: common.HexToHash("0x5b4b51d84d1f4b5bff7e20e96ed0771857d01c15aee81ff1eb34cf75c25e725e"),
+			9728:  common.HexToHash("0x4070f3453da6e53fb69d2da90e11cf71c951aee11acd05c23b99c0d2e7c091fb"),
 		},
 	}
 
@@ -148,6 +150,15 @@ func SetLegacyETH(g *types.Genesis, storage state.StorageConfig, immutable immut
 	}
 
 	return setupPredeploy(g, deployResults, storage, "LegacyERC20ETH", predeploys.LegacyERC20ETHAddr, predeploys.LegacyERC20ETHAddr)
+}
+
+func SetWETH(g *types.Genesis, storage state.StorageConfig, immutable immutables.ImmutableConfig) error {
+	deployResults, err := immutables.BuildOptimism(immutable)
+	if err != nil {
+		return err
+	}
+
+	return setupPredeploy(g, deployResults, storage, "WETH", predeploys.WETHAddr, predeploys.WETHAddr)
 }
 
 // SetImplementations will set the implementations of the contracts in the state

@@ -102,6 +102,11 @@ func MigrateDB(chaindb kv.RwDB, genesis *types.Genesis, config *DeployConfig, bl
 		return nil, fmt.Errorf("cannot set legacy ETH: %w", err)
 	}
 
+	log.Info("Updating code for WETH")
+	if err := SetWETH(genesis, storage, immutable); err != nil {
+		return nil, fmt.Errorf("cannot set WETH: %w", err)
+	}
+
 	// Now we migrate legacy withdrawals from the LegacyMessagePasser contract to their new format
 	// in the Bedrock L2ToL1MessagePasser contract. Note that we do NOT delete the withdrawals from
 	// the LegacyMessagePasser contract. Here we operate on the list of withdrawals that we

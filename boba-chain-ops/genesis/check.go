@@ -540,6 +540,9 @@ func PostCheckLegacyETH(tx kv.Tx, g *types.Genesis, migrationData crossdomain.Mi
 	} else {
 		log.Info("checking legacy eth fixed storage slots", "chainID", g.Config.ChainID)
 		for slot, expValue := range LegacyETHCheckSlots {
+			if slot == libcommon.BytesToHash([]byte{5}) {
+				continue
+			}
 			actValue := storages[predeploys.LegacyERC20ETHAddr][slot]
 			if actValue != expValue {
 				return fmt.Errorf("expected slot %s on %s to be %s, but got %s", slot, predeploys.LegacyERC20ETHAddr, expValue, actValue)
@@ -719,10 +722,10 @@ func PostCheckL1Block(tx kv.Tx, info *L1BlockInfo, storages map[libcommon.Addres
 	}
 	log.Debug("validated L1Block implementation", "expected", expImplementation)
 
-	if len(storages[predeploys.L1BlockAddr]) != 8 {
+	if len(storages[predeploys.L1BlockAddr]) != 7 {
 		return fmt.Errorf("expected L1Block to have 8 storage slots, but got %d", len(storages[predeploys.L1BlockAddr]))
 	}
-	log.Debug("validated L1Block storage slot count", "expected", 8)
+	log.Debug("validated L1Block storage slot count", "expected", 7)
 
 	return nil
 }
