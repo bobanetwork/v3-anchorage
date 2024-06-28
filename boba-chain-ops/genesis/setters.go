@@ -152,15 +152,6 @@ func SetLegacyETH(g *types.Genesis, storage state.StorageConfig, immutable immut
 	return setupPredeploy(g, deployResults, storage, "LegacyERC20ETH", predeploys.LegacyERC20ETHAddr, predeploys.LegacyERC20ETHAddr)
 }
 
-func SetWETH(g *types.Genesis, storage state.StorageConfig, immutable immutables.ImmutableConfig) error {
-	deployResults, err := immutables.BuildOptimism(immutable)
-	if err != nil {
-		return err
-	}
-
-	return setupPredeploy(g, deployResults, storage, "WETH", predeploys.WETHAddr, predeploys.WETHAddr)
-}
-
 // SetImplementations will set the implementations of the contracts in the state
 // and configure the proxies to point to the implementations. It also sets
 // the appropriate storage values for each contract at the proxy address.

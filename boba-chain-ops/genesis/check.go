@@ -256,6 +256,10 @@ func PostCheckMigratedDB(
 // not been modified by the migration process.
 func PostCheckUntouchables(tx kv.Tx, g *types.Genesis, storages map[libcommon.Address]map[libcommon.Hash]libcommon.Hash) error {
 	for addr := range UntouchablePredeploys {
+		if chain.IsBobaBnb(g.Config.ChainID) && addr == predeploys.WETHAddr {
+			log.Info("skipping WETH for Boba Bnb")
+			continue
+		}
 		// Check that the code is the same.
 		hash, err := state.GetContractCodeHash(tx, addr)
 		if err != nil {
