@@ -1,0 +1,593 @@
+diff --git a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
+index 5e6373368..659f60fd0 100644
+--- a/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
++++ b/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol
+@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
+ import { Predeploys } from "src/libraries/Predeploys.sol";
+ import { OptimismPortal } from "src/L1/OptimismPortal.sol";
+ import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
++import { StandardBridge } from "src/universal/StandardBridge.sol";
+ import { ISemver } from "src/universal/ISemver.sol";
+ import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
+ import { SystemConfig } from "src/L1/SystemConfig.sol";
+@@ -69,6 +70,50 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
+         return portal;
+     }
+ 
++    /// @notice send the cross domain message for minting ETH ERC20 tokens on the L2.
++    /// @param _l1Token The address of the L1 token.
++    /// @param _l2Token The address of the L2 token.
++    /// @param _sender The address of the sender.
++    /// @param _to The address of the recipient.
++    /// @param _value The amount of tokens to mint.
++    /// @param _gasLimit The gas limit for the message.
++    /// @return The cross domain message.
++    function sendMintETHERC20Message(
++        address _l1Token,
++        address _l2Token,
++        address _sender,
++        address _to,
++        uint256 _value,
++        uint64 _gasLimit
++    )
++        external
++        returns (bytes memory)
++    {
++        require(
++            msg.sender == systemConfig.optimismPortal(), "L1CrossDomainMessenger: sender must be the OptimismPortal"
++        );
++        bytes memory _message = abi.encodeWithSelector(
++            StandardBridge.finalizeBridgeERC20.selector, _l2Token, _l1Token, _sender, _to, _value, new bytes(0)
++        );
++
++        bytes memory _data = abi.encodeWithSelector(
++            this.relayMessage.selector,
++            messageNonce(),
++            systemConfig.l1StandardBridge(),
++            Predeploys.L2_STANDARD_BRIDGE,
++            uint256(0),
++            _gasLimit,
++            _message
++        );
++
++        bytes memory opaqueData =
++            abi.encodePacked(uint256(0), uint256(0), this.baseGas(_message, uint32(_gasLimit)), false, _data);
++
++        msgNonce = msgNonce + 1;
++
++        return opaqueData;
++    }
++
+     /// @inheritdoc CrossDomainMessenger
+     function _sendMessage(address _to, uint64 _gasLimit, uint256 _value, bytes memory _data) internal override {
+         portal.depositTransaction{ value: _value }({
+diff --git a/packages/contracts-bedrock/src/L1/L1StandardBridge.sol b/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
+index 45bc151c1..1de10f7f7 100644
+--- a/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
++++ b/packages/contracts-bedrock/src/L1/L1StandardBridge.sol
+@@ -130,6 +130,11 @@ contract L1StandardBridge is StandardBridge, ISemver {
+         (addr_, decimals_) = systemConfig.gasPayingToken();
+     }
+ 
++    /// @inheritdoc StandardBridge
++    function l2ETHToken() internal view override returns (address) {
++        return systemConfig.l2ETHToken();
++    }
++
+     /// @custom:legacy
+     /// @notice Deposits some amount of ETH into the sender's account on L2.
+     /// @param _minGasLimit Minimum gas limit for the deposit message on L2.
+@@ -276,6 +281,8 @@ contract L1StandardBridge is StandardBridge, ISemver {
+     )
+         internal
+     {
++        (address token,) = gasPayingToken();
++        require(_l1Token != token, "Cannot deposit gas paying token from L1StandardBridge");
+         _initiateBridgeERC20(_l1Token, _l2Token, _from, _to, _amount, _minGasLimit, _extraData);
+     }
+ 
+diff --git a/packages/contracts-bedrock/src/L1/OptimismPortal.sol b/packages/contracts-bedrock/src/L1/OptimismPortal.sol
+index b1d3b975c..187351317 100644
+--- a/packages/contracts-bedrock/src/L1/OptimismPortal.sol
++++ b/packages/contracts-bedrock/src/L1/OptimismPortal.sol
+@@ -201,6 +201,10 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+     ///         function for EOAs. Contracts should call the depositTransaction() function directly
+     ///         otherwise any deposited funds will be lost due to address aliasing.
+     receive() external payable {
++        (address token,) = gasPayingToken();
++        if (token != Constants.ETHER) {
++            return depositTransaction(msg.sender, 0, RECEIVE_DEFAULT_GAS_LIMIT, false, bytes(""));
++        }
+         depositTransaction(msg.sender, msg.value, RECEIVE_DEFAULT_GAS_LIMIT, false, bytes(""));
+     }
+ 
+@@ -216,6 +220,11 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+         (addr_, decimals_) = systemConfig.gasPayingToken();
+     }
+ 
++    /// @notice Returns the l2 ether token address.
++    function l2ETHToken() internal view returns (address) {
++        return systemConfig.l2ETHToken();
++    }
++
+     /// @notice Getter for the resource config.
+     ///         Used internally by the ResourceMetering contract.
+     ///         The SystemConfig is the source of truth for the resource config.
+@@ -385,7 +394,7 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+ 
+             // Only transfer value when a non zero value is specified. This saves gas in the case of
+             // using the standard bridge or arbitrary message passing.
+-            if (_tx.value != 0) {
++            if (_tx.value != 0 && l2Sender != Predeploys.L2_STANDARD_BRIDGE) {
+                 // Update the contracts internal accounting of the amount of native asset in L2.
+                 _balance -= _tx.value;
+ 
+@@ -404,8 +413,10 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+                 }
+             }
+ 
+-            // Make a call to the target contract only if there is calldata.
+-            if (_tx.data.length != 0) {
++            if (_tx.value != 0 && l2Sender == Predeploys.L2_STANDARD_BRIDGE) {
++                success = SafeCall.callWithMinGas(_tx.target, _tx.gasLimit, _tx.value, _tx.data);
++            } else if (_tx.data.length != 0) {
++                // Make a call to the target contract only if there is calldata.
+                 success = SafeCall.callWithMinGas(_tx.target, _tx.gasLimit, 0, _tx.data);
+             } else {
+                 success = true;
+@@ -497,7 +508,26 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+         metered(_gasLimit)
+     {
+         (address token,) = gasPayingToken();
+-        if (token != Constants.ETHER && msg.value != 0) revert NoValue();
++        address l2ETHToken = l2ETHToken();
++        if (token != Constants.ETHER && msg.value != 0 && l2ETHToken == address(0)) revert NoValue();
++        if (token != Constants.ETHER && msg.value != 0 && l2ETHToken != address(0)) {
++            require(
++                _value == 0 && _isCreation == false && tx.origin == msg.sender && _data.length == 0,
++                "OptimismPortal: invalid deposit"
++            );
++
++            bytes memory opaqueData = OptimismPortalHelper(systemConfig.l1CrossDomainMessenger())
++                .sendMintETHERC20Message(address(0), l2ETHToken, msg.sender, _to, msg.value, uint64(_gasLimit));
++
++            emit TransactionDeposited(
++                AddressAliasHelper.applyL1ToL2Alias(systemConfig.l1CrossDomainMessenger()),
++                Predeploys.L2_CROSS_DOMAIN_MESSENGER,
++                DEPOSIT_VERSION,
++                opaqueData
++            );
++
++            return;
++        }
+ 
+         _depositTransaction({
+             _to: _to,
+@@ -581,6 +611,30 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+         );
+     }
+ 
++    /// @notice Sets the L2 ETH token for the L2 system.
++    function setL2ETHToken(address _token) external {
++        if (msg.sender != address(systemConfig)) revert Unauthorized();
++
++        // Set L2 deposit gas as used without paying burning gas. Ensures that deposits cannot use too much L2 gas.
++        // This value must be large enough to cover the cost of calling `L1Block.setL2ETHToken`.
++        useGas(SYSTEM_DEPOSIT_GAS_LIMIT);
++
++        // Emit the special deposit transaction directly that sets the gas paying
++        // token in the L1Block predeploy contract.
++        emit TransactionDeposited(
++            Constants.DEPOSITOR_ACCOUNT,
++            Predeploys.L1_BLOCK_ATTRIBUTES,
++            DEPOSIT_VERSION,
++            abi.encodePacked(
++                uint256(0), // mint
++                uint256(0), // value
++                uint64(SYSTEM_DEPOSIT_GAS_LIMIT), // gasLimit
++                false, // isCreation,
++                abi.encodeCall(L1Block.setL2ETHToken, (_token))
++            )
++        );
++    }
++
+     /// @notice Determine if a given output is finalized.
+     ///         Reverts if the call to l2Oracle.getL2Output reverts.
+     ///         Returns a boolean otherwise.
+@@ -598,3 +652,17 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
+         return block.timestamp > _timestamp + l2Oracle.FINALIZATION_PERIOD_SECONDS();
+     }
+ }
++
++interface OptimismPortalHelper {
++    /// @notice Encodes a message to mint ETH ERC20 tokens on L2.
++    function sendMintETHERC20Message(
++        address _l1Token,
++        address _l2Token,
++        address _sender,
++        address _to,
++        uint256 _value,
++        uint64 _gasLimit
++    )
++        external
++        returns (bytes memory);
++}
+diff --git a/packages/contracts-bedrock/src/L1/SystemConfig.sol b/packages/contracts-bedrock/src/L1/SystemConfig.sol
+index 67a8353ae..c02268e75 100644
+--- a/packages/contracts-bedrock/src/L1/SystemConfig.sol
++++ b/packages/contracts-bedrock/src/L1/SystemConfig.sol
+@@ -39,6 +39,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
+         address optimismPortal;
+         address optimismMintableERC20Factory;
+         address gasPayingToken;
++        address l2ETHToken;
+     }
+ 
+     /// @notice Version identifier, used for upgrades.
+@@ -148,7 +149,8 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
+                 disputeGameFactory: address(0),
+                 optimismPortal: address(0),
+                 optimismMintableERC20Factory: address(0),
+-                gasPayingToken: address(0)
++                gasPayingToken: address(0),
++                l2ETHToken: address(0)
+             })
+         });
+     }
+@@ -198,6 +200,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
+ 
+         _setStartBlock();
+         _setGasPayingToken(_addresses.gasPayingToken);
++        _setL2ETHToken(_addresses.l2ETHToken);
+ 
+         _setResourceConfig(_config);
+         require(_gasLimit >= minimumGasLimit(), "SystemConfig: gas limit too low");
+@@ -291,6 +294,11 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
+         symbol_ = GasPayingToken.getSymbol();
+     }
+ 
++    /// @notice Getter for the L2 ETH token address.
++    function l2ETHToken() external view returns (address addr_) {
++        addr_ = GasPayingToken.getL2ETHToken();
++    }
++
+     /// @notice Internal setter for the gas paying token address, includes validation.
+     ///         The token must not already be set and must be non zero and not the ether address
+     ///         to set the token address. This prevents the token address from being changed
+@@ -315,6 +323,22 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
+         }
+     }
+ 
++    /// @notice Sets the L2 ETH token address.
++    /// @param _token Address of the L2 ETH token.
++    function setL2ETHToken(address _token) external onlyOwner {
++        require(GasPayingToken.getL2ETHToken() == address(0), "SystemConfig: L2 ETH token already set");
++        _setL2ETHToken(_token);
++    }
++
++    /// @notice Internal setter for the L2 ETH token address.
++    /// @param _token Address of the L2 ETH token.
++    function _setL2ETHToken(address _token) internal {
++        if (_token != address(0) && isCustomGasToken()) {
++            GasPayingToken.setL2ETHToken(_token);
++            OptimismPortal(payable(optimismPortal())).setL2ETHToken({ _token: _token });
++        }
++    }
++
+     /// @notice Updates the unsafe block signer address. Can only be called by the owner.
+     /// @param _unsafeBlockSigner New unsafe block signer address.
+     function setUnsafeBlockSigner(address _unsafeBlockSigner) external onlyOwner {
+diff --git a/packages/contracts-bedrock/src/L2/L1Block.sol b/packages/contracts-bedrock/src/L2/L1Block.sol
+index 9b213d031..5354b9883 100644
+--- a/packages/contracts-bedrock/src/L2/L1Block.sol
++++ b/packages/contracts-bedrock/src/L2/L1Block.sol
+@@ -19,6 +19,9 @@ contract L1Block is ISemver, IGasToken {
+     /// @notice Event emitted when the gas paying token is set.
+     event GasPayingTokenSet(address indexed token, uint8 indexed decimals, bytes32 name, bytes32 symbol);
+ 
++    /// @notice Event emitted when the l2 ETH token is set.
++    event L2ETHTokenSet(address indexed token);
++
+     /// @notice Address of the special depositor account.
+     function DEPOSITOR_ACCOUNT() public pure returns (address addr_) {
+         addr_ = Constants.DEPOSITOR_ACCOUNT;
+@@ -89,6 +92,11 @@ contract L1Block is ISemver, IGasToken {
+         return token != Constants.ETHER;
+     }
+ 
++    /// @notice Returns the L2 ETH token address.
++    function l2ETHToken() public view returns (address) {
++        return GasPayingToken.getL2ETHToken();
++    }
++
+     /// @custom:legacy
+     /// @notice Updates the L1 block values.
+     /// @param _number         L1 blocknumber.
+@@ -164,4 +172,12 @@ contract L1Block is ISemver, IGasToken {
+ 
+         emit GasPayingTokenSet({ token: _token, decimals: _decimals, name: _name, symbol: _symbol });
+     }
++
++    function setL2ETHToken(address _token) external {
++        if (msg.sender != DEPOSITOR_ACCOUNT()) revert NotDepositor();
++
++        GasPayingToken.setL2ETHToken({ _token: _token });
++
++        emit L2ETHTokenSet({ token: _token });
++    }
+ }
+diff --git a/packages/contracts-bedrock/src/L2/L2StandardBridge.sol b/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
+index 1472d0fd9..fb7553821 100644
+--- a/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
++++ b/packages/contracts-bedrock/src/L2/L2StandardBridge.sol
+@@ -71,6 +71,9 @@ contract L2StandardBridge is StandardBridge, ISemver {
+ 
+     /// @notice Allows EOAs to bridge ETH by sending directly to the bridge.
+     receive() external payable override onlyEOA {
++        if (isCustomGasToken() == true && msg.value > 0) {
++            revert("L2StandardBridge: not supported with custom gas token");
++        }
+         _initiateWithdrawal(
+             Predeploys.LEGACY_ERC20_ETH, msg.sender, msg.sender, msg.value, RECEIVE_DEFAULT_GAS_LIMIT, bytes("")
+         );
+@@ -81,6 +84,11 @@ contract L2StandardBridge is StandardBridge, ISemver {
+         (addr_, decimals_) = L1Block(Predeploys.L1_BLOCK_ATTRIBUTES).gasPayingToken();
+     }
+ 
++    /// @inheritdoc StandardBridge
++    function l2ETHToken() internal view override returns (address) {
++        return L1Block(Predeploys.L1_BLOCK_ATTRIBUTES).l2ETHToken();
++    }
++
+     /// @custom:legacy
+     /// @notice Initiates a withdrawal from L2 to L1.
+     ///         This function only works with OptimismMintableERC20 tokens or ether. Use the
+@@ -101,7 +109,15 @@ contract L2StandardBridge is StandardBridge, ISemver {
+         virtual
+         onlyEOA
+     {
+-        require(isCustomGasToken() == false, "L2StandardBridge: not supported with custom gas token");
++        // The custom gas token is not supported with this function.
++        if (isCustomGasToken() == true && msg.value > 0) {
++            revert("L2StandardBridge: not supported with custom gas token");
++        }
++        // Trigger ETH withdrawal if the custom gas token is used.
++        if (isCustomGasToken() == true && _l2Token == l2ETHToken()) {
++            _initiateBridgeETHERC20(_l2Token, address(0), msg.sender, msg.sender, _amount);
++            return;
++        }
+         _initiateWithdrawal(_l2Token, msg.sender, msg.sender, _amount, _minGasLimit, _extraData);
+     }
+ 
+@@ -130,10 +146,75 @@ contract L2StandardBridge is StandardBridge, ISemver {
+         payable
+         virtual
+     {
+-        require(isCustomGasToken() == false, "L2StandardBridge: not supported with custom gas token");
++        // The custom gas token is not supported with this function.
++        if (isCustomGasToken() == true && msg.value > 0) {
++            revert("L2StandardBridge: not supported with custom gas token");
++        }
++        // Trigger ETH withdrawal if the custom gas token is used.
++        if (isCustomGasToken() == true && _l2Token == l2ETHToken()) {
++            _initiateBridgeETHERC20(_l2Token, address(0), msg.sender, _to, _amount);
++            return;
++        }
+         _initiateWithdrawal(_l2Token, msg.sender, _to, _amount, _minGasLimit, _extraData);
+     }
+ 
++    /// @notice Sends ERC20 tokens to the sender's address on the other chain.
++    /// @param _localToken  Address of the ERC20 on this chain.
++    /// @param _remoteToken Address of the corresponding token on the remote chain.
++    /// @param _amount      Amount of local tokens to deposit.
++    /// @param _minGasLimit Minimum amount of gas that the bridge can be relayed with.
++    /// @param _extraData   Extra data to be sent with the transaction. Note that the recipient will
++    ///                     not be triggered with this data, but it will be emitted and can be used
++    ///                     to identify the transaction.
++    function bridgeERC20(
++        address _localToken,
++        address _remoteToken,
++        uint256 _amount,
++        uint32 _minGasLimit,
++        bytes calldata _extraData
++    )
++        public
++        override
++        onlyEOA
++    {
++        // Trigger ETH withdrawal if the custom gas token is used.
++        if (isCustomGasToken() == true && _localToken == l2ETHToken()) {
++            require(_remoteToken == address(0), "StandardBridge: cannot bridge ETH with custom gas token");
++            _initiateBridgeETHERC20(_localToken, _remoteToken, msg.sender, msg.sender, _amount);
++            return;
++        }
++        _initiateBridgeERC20(_localToken, _remoteToken, msg.sender, msg.sender, _amount, _minGasLimit, _extraData);
++    }
++
++    /// @notice Sends ERC20 tokens to a receiver's address on the other chain.
++    /// @param _localToken  Address of the ERC20 on this chain.
++    /// @param _remoteToken Address of the corresponding token on the remote chain.
++    /// @param _to          Address of the receiver.
++    /// @param _amount      Amount of local tokens to deposit.
++    /// @param _minGasLimit Minimum amount of gas that the bridge can be relayed with.
++    /// @param _extraData   Extra data to be sent with the transaction. Note that the recipient will
++    ///                     not be triggered with this data, but it will be emitted and can be used
++    ///                     to identify the transaction.
++    function bridgeERC20To(
++        address _localToken,
++        address _remoteToken,
++        address _to,
++        uint256 _amount,
++        uint32 _minGasLimit,
++        bytes calldata _extraData
++    )
++        public
++        override
++    {
++        // Trigger ETH withdrawal if the custom gas token is used.
++        if (isCustomGasToken() == true && _localToken == l2ETHToken()) {
++            require(_remoteToken == address(0), "StandardBridge: cannot bridge ETH with custom gas token");
++            _initiateBridgeETHERC20(_localToken, _remoteToken, msg.sender, _to, _amount);
++            return;
++        }
++        _initiateBridgeERC20(_localToken, _remoteToken, msg.sender, _to, _amount, _minGasLimit, _extraData);
++    }
++
+     /// @custom:legacy
+     /// @notice Retrieves the access of the corresponding L1 bridge contract.
+     /// @return Address of the corresponding L1 bridge contract.
+diff --git a/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol b/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol
+index 8c764e999..12a1e0abc 100644
+--- a/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol
++++ b/packages/contracts-bedrock/src/L2/L2ToL1MessagePasser.sol
+@@ -6,6 +6,7 @@ import { Hashing } from "src/libraries/Hashing.sol";
+ import { Encoding } from "src/libraries/Encoding.sol";
+ import { Burn } from "src/libraries/Burn.sol";
+ import { ISemver } from "src/universal/ISemver.sol";
++import { Predeploys } from "src/libraries/Predeploys.sol";
+ 
+ /// @custom:proxied
+ /// @custom:predeploy 0x4200000000000000000000000000000000000016
+@@ -91,6 +92,44 @@ contract L2ToL1MessagePasser is ISemver {
+         }
+     }
+ 
++    /// @notice Sends a message from L2 to L1.
++    /// @param _target   Address to call on L1 execution.
++    /// @param _value    Amount of ETH to send to the target.
++    /// @param _gasLimit Minimum gas limit for executing the message on L1.
++    /// @param _data     Data to forward to L1 target.
++    function initiateETHERC20Withdrawal(
++        address _target,
++        uint256 _value,
++        uint256 _gasLimit,
++        bytes memory _data
++    )
++        public
++    {
++        require(
++            msg.sender == Predeploys.L2_STANDARD_BRIDGE,
++            "L2ToL1MessagePasser: only the L2 standard bridge can initiate withdrawals"
++        );
++
++        bytes32 withdrawalHash = Hashing.hashWithdrawal(
++            Types.WithdrawalTransaction({
++                nonce: messageNonce(),
++                sender: msg.sender,
++                target: _target,
++                value: _value,
++                gasLimit: _gasLimit,
++                data: _data
++            })
++        );
++
++        sentMessages[withdrawalHash] = true;
++
++        emit MessagePassed(messageNonce(), msg.sender, _target, _value, _gasLimit, _data, withdrawalHash);
++
++        unchecked {
++            ++msgNonce;
++        }
++    }
++
+     /// @notice Retrieves the next message nonce. Message version will be added to the upper two
+     ///         bytes of the message nonce. Message version allows us to treat messages as having
+     ///         different structures.
+diff --git a/packages/contracts-bedrock/src/libraries/GasPayingToken.sol b/packages/contracts-bedrock/src/libraries/GasPayingToken.sol
+index 37c06840b..de938528e 100644
+--- a/packages/contracts-bedrock/src/libraries/GasPayingToken.sol
++++ b/packages/contracts-bedrock/src/libraries/GasPayingToken.sol
+@@ -35,6 +35,9 @@ library GasPayingToken {
+     bytes32 internal constant GAS_PAYING_TOKEN_SYMBOL_SLOT =
+         bytes32(uint256(keccak256("opstack.gaspayingtokensymbol")) - 1);
+ 
++    /// @notice The storage slot that contains the address of the ether token
++    bytes32 internal constant L2_ETH_TOKEN_SLOT = bytes32(uint256(keccak256("opstack.l2ethtoken")) - 1);
++
+     /// @notice Reads the gas paying token and its decimals from the magic
+     ///         storage slot. If nothing is set in storage, then the ether
+     ///         address is returned instead.
+@@ -71,6 +74,11 @@ library GasPayingToken {
+         }
+     }
+ 
++    function getL2ETHToken() internal view returns (address) {
++        bytes32 slot = Storage.getBytes32(L2_ETH_TOKEN_SLOT);
++        return address(uint160(uint256(slot) & uint256(type(uint160).max)));
++    }
++
+     /// @notice Writes the gas paying token, its decimals, name and symbol to the magic storage slot.
+     function set(address _token, uint8 _decimals, bytes32 _name, bytes32 _symbol) internal {
+         Storage.setBytes32(GAS_PAYING_TOKEN_SLOT, bytes32(uint256(_decimals) << 160 | uint256(uint160(_token))));
+@@ -78,6 +86,11 @@ library GasPayingToken {
+         Storage.setBytes32(GAS_PAYING_TOKEN_SYMBOL_SLOT, _symbol);
+     }
+ 
++    /// @notice Writes the ether token address to the magic storage slot.
++    function setL2ETHToken(address _token) internal {
++        Storage.setBytes32(L2_ETH_TOKEN_SLOT, bytes32(uint256(uint160(_token))));
++    }
++
+     /// @notice Maps a string to a normalized null-terminated small string.
+     function sanitize(string memory _str) internal pure returns (bytes32) {
+         require(bytes(_str).length <= 32, "GasPayingToken: string cannot be greater than 32 bytes");
+diff --git a/packages/contracts-bedrock/src/universal/StandardBridge.sol b/packages/contracts-bedrock/src/universal/StandardBridge.sol
+index 140aba531..d7d7bbee3 100644
+--- a/packages/contracts-bedrock/src/universal/StandardBridge.sol
++++ b/packages/contracts-bedrock/src/universal/StandardBridge.sol
+@@ -11,6 +11,8 @@ import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
+ import { OptimismMintableERC20 } from "src/universal/OptimismMintableERC20.sol";
+ import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+ import { Constants } from "src/libraries/Constants.sol";
++import { L2ToL1MessagePasser } from "src/L2/L2ToL1MessagePasser.sol";
++import { Predeploys } from "src/libraries/Predeploys.sol";
+ 
+ /// @custom:upgradeable
+ /// @title StandardBridge
+@@ -139,6 +141,9 @@ abstract contract StandardBridge is Initializable {
+         return token != Constants.ETHER;
+     }
+ 
++    /// @notice Returns the address of the L2 ETH token.
++    function l2ETHToken() internal view virtual returns (address);
++
+     /// @notice Getter for messenger contract.
+     ///         Public getter is legacy and will be removed in the future. Use `messenger` instead.
+     /// @return Contract of the messenger on this domain.
+@@ -391,6 +396,36 @@ abstract contract StandardBridge is Initializable {
+         });
+     }
+ 
++    /// @notice Initiates a withdrawal from L2 to L1 to a target account on L1.
++    /// @param _localToken Address of the token on this chain.
++    /// @param _remoteToken Address of the corresponding token on the remote chain.
++    /// @param _from       Address of the sender.
++    /// @param _target     Address of the receiver.
++    /// @param _amount     Amount of the token sent.
++    function _initiateBridgeETHERC20(
++        address _localToken,
++        address _remoteToken,
++        address _from,
++        address _target,
++        uint256 _amount
++    )
++        internal
++    {
++        require(
++            _isCorrectTokenPair(_localToken, _remoteToken),
++            "StandardBridge: wrong remote token for Optimism Mintable ERC20 local token"
++        );
++        OptimismMintableERC20(_localToken).burn(_from, _amount);
++
++        // Emit the correct events. By default this will be ERC20BridgeFinalized, but child
++        // contracts may override this function in order to emit legacy events as well.
++        _emitERC20BridgeInitiated(_localToken, _remoteToken, _from, _target, _amount, hex"");
++
++        L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateETHERC20Withdrawal(
++            _target, _amount, RECEIVE_DEFAULT_GAS_LIMIT, hex""
++        );
++    }
++
+     /// @notice Checks if a given address is an OptimismMintableERC20. Not perfect, but good enough.
+     ///         Just the way we like it.
+     /// @param _token Address of the token to check.
