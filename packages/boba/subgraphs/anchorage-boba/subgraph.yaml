@@ -6,10 +6,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: L2StandardBridge
-    network: boba
+    network: boba-bnb
     source:
-      address: "0x4200000000000000000000000000000000000010"
       abi: L2StandardBridge
+      address: "0x4200000000000000000000000000000000000010"
       startBlock: 0
     mapping:
       kind: ethereum/events
@@ -48,10 +48,10 @@ dataSources:
       file: ./src/l-2-standard-bridge.ts
   - kind: ethereum
     name: L2ToL1MessagePasser
-    network: boba
+    network: boba-bnb
     source:
-      address: "0x4200000000000000000000000000000000000016"
       abi: L2ToL1MessagePasser
+      address: "0x4200000000000000000000000000000000000016"
       startBlock: 0
     mapping:
       kind: ethereum/events
