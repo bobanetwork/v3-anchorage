@@ -1,0 +1,18 @@
+{
+  "bsc": {
+    "L1CrossDomainMessenger": {
+      "address": "0x31338a7D5d123E18a9a71447136B54B6D28241ae"
+    },
+    "L1StandardBridge": {
+      "address": "0x1E0f7f4b2656b14C161f1caDF3076C02908F9ACC"
+    }
+  },
+  "chapel": {
+    "L1CrossDomainMessenger": {
+      "address": "0x53aD38aE4a63Fe33a86E011F7AF4d3fDe3daD145"
+    },
+    "L1StandardBridge": {
+      "address": "0xBf0939120b4F5E3196b9E12cAC291e03dD058e9a"
+    }
+  }
+}

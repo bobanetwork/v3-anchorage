@@ -2,7 +2,7 @@ specVersion: 1.0.0
 indexerHints:
   prune: auto
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum
     name: L2StandardBridge
@@ -25,7 +25,7 @@ dataSources:
         - WithdrawalInitiated
       abis:
         - name: L2StandardBridge
-          file: ./abis/L2StandardBridge.json
+          file: L2StandardBridge/abis/L2StandardBridge.json
       eventHandlers:
         - event: DepositFinalized(indexed address,indexed address,indexed
             address,address,uint256,bytes)
@@ -45,7 +45,7 @@ dataSources:
         - event: WithdrawalInitiated(indexed address,indexed address,indexed
             address,address,uint256,bytes)
           handler: handleWithdrawalInitiated
-      file: ./src/l-2-standard-bridge.ts
+      file: L2StandardBridge/L2StandardBridge.wasm
   - kind: ethereum
     name: L2ToL1MessagePasser
     network: boba-bnb-l2-testnet
@@ -62,11 +62,11 @@ dataSources:
         - WithdrawerBalanceBurnt
       abis:
         - name: L2ToL1MessagePasser
-          file: ./abis/L2ToL1MessagePasser.json
+          file: L2ToL1MessagePasser/abis/L2ToL1MessagePasser.json
       eventHandlers:
         - event: MessagePassed(indexed uint256,indexed address,indexed
             address,uint256,uint256,bytes,bytes32)
           handler: handleMessagePassed
         - event: WithdrawerBalanceBurnt(indexed uint256)
           handler: handleWithdrawerBalanceBurnt
-      file: ./src/l-2-to-l-1-message-passer.ts
+      file: L2ToL1MessagePasser/L2ToL1MessagePasser.wasm

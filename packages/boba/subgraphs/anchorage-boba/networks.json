@@ -7,15 +7,37 @@
     "L2ToL1MessagePasser": {
       "address": "0x4200000000000000000000000000000000000016",
       "startBlock": 0
+    },
+    "L2CrossDomainMessenger": {
+      "address": "0x4200000000000000000000000000000000000007",
+      "startBlock": 0
     }
   },
-  "boba-bnb": {
+  "boba-bnb-l2": {
     "L2StandardBridge": {
       "address": "0x4200000000000000000000000000000000000010",
       "startBlock": 0
     },
     "L2ToL1MessagePasser": {
       "address": "0x4200000000000000000000000000000000000016",
+      "startBlock": 0
+    },
+    "L2CrossDomainMessenger": {
+      "address": "0x4200000000000000000000000000000000000007",
+      "startBlock": 0
+    }
+  },
+  "boba-bnb-l2-testnet": {
+    "L2StandardBridge": {
+      "address": "0x4200000000000000000000000000000000000010",
+      "startBlock": 0
+    },
+    "L2ToL1MessagePasser": {
+      "address": "0x4200000000000000000000000000000000000016",
+      "startBlock": 0
+    },
+    "L2CrossDomainMessenger": {
+      "address": "0x4200000000000000000000000000000000000007",
       "startBlock": 0
     }
   },
@@ -26,6 +48,10 @@
     },
     "L2ToL1MessagePasser": {
       "address": "0x4200000000000000000000000000000000000016",
+      "startBlock": 0
+    },
+    "L2CrossDomainMessenger": {
+      "address": "0x4200000000000000000000000000000000000007",
       "startBlock": 0
     }
   }
