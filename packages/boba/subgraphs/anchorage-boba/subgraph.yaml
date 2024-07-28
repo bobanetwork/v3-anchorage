@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: L2StandardBridge
-    network: boba-bnb-l2-testnet
+    network: boba-sepolia
     source:
       abi: L2StandardBridge
       address: "0x4200000000000000000000000000000000000010"
-      startBlock: 0
+      startBlock: 51
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -48,11 +48,11 @@ dataSources:
       file: ./src/l-2-standard-bridge.ts
   - kind: ethereum
     name: L2ToL1MessagePasser
-    network: boba-bnb-l2-testnet
+    network: boba-sepolia
     source:
       abi: L2ToL1MessagePasser
       address: "0x4200000000000000000000000000000000000016"
-      startBlock: 0
+      startBlock: 51
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

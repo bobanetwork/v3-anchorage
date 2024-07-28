@@ -10,7 +10,7 @@ dataSources:
     source:
       abi: LightBridge
       address: "0x2dE73Bd1660Fbf4D521a52Ec2a91CCc106113801"
-      startBlock: 0
+      startBlock: 51
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
