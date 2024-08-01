@@ -1,0 +1,63 @@
+type DisputeGameBlacklisted @entity(immutable: true) {
+  id: Bytes!
+  disputeGame: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Initialized @entity(immutable: true) {
+  id: Bytes!
+  version: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RespectedGameTypeSet @entity(immutable: true) {
+  id: Bytes!
+  newGameType: BigInt! # uint32
+  updatedAt: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TransactionDeposited @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  version: BigInt! # uint256
+  opaqueData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalFinalized @entity(immutable: true) {
+  id: Bytes!
+  withdrawalHash: Bytes! # bytes32
+  success: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalProven @entity(immutable: true) {
+  id: Bytes!
+  withdrawalHash: Bytes! # bytes32
+  from: Bytes! # address
+  to: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalProvenExtension1 @entity(immutable: true) {
+  id: Bytes!
+  withdrawalHash: Bytes! # bytes32
+  proofSubmitter: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

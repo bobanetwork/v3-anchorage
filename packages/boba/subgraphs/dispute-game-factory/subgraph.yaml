@@ -1,0 +1,44 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: OptimismPortal2
+    network: sepolia
+    source:
+      address: "0xD20610A7728dE44f04Be8260c0a46c3d56aCd1E2"
+      abi: OptimismPortal2
+      startBlock: 6411954
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DisputeGameBlacklisted
+        - Initialized
+        - RespectedGameTypeSet
+        - TransactionDeposited
+        - WithdrawalFinalized
+        - WithdrawalProven
+        - WithdrawalProvenExtension1
+      abis:
+        - name: OptimismPortal2
+          file: ./abis/OptimismPortal2.json
+      eventHandlers:
+        - event: DisputeGameBlacklisted(indexed address)
+          handler: handleDisputeGameBlacklisted
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: RespectedGameTypeSet(indexed uint32,indexed uint64)
+          handler: handleRespectedGameTypeSet
+        - event: TransactionDeposited(indexed address,indexed address,indexed uint256,bytes)
+          handler: handleTransactionDeposited
+        - event: WithdrawalFinalized(indexed bytes32,bool)
+          handler: handleWithdrawalFinalized
+        - event: WithdrawalProven(indexed bytes32,indexed address,indexed address)
+          handler: handleWithdrawalProven
+        - event: WithdrawalProvenExtension1(indexed bytes32,indexed address)
+          handler: handleWithdrawalProvenExtension1
+      file: ./src/optimism-portal-2.ts

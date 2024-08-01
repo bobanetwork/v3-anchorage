@@ -1,0 +1,8 @@
+{
+  "sepolia": {
+    "OptimismPortal2": {
+      "address": "0xD20610A7728dE44f04Be8260c0a46c3d56aCd1E2",
+      "startBlock": 6411954
+    }
+  }
+}
