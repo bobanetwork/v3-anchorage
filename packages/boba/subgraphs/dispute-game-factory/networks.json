@@ -1,8 +1,11 @@
 {
   "sepolia": {
-    "OptimismPortal2": {
-      "address": "0xD20610A7728dE44f04Be8260c0a46c3d56aCd1E2",
+    "OptimismPortalProxy": {
+      "address": "0xB079E6FA9B3eb072fEbf7F746044834eab308dB6",
       "startBlock": 6411954
+    },
+    "DisputeGameFactory": {
+      "address": "0x68AEd0a849089327a83921815b7f918eac479016"
     }
   }
 }

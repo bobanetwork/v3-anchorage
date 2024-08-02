@@ -61,3 +61,47 @@ type WithdrawalProvenExtension1 @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+type DisputeGameCreated @entity(immutable: true) {
+  id: Bytes!
+  disputeProxy: Bytes! # address
+  gameType: BigInt! # uint32
+  rootClaim: Bytes! # bytes32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ImplementationSet @entity(immutable: true) {
+  id: Bytes!
+  impl: Bytes! # address
+  gameType: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type InitBondUpdated @entity(immutable: true) {
+  id: Bytes!
+  gameType: BigInt! # uint32
+  newBond: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DisputeGameFactoryInitialized @entity(immutable: true) {
+  id: Bytes!
+  version: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

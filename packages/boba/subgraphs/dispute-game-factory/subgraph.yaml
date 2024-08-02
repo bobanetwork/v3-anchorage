@@ -5,11 +5,11 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: OptimismPortal2
+    name: OptimismPortal
     network: sepolia
     source:
       address: "0xD20610A7728dE44f04Be8260c0a46c3d56aCd1E2"
-      abi: OptimismPortal2
+      abi: OptimismPortal
       startBlock: 6411954
     mapping:
       kind: ethereum/events
@@ -24,8 +24,8 @@ dataSources:
         - WithdrawalProven
         - WithdrawalProvenExtension1
       abis:
-        - name: OptimismPortal2
-          file: ./abis/OptimismPortal2.json
+        - name: OptimismPortal
+          file: ./abis/OptimismPortal.json
       eventHandlers:
         - event: DisputeGameBlacklisted(indexed address)
           handler: handleDisputeGameBlacklisted
@@ -41,4 +41,36 @@ dataSources:
           handler: handleWithdrawalProven
         - event: WithdrawalProvenExtension1(indexed bytes32,indexed address)
           handler: handleWithdrawalProvenExtension1
-      file: ./src/optimism-portal-2.ts
+      file: ./src/optimism-portal-proxy.ts
+  - kind: ethereum
+    name: DisputeGameFactory
+    network: sepolia
+    source:
+      address: "0x47CdC8E63e506c07964567D963A9509a81F6d150"
+      abi: DisputeGameFactory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DisputeGameCreated
+        - ImplementationSet
+        - InitBondUpdated
+        - DisputeGameFactoryInitialized
+        - OwnershipTransferred
+      abis:
+        - name: DisputeGameFactory
+          file: ./abis/DisputeGameFactory.json
+      eventHandlers:
+        - event: DisputeGameCreated(indexed address,indexed uint32,indexed bytes32)
+          handler: handleDisputeGameCreated
+        - event: ImplementationSet(indexed address,indexed uint32)
+          handler: handleImplementationSet
+        - event: InitBondUpdated(indexed uint32,indexed uint256)
+          handler: handleInitBondUpdated
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+      file: ./src/dispute-game-factory.ts
