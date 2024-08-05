@@ -6,7 +6,7 @@ import {
   WithdrawalFinalized as WithdrawalFinalizedEvent,
   WithdrawalProven as WithdrawalProvenEvent,
   WithdrawalProvenExtension1 as WithdrawalProvenExtension1Event
-} from "../generated/OptimismPortal2/OptimismPortal2"
+} from "../generated/OptimismPortal/OptimismPortal"
 import {
   DisputeGameBlacklisted,
   Initialized,

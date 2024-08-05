@@ -11,12 +11,26 @@ import {
   InitBondUpdated,
   Initialized,
   OwnershipTransferred,
+  DisputeGameCreatedIndex,
 } from "../generated/schema"
+import { FaultDisputeGame } from "../generated/templates"
+import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 
 export function handleDisputeGameCreated(event: DisputeGameCreatedEvent): void {
-  let entity = new DisputeGameCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32()),
-  )
+  if (!event.params.disputeProxy) {
+    return
+  }
+
+  // so we can retrieve it in our FaultDisputeGame subgraph
+  let entity = new DisputeGameCreated(event.params.disputeProxy)
+
+  let newIndex = BigInt.fromI32(0)
+  let latestEntity = DisputeGameCreatedIndex.load(Bytes.fromUTF8("latest"))
+  if (latestEntity != null) {
+    newIndex = latestEntity.index.plus(BigInt.fromI32(1))
+  }
+  entity.index = newIndex
+
   entity.disputeProxy = event.params.disputeProxy
   entity.gameType = event.params.gameType
   entity.rootClaim = event.params.rootClaim
@@ -29,6 +43,16 @@ export function handleDisputeGameCreated(event: DisputeGameCreatedEvent): void {
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
   entity.save()
+
+  // Update the latest index entity
+  if (latestEntity == null) {
+    latestEntity = new DisputeGameCreatedIndex(Bytes.fromUTF8("latest"))
+  }
+  latestEntity.index = newIndex
+  latestEntity.save()
+
+  // Create a new FaultDisputeGame template instance
+  FaultDisputeGame.create(event.params.disputeProxy)
 }
 
 export function handleImplementationSet(event: ImplementationSetEvent): void {

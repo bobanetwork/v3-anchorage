@@ -74,3 +74,22 @@ dataSources:
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
       file: ./src/dispute-game-factory.ts
+templates:
+  - name: FaultDisputeGame
+    kind: ethereum/contract
+    network: sepolia
+    source:
+      abi: FaultDisputeGame
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/fault-dispute-game.ts
+      entities:
+        - Resolved
+      abis:
+        - name: FaultDisputeGame
+          file: ./abis/FaultDisputeGame.json
+      eventHandlers:
+        - event: Resolved(indexed uint8)
+          handler: handleResolved
