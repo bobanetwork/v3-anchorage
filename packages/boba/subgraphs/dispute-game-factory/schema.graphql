@@ -66,6 +66,7 @@ type DisputeGameCreated @entity(immutable: true) {
   disputeProxy: Bytes! # address
   gameType: BigInt! # uint32
   rootClaim: Bytes! # bytes32
+  l2BlockNumber: BigInt!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

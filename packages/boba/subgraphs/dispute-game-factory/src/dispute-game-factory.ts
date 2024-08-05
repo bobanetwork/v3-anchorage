@@ -21,10 +21,13 @@ export function handleDisputeGameCreated(event: DisputeGameCreatedEvent): void {
   entity.gameType = event.params.gameType
   entity.rootClaim = event.params.rootClaim
 
+  let data = event.transaction.input.toHex()
+  /** @DEV needs implementation */
+  let l2BlockNumberHex = data.slice(2 + 2 * 0x54, 2 + 2 * (0x54 + 32))
+  entity.rootClaim = event.params.rootClaim
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
-
   entity.save()
 }
 
