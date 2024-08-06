@@ -77,6 +77,7 @@ func (c *coordinator) schedule(ctx context.Context, games []types.GameMetadata, 
 	// data directories potentially being deleted for games that are required.
 	for _, game := range games {
 		if j, err := c.createJob(ctx, game, blockNumber); err != nil {
+			c.logger.Error("Failed to create job", "game", game.Proxy, "err", err)
 			errs = append(errs, fmt.Errorf("failed to create job for game %v: %w", game.Proxy, err))
 		} else if j != nil {
 			jobs = append(jobs, *j)
@@ -108,6 +109,7 @@ func (c *coordinator) schedule(ctx context.Context, games []types.GameMetadata, 
 	// Finally, enqueue the jobs
 	for _, j := range jobs {
 		if err := c.enqueueJob(ctx, j); err != nil {
+			c.logger.Error("Failed to enqueue job", "game", j.addr, "err", err)
 			errs = append(errs, fmt.Errorf("failed to enqueue job for game %v: %w", j.addr, err))
 		}
 	}
