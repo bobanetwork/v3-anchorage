@@ -71,16 +71,19 @@ func (c *coordinator) schedule(ctx context.Context, games []types.GameMetadata, 
 	var gamesChallengerWon int
 	var gamesDefenderWon int
 	var errs []error
-	var jobs []job
 	// Next collect all the jobs to schedule and ensure all games are recorded in the states map.
 	// Otherwise, results may start being processed before all games are recorded, resulting in existing
 	// data directories potentially being deleted for games that are required.
 	for _, game := range games {
 		if j, err := c.createJob(ctx, game, blockNumber); err != nil {
+			c.logger.Error("Failed to create job for game", "game", game.Proxy, "err", err)
 			errs = append(errs, fmt.Errorf("failed to create job for game %v: %w", game.Proxy, err))
 		} else if j != nil {
-			jobs = append(jobs, *j)
 			c.m.RecordGameUpdateScheduled()
+			if err := c.enqueueJob(ctx, *j); err != nil {
+				c.logger.Error("Failed to enqueue job for game", "game", j.addr, "err", err)
+				errs = append(errs, fmt.Errorf("failed to enqueue job for game %v: %w", j.addr, err))
+			}
 		}
 		state, ok := c.states[game.Proxy]
 		if ok {
@@ -105,12 +108,6 @@ func (c *coordinator) schedule(ctx context.Context, games []types.GameMetadata, 
 	c.lastScheduledBlockNum = blockNumber
 	c.m.RecordActedL1Block(lowestProcessedBlockNum)
 
-	// Finally, enqueue the jobs
-	for _, j := range jobs {
-		if err := c.enqueueJob(ctx, j); err != nil {
-			errs = append(errs, fmt.Errorf("failed to enqueue job for game %v: %w", j.addr, err))
-		}
-	}
 	return errors.Join(errs...)
 }
 
