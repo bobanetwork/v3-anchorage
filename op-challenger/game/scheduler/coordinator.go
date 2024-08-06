@@ -136,6 +136,7 @@ func (c *coordinator) createJob(ctx context.Context, game types.GameMetadata, bl
 		}
 		if err := player.ValidatePrestate(ctx); err != nil {
 			if !c.allowInvalidPrestate || !errors.Is(err, types.ErrInvalidPrestate) {
+				c.logger.Error("Failed to validate prestate", "game", game.Proxy, "err", err)
 				return nil, fmt.Errorf("failed to validate prestate: %w", err)
 			}
 			c.logger.Error("Invalid prestate", "game", game.Proxy, "err", err)

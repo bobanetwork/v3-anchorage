@@ -122,7 +122,9 @@ type Config struct {
 
 	TraceTypes []TraceType // Type of traces supported
 
-	RollupRpc string // L2 Rollup RPC Url
+	RollupRpc             string        // L2 Rollup RPC Url
+	RollupRpcTimeout      time.Duration // Timeout for L2 Rollup RPC requests
+	RollupRpcBatchTimeout time.Duration // Timeout for L2 Rollup RPC batch requests
 
 	L2Rpc string // L2 RPC Url
 
