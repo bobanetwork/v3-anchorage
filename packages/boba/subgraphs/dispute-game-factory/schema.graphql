@@ -76,12 +76,7 @@ type DisputeGameCreated @entity {
   blockNumber: BigInt
   blockTimestamp: BigInt
   transactionHash: Bytes
-  resolved: Resolved
-}
-
-type Resolved @entity {
-  id: ID!
-  status: Int!
+  resolvedStatus: Int
 }
 
 type ImplementationSet @entity(immutable: true) {

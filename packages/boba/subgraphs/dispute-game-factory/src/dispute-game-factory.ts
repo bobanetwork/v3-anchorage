@@ -34,6 +34,7 @@ export function handleDisputeGameCreated(event: DisputeGameCreatedEvent): void {
   entity.disputeProxy = event.params.disputeProxy
   entity.gameType = event.params.gameType
   entity.rootClaim = event.params.rootClaim
+  entity.resolvedStatus = 0
 
   /** @DEV needs implementation */
   // let data = event.transaction.input.toHex()
