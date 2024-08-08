@@ -100,6 +100,9 @@ const (
 	// and bond claiming buffer plus the 7 day game finalization window.
 	DefaultGameWindow   = time.Duration(15 * 24 * time.Hour)
 	DefaultMaxPendingTx = 10
+	// Rollup RPC timeouts
+	DefaultRollupRpcTimeout      = time.Second * 15
+	DefaultRollupRpcBatchTimeout = time.Second * 30
 )
 
 // Config is a well typed config that is parsed from the CLI params.
@@ -122,7 +125,9 @@ type Config struct {
 
 	TraceTypes []TraceType // Type of traces supported
 
-	RollupRpc string // L2 Rollup RPC Url
+	RollupRpc             string        // L2 Rollup RPC Url
+	RollupRpcTimeout      time.Duration // Timeout for L2 Rollup RPC requests
+	RollupRpcBatchTimeout time.Duration // Timeout for L2 Rollup RPC batch requests
 
 	L2Rpc string // L2 RPC Url
 
@@ -165,13 +170,15 @@ func NewConfig(
 	supportedTraceTypes ...TraceType,
 ) Config {
 	return Config{
-		L1EthRpc:           l1EthRpc,
-		L1Beacon:           l1BeaconApi,
-		RollupRpc:          l2RollupRpc,
-		L2Rpc:              l2EthRpc,
-		GameFactoryAddress: gameFactoryAddress,
-		MaxConcurrency:     uint(runtime.NumCPU()),
-		PollInterval:       DefaultPollInterval,
+		L1EthRpc:              l1EthRpc,
+		L1Beacon:              l1BeaconApi,
+		RollupRpc:             l2RollupRpc,
+		RollupRpcTimeout:      DefaultRollupRpcTimeout,
+		RollupRpcBatchTimeout: DefaultRollupRpcBatchTimeout,
+		L2Rpc:                 l2EthRpc,
+		GameFactoryAddress:    gameFactoryAddress,
+		MaxConcurrency:        uint(runtime.NumCPU()),
+		PollInterval:          DefaultPollInterval,
 
 		TraceTypes: supportedTraceTypes,
 
