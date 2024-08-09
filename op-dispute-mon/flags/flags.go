@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/urfave/cli/v2"
 
@@ -44,6 +45,18 @@ var (
 		Usage:   "HTTP provider URL for the rollup node",
 		EnvVars: prefixEnvVars("ROLLUP_RPC"),
 	}
+	RollupRpcTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-timeout",
+		Usage:   "Timeout for rollup RPC requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_TIMEOUT"),
+		Value:   time.Second * 15,
+	}
+	RollupRpcBatchTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-batch-timeout",
+		Usage:   "Timeout for rollup RPC batch requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_BATCH_TIMEOUT"),
+		Value:   time.Second * 30,
+	}
 	MonitorIntervalFlag = &cli.DurationFlag{
 		Name:    "monitor-interval",
 		Usage:   "The interval at which the dispute monitor will check for new games to monitor.",
@@ -84,6 +97,8 @@ var optionalFlags = []cli.Flag{
 	GameWindowFlag,
 	IgnoredGamesFlag,
 	MaxConcurrencyFlag,
+	RollupRpcTimeoutFlag,
+	RollupRpcBatchTimeoutFlag,
 }
 
 func init() {
@@ -145,12 +160,14 @@ func NewConfigFromCLI(ctx *cli.Context) (*config.Config, error) {
 		L1EthRpc:           ctx.String(L1EthRpcFlag.Name),
 		GameFactoryAddress: gameFactoryAddress,
 
-		HonestActors:    actors,
-		RollupRpc:       ctx.String(RollupRpcFlag.Name),
-		MonitorInterval: ctx.Duration(MonitorIntervalFlag.Name),
-		GameWindow:      ctx.Duration(GameWindowFlag.Name),
-		IgnoredGames:    ignoredGames,
-		MaxConcurrency:  ctx.Uint(MaxConcurrencyFlag.Name),
+		HonestActors:          actors,
+		RollupRpc:             ctx.String(RollupRpcFlag.Name),
+		RollupRpcTimeout:      ctx.Duration(RollupRpcTimeoutFlag.Name),
+		RollupRpcBatchTimeout: ctx.Duration(RollupRpcBatchTimeoutFlag.Name),
+		MonitorInterval:       ctx.Duration(MonitorIntervalFlag.Name),
+		GameWindow:            ctx.Duration(GameWindowFlag.Name),
+		IgnoredGames:          ignoredGames,
+		MaxConcurrency:        ctx.Uint(MaxConcurrencyFlag.Name),
 
 		MetricsConfig: metricsConfig,
 		PprofConfig:   pprofConfig,

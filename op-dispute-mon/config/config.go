@@ -29,6 +29,10 @@ const (
 
 	//DefaultMaxConcurrency is the default number of threads to use when fetching game data
 	DefaultMaxConcurrency = uint(5)
+
+	// Rollup RPC timeouts
+	DefaultRollupRpcTimeout      = time.Second * 15
+	DefaultRollupRpcBatchTimeout = time.Second * 30
 )
 
 // Config is a well typed config that is parsed from the CLI params.
@@ -37,12 +41,14 @@ type Config struct {
 	L1EthRpc           string         // L1 RPC Url
 	GameFactoryAddress common.Address // Address of the dispute game factory
 
-	HonestActors    []common.Address // List of honest actors to monitor claims for.
-	RollupRpc       string           // The rollup node RPC URL.
-	MonitorInterval time.Duration    // Frequency to check for new games to monitor.
-	GameWindow      time.Duration    // Maximum window to look for games to monitor.
-	IgnoredGames    []common.Address // Games to exclude from monitoring
-	MaxConcurrency  uint             // Maximum number of threads to use when fetching game data
+	HonestActors          []common.Address // List of honest actors to monitor claims for.
+	RollupRpc             string           // The rollup node RPC URL.
+	RollupRpcTimeout      time.Duration    // Timeout for L2 Rollup RPC requests
+	RollupRpcBatchTimeout time.Duration    // Timeout for L2 Rollup RPC batch requests
+	MonitorInterval       time.Duration    // Frequency to check for new games to monitor.
+	GameWindow            time.Duration    // Maximum window to look for games to monitor.
+	IgnoredGames          []common.Address // Games to exclude from monitoring
+	MaxConcurrency        uint             // Maximum number of threads to use when fetching game data
 
 	MetricsConfig opmetrics.CLIConfig
 	PprofConfig   oppprof.CLIConfig
