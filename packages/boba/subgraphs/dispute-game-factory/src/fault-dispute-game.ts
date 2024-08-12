@@ -8,5 +8,6 @@ export function handleResolved(event: ResolvedEvent): void {
     return
   }
   disputeGame.resolvedStatus = event.params.status
+  disputeGame.l2BlockNumber = event.params.l2BlockNumber
   disputeGame.save()
 }
