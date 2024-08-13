@@ -149,9 +149,9 @@ var Subcommands = cli.Commands{
 				return err
 			}
 
-			var dump *genesis.ForgeAllocs
-			if l1Allocs := ctx.String("l1-allocs"); l1Allocs != "" {
-				dump, err = genesis.LoadForgeAllocs(l1Allocs)
+			var dump *foundry.ForgeAllocs
+			if l1Allocs := ctx.String(l1AllocsFlag.Name); l1Allocs != "" {
+				dump, err = foundry.LoadForgeAllocs(l1Allocs)
 				if err != nil {
 					return err
 				}

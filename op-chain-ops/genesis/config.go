@@ -764,6 +764,12 @@ type LegacyDeployConfig struct {
 	DeploymentWaitConfirmations int `json:"deploymentWaitConfirmations"`
 }
 
+// BobaDeployConfig configures the deployment of the Boba contract.
+type BobaDeployConfig struct {
+	// It is used to prevent the Boba contract from being deployed.
+	L1BobaToken *common.Address `json:"l1BobaToken"`
+}
+
 // DeployConfig represents the deployment configuration for an OP Stack chain.
 // It is used to deploy the L1 contracts as well as create the L2 genesis state.
 type DeployConfig struct {
@@ -793,6 +799,9 @@ type DeployConfig struct {
 
 	// Legacy, ignored, here for strict-JSON decoding to be accepted.
 	LegacyDeployConfig
+
+	// Boba
+	BobaDeployConfig
 }
 
 // Copy will deeply copy the DeployConfig. This does a JSON roundtrip to copy

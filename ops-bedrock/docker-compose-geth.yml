@@ -212,11 +212,9 @@ services:
       OP_BATCHER_PLASMA_ENABLED: "${PLASMA_ENABLED}"
       OP_BATCHER_PLASMA_DA_SERVICE: "${PLASMA_DA_SERVICE}"
       OP_BATCHER_PLASMA_DA_SERVER: "http://da-server:3100"
-<<<<<<< HEAD
       # uncomment to use blobs
       # (requires L1 Dencun and L2 Ecotone activation first)
       # OP_BATCHER_DATA_AVAILABILITY_TYPE: blobs
-=======
       OP_BATCHER_KMS_ENDPOINT: "http://kms:8888"
       OP_BATCHER_KMS_REGION: "us-east-1"
       # The private key is derived from the mnemonic above
@@ -224,7 +222,6 @@ services:
       # testing purposes only
       AWS_ACCESS_KEY_ID: "1"
       AWS_SECRET_ACCESS_KEY: "1"
->>>>>>> develop
 
   op-challenger:
     depends_on:
