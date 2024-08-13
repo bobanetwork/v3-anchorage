@@ -5,7 +5,7 @@ Welcome to the developer documentation for implementing a basic example with our
 
 ```mermaid
 graph LR
-A[Bundler] -- method --> B[Offchain Handler] -- update --> D[Smart Contract]
+A[Bundler] -- method --> B[Off-Chain Handler] -- update --> D[Smart Contract]
 ```
 
 ## About Hybrid Compute
