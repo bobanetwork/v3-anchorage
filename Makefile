@@ -1,7 +1,13 @@
 COMPOSEFLAGS=-d
 ITESTS_L2_HOST=http://localhost:9545
 BEDROCK_TAGS_REMOTE?=origin
-OP_STACK_GO_BUILDER?=us-docker.pkg.dev/oplabs-tools-artifacts/images/op-stack-go:latest
+GCP_PROJECT_ID?=local
+GCP_ARTIFACT_REPOSITORY?=local
+OP_STACK_GO_BUILDER?=us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/op-stack-go:latest
+
+export GCP_PROJECT_ID
+export GCP_ARTIFACT_REPOSITORY
+export OP_STACK_GO_BUILDER
 
 # Requires at least Python v3.9; specify a minor version below if needed
 PYTHON?=python3
@@ -12,7 +18,7 @@ help: ## Prints this help message
 build: build-go build-ts ## Builds both Go and TypeScript components
 .PHONY: build
 
-build-go: submodules op-node op-proposer op-batcher ## Builds op-node, op-proposer and op-batcher
+build-go: submodules op-node op-proposer op-batcher op-erigon
 .PHONY: build-go
 
 lint-go: ## Lints Go code with specific linters
@@ -121,7 +127,11 @@ op-program: ## Builds op-program binary
 	make -C ./op-program op-program
 .PHONY: op-program
 
-cannon:  ## Builds cannon binary
+op-erigon:
+	make -C ./op-erigon erigon
+.PHONY: op-erigon
+
+cannon:
 	make -C ./cannon cannon
 .PHONY: cannon
 
@@ -153,11 +163,12 @@ mod-tidy: ## Cleans up unused dependencies in Go modules
 	# can take a while to index new versions.
 	#
 	# See https://proxy.golang.org/ for more info.
-	export GOPRIVATE="github.com/ethereum-optimism" && go mod tidy
+	export GOPRIVATE="github.com/ethereum-optimism,github.com/bobanetwork" && go mod tidy
 .PHONY: mod-tidy
 
 clean: ## Removes all generated files under bin/
 	rm -rf ./bin
+	make -C ./op-erigon clean
 .PHONY: clean
 
 nuke: clean devnet-clean ## Completely clean the project directory
@@ -182,7 +193,17 @@ devnet-up: pre-devnet ## Starts the local devnet
 
 devnet-test: pre-devnet ## Runs tests on the local devnet
 	make -C op-e2e test-devnet
-.PHONY: devnet-test
+
+devnet-hardhat-up:
+	@if [ ! -e op-program/bin ]; then \
+		make cannon-prestate; \
+	fi
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=.
+.PHONY: devnet-hardhat-up
+
+devnet-hardhat-test:
+	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --test
+.PHONY: devnet-hardhat-test
 
 devnet-down: ## Stops the local devnet
 	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker compose stop)

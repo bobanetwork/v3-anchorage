@@ -16,6 +16,7 @@ import { L1Block } from "src/L2/L1Block.sol";
 import { LegacyMessagePasser } from "src/legacy/LegacyMessagePasser.sol";
 import { GovernanceToken } from "src/governance/GovernanceToken.sol";
 import { OptimismMintableERC20Factory } from "src/universal/OptimismMintableERC20Factory.sol";
+import { LegacyERC20ETH } from "src/legacy/LegacyERC20ETH.sol";
 import { StandardBridge } from "src/universal/StandardBridge.sol";
 import { FeeVault } from "src/universal/FeeVault.sol";
 import { OptimismPortal } from "src/L1/OptimismPortal.sol";
@@ -98,6 +99,7 @@ contract Setup {
     WETH weth = WETH(payable(Predeploys.WETH));
     SuperchainWETH superchainWeth = SuperchainWETH(payable(Predeploys.SUPERCHAIN_WETH));
     ETHLiquidity ethLiquidity = ETHLiquidity(Predeploys.ETH_LIQUIDITY);
+    LegacyERC20ETH legacyERC20ETH = LegacyERC20ETH(Predeploys.LEGACY_ERC20_ETH);
 
     /// @dev Deploys the Deploy contract without including its bytecode in the bytecode
     ///      of this contract by fetching the bytecode dynamically using `vm.getCode()`.
@@ -190,7 +192,8 @@ contract Setup {
             L1Dependencies({
                 l1CrossDomainMessengerProxy: payable(address(l1CrossDomainMessenger)),
                 l1StandardBridgeProxy: payable(address(l1StandardBridge)),
-                l1ERC721BridgeProxy: payable(address(l1ERC721Bridge))
+                l1ERC721BridgeProxy: payable(address(l1ERC721Bridge)),
+                l1BobaToken: address(0)
             })
         );
 

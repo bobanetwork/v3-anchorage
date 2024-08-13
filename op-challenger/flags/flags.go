@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/vm"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
@@ -47,6 +48,18 @@ var (
 		Name:    "rollup-rpc",
 		Usage:   "HTTP provider URL for the rollup node",
 		EnvVars: prefixEnvVars("ROLLUP_RPC"),
+	}
+	RollupRpcTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-timeout",
+		Usage:   "Timeout for rollup RPC requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_TIMEOUT"),
+		Value:   time.Second * 15,
+	}
+	RollupRpcBatchTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-batch-timeout",
+		Usage:   "Timeout for rollup RPC batch requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_BATCH_TIMEOUT"),
+		Value:   time.Second * 30,
 	}
 	NetworkFlag        = flags.CLINetworkFlag(EnvVarPrefix, "")
 	FactoryAddressFlag = &cli.StringFlag{
@@ -281,6 +294,8 @@ var optionalFlags = []cli.Flag{
 	GameWindowFlag,
 	SelectiveClaimResolutionFlag,
 	UnsafeAllowInvalidPrestate,
+	RollupRpcTimeoutFlag,
+	RollupRpcBatchTimeoutFlag,
 }
 
 func init() {
@@ -541,6 +556,8 @@ func NewConfigFromCLI(ctx *cli.Context, logger log.Logger) (*config.Config, erro
 		PollInterval:            ctx.Duration(HTTPPollInterval.Name),
 		AdditionalBondClaimants: claimants,
 		RollupRpc:               ctx.String(RollupRpcFlag.Name),
+		RollupRpcTimeout:        ctx.Duration(RollupRpcTimeoutFlag.Name),
+		RollupRpcBatchTimeout:   ctx.Duration(RollupRpcBatchTimeoutFlag.Name),
 		Cannon: vm.Config{
 			VmType:           types.TraceTypeCannon,
 			L1:               l1EthRpc,

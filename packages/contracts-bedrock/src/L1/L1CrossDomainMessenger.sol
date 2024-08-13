@@ -7,6 +7,7 @@ import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
 import { ISemver } from "src/universal/ISemver.sol";
 import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
 import { SystemConfig } from "src/L1/SystemConfig.sol";
+import { Constants } from "src/libraries/Constants.sol";
 
 /// @custom:proxied
 /// @title L1CrossDomainMessenger
@@ -47,7 +48,7 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
         SystemConfig _systemConfig
     )
         public
-        initializer
+        reinitializer(Constants.INITIALIZER)
     {
         superchainConfig = _superchainConfig;
         portal = _portal;

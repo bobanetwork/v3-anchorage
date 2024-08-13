@@ -149,6 +149,7 @@ func execute(binPath string, config external.Config) (*gethSession, error) {
 		"--syncmode=full",
 		"--state.scheme=hash",
 		"--nodiscover",
+		"--ipcdisable",
 		"--port", "0",
 		"--maxpeers", "0",
 		"--networkid", strconv.FormatUint(config.ChainID, 10),

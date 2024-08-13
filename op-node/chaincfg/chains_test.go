@@ -24,6 +24,9 @@ func TestGetRollupConfig(t *testing.T) {
 		"mainnet":                       mainnetCfg,
 		"sepolia":                       sepoliaCfg,
 		"oplabs-devnet-0-sepolia-dev-0": sepoliaDev0Cfg,
+		"boba-sepolia":                  bobaSepoliaCfg,
+		"boba-mainnet":                  bobaMainnetCfg,
+		"boba-bnb-testnet":              bobaBnbTestnetCfg,
 	}
 
 	for name, expectedCfg := range configsByName {
@@ -142,6 +145,111 @@ var sepoliaDev0Cfg = rollup.Config{
 	FjordTime:               u64Ptr(1715961600),
 	GraniteTime:             u64Ptr(1723046400),
 	ProtocolVersionsAddress: common.HexToAddress("0x252CbE9517F731C618961D890D534183822dcC8d"),
+}
+
+var bobaSepoliaCfg = rollup.Config{
+	Genesis: rollup.Genesis{
+		L1: eth.BlockID{
+			Hash:   common.HexToHash("0x632d8caedbfd573e09c1b49134bd5147147e0904e0f04eba15c662be0258f517"),
+			Number: 5109513,
+		},
+		L2: eth.BlockID{
+			Hash:   common.HexToHash("0x097654c4c932c97808933b42179388f7bbcefaed3bd93fdf69157e19f1deea0e"),
+			Number: 511,
+		},
+		L2Time: 1705600788,
+		SystemConfig: eth.SystemConfig{
+			BatcherAddr: common.HexToAddress("0xf598b6388eC06945021699F0bbb23dfCFc5edbE8"),
+			Overhead:    eth.Bytes32(common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000834")),
+			Scalar:      eth.Bytes32(common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000f4240")),
+			GasLimit:    30000000,
+		},
+	},
+	BlockTime:               2,
+	MaxSequencerDrift:       600,
+	SeqWindowSize:           3600,
+	ChannelTimeout:          300,
+	L1ChainID:               big.NewInt(11155111),
+	L2ChainID:               big.NewInt(28882),
+	BatchInboxAddress:       common.HexToAddress("0xfff0000000000000000000000000000000028882"),
+	DepositContractAddress:  common.HexToAddress("0xB079E6FA9B3eb072fEbf7F746044834eab308dB6"),
+	L1SystemConfigAddress:   common.HexToAddress("0xfdc9bce032cef55a71b4fde9b9a2198ad1551965"),
+	RegolithTime:            u64Ptr(1705600788),
+	CanyonTime:              u64Ptr(1705600788),
+	DeltaTime:               u64Ptr(1709078400),
+	EcotoneTime:             u64Ptr(1709078400),
+	FjordTime:               u64Ptr(1722297600),
+	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
+}
+
+var bobaMainnetCfg = rollup.Config{
+	Genesis: rollup.Genesis{
+		L1: eth.BlockID{
+			Hash:   common.HexToHash("0x945d6244d259e63892abf93e5e6dd3388b79e25ae5ec0502e290a0d0163aa5cf"),
+			Number: 19670718,
+		},
+		L2: eth.BlockID{
+			Hash:   common.HexToHash("0x0a555516317be2719d9befcbcca5f5516b6b7ce0f05b759f5a166b697a8a0fbd"),
+			Number: 1149019,
+		},
+		L2Time: 1713302879,
+		SystemConfig: eth.SystemConfig{
+			BatcherAddr: common.HexToAddress("0xe1b64045351b0b6e9821f19b39f81bc4711d2230"),
+			Overhead:    eth.Bytes32(common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000834")),
+			Scalar:      eth.Bytes32(common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000f4240")),
+			GasLimit:    30000000,
+		},
+	},
+	BlockTime:               2,
+	MaxSequencerDrift:       600,
+	SeqWindowSize:           3600,
+	ChannelTimeout:          300,
+	L1ChainID:               big.NewInt(1),
+	L2ChainID:               big.NewInt(288),
+	BatchInboxAddress:       common.HexToAddress("0xfff0000000000000000000000000000000000288"),
+	DepositContractAddress:  common.HexToAddress("0x7b02d13904d8e6e0f0efaf756ab14cb0ff21ee7e"),
+	L1SystemConfigAddress:   common.HexToAddress("0x158fd5715f16ac1f2dc959a299b383aaaf9b59eb"),
+	RegolithTime:            u64Ptr(1713302879),
+	CanyonTime:              u64Ptr(1713302879),
+	DeltaTime:               u64Ptr(1713302879),
+	EcotoneTime:             u64Ptr(1713302880),
+	FjordTime:               nil,
+	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
+}
+
+var bobaBnbTestnetCfg = rollup.Config{
+	Genesis: rollup.Genesis{
+		L1: eth.BlockID{
+			Hash:   common.HexToHash("0x87063262e607919b1879aeca6a6652d2d601326518a58a0f85245c05b14f8666"),
+			Number: 41400663,
+		},
+		L2: eth.BlockID{
+			Hash:   common.HexToHash("0x293763444b022de43fba94e90b95936ea0c360c02443379427c2f7b7fb21fe7e"),
+			Number: 675077,
+		},
+		L2Time: 1718920167,
+		SystemConfig: eth.SystemConfig{
+			BatcherAddr: common.HexToAddress("0xfcdd863d1d21f609f0c0737d07634b0b146ef266"),
+			Overhead:    eth.Bytes32(common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000834")),
+			Scalar:      eth.Bytes32(common.HexToHash("0x00000000000000000000000000000000000000000000000000000000000f4240")),
+			GasLimit:    30000000,
+		},
+	},
+	BlockTime:               2,
+	MaxSequencerDrift:       900,
+	SeqWindowSize:           3600,
+	ChannelTimeout:          300,
+	L1ChainID:               big.NewInt(97),
+	L2ChainID:               big.NewInt(9728),
+	BatchInboxAddress:       common.HexToAddress("0xfff0000000000000000000000000000000009728"),
+	DepositContractAddress:  common.HexToAddress("0xf48d08721d99e16d22cc704991c2ad064320ad5e"),
+	L1SystemConfigAddress:   common.HexToAddress("0x5e0aa53122c29128fd1399998f7928f9bc603b27"),
+	RegolithTime:            u64Ptr(1718920167),
+	CanyonTime:              u64Ptr(1718920167),
+	DeltaTime:               u64Ptr(1718920167),
+	EcotoneTime:             u64Ptr(1718920168),
+	FjordTime:               u64Ptr(1722297600),
+	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
 }
 
 func u64Ptr(v uint64) *uint64 {

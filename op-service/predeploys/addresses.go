@@ -8,7 +8,7 @@ import "github.com/ethereum/go-ethereum/common"
 const (
 	L2ToL1MessagePasser           = "0x4200000000000000000000000000000000000016"
 	DeployerWhitelist             = "0x4200000000000000000000000000000000000002"
-	WETH                          = "0x4200000000000000000000000000000000000006"
+	WETH                          = "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000"
 	L2CrossDomainMessenger        = "0x4200000000000000000000000000000000000007"
 	L2StandardBridge              = "0x4200000000000000000000000000000000000010"
 	SequencerFeeVault             = "0x4200000000000000000000000000000000000011"
@@ -40,6 +40,9 @@ const (
 	EntryPoint_v060               = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
 	SenderCreator_v070            = "0xEFC2c1444eBCC4Db75e7613d20C6a62fF67A167C"
 	EntryPoint_v070               = "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
+
+	// BOBA specific
+	BobaL2 = "0x4200000000000000000000000000000000000023"
 )
 
 var (
@@ -80,6 +83,9 @@ var (
 
 	Predeploys          = make(map[string]*Predeploy)
 	PredeploysByAddress = make(map[common.Address]*Predeploy)
+
+	// BOBA specific
+	BobaL2Addr = common.HexToAddress(BobaL2)
 )
 
 func init() {
@@ -162,6 +168,8 @@ func init() {
 		Address:       EntryPoint_v070Addr,
 		ProxyDisabled: true,
 	}
+
+	Predeploys["BobaL2"] = &Predeploy{Address: BobaL2Addr}
 
 	for _, predeploy := range Predeploys {
 		PredeploysByAddress[predeploy.Address] = predeploy

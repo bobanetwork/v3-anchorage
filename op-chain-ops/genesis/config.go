@@ -20,6 +20,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	plasma "github.com/ethereum-optimism/optimism/op-plasma"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum-optimism/optimism/op-service/predeploys"
 )
 
 var (
@@ -905,6 +906,19 @@ func (d *DeployConfig) RollupConfig(l1StartBlock *types.Block, l2GenesisBlockHas
 		InteropTime:            d.InteropTime(l1StartBlock.Time()),
 		PlasmaConfig:           plasma,
 	}, nil
+}
+
+func (d *DeployConfig) GetL1BobaTokenAddress() (*common.Address, error) {
+	var l1TokenAddr common.Address
+	if d.L1BobaToken != nil {
+		l1TokenAddr = *d.L1BobaToken
+	} else {
+		l1TokenAddr = predeploys.BobaL2Addr
+	}
+	if l1TokenAddr == (common.Address{}) {
+		return &l1TokenAddr, fmt.Errorf("L1BobaTokenAddress cannot be address(0): %w", ErrInvalidImmutablesConfig)
+	}
+	return &l1TokenAddr, nil
 }
 
 // NewDeployConfig reads a config file given a path on the filesystem.

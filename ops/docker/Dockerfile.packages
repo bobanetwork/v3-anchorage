@@ -1,10 +1,10 @@
 # This Dockerfile builds all the dependencies needed by the smart-contracts, excluding Go and Python.
 
-FROM us-docker.pkg.dev/oplabs-tools-artifacts/images/ci-builder:latest as foundry
-
-# Historically the contracts-bedrock was on the node image based on Debian 11 (bullseye),
-# for Node / PNPM compatibility reasons.
-# We no longer use Node JS, but continue to use the same Debian version for compatibility.
+FROM us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/ci-builder:latest as foundry
+# bullseye-slim is debian based
+# we use it rather than alpine because it's not much
+# bigger and alpine is often missing packages for node applications
+# alpine is not officially supported by node.js
 FROM debian:bullseye-slim as base
 
 # Base: install deps
