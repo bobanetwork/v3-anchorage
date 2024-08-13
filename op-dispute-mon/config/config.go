@@ -57,9 +57,11 @@ type Config struct {
 
 func NewConfig(gameFactoryAddress common.Address, l1EthRpc string, rollupRpc string) Config {
 	return Config{
-		L1EthRpc:           l1EthRpc,
-		RollupRpc:          rollupRpc,
-		GameFactoryAddress: gameFactoryAddress,
+		L1EthRpc:              l1EthRpc,
+		RollupRpc:             rollupRpc,
+		RollupRpcTimeout:      DefaultRollupRpcTimeout,
+		RollupRpcBatchTimeout: DefaultRollupRpcBatchTimeout,
+		GameFactoryAddress:    gameFactoryAddress,
 
 		MonitorInterval: DefaultMonitorInterval,
 		GameWindow:      DefaultGameWindow,

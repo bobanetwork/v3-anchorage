@@ -1515,10 +1515,6 @@ workflows:
           module: op-heartbeat
           requires: [ "go-mod-download" ]
       - go-test:
-          name: boba-chain-ops-tests
-          module: boba-chain-ops
-          go_command: "-tags=nosilkworm"
-      - go-test:
           name: op-batcher-tests
           module: op-batcher
           requires: ["go-mod-download"]

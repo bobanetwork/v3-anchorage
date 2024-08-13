@@ -767,7 +767,7 @@ type LegacyDeployConfig struct {
 // BobaDeployConfig configures the deployment of the Boba contract.
 type BobaDeployConfig struct {
 	// It is used to prevent the Boba contract from being deployed.
-	L1BobaToken *common.Address `json:"l1BobaToken"`
+	L1BobaToken *common.Address `json:"l1BobaToken,omitempty"`
 }
 
 // DeployConfig represents the deployment configuration for an OP Stack chain.

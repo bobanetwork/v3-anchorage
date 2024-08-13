@@ -5,7 +5,7 @@ import { console2 as console } from "forge-std/console2.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 import { Vm, VmSafe } from "forge-std/Vm.sol";
 
-import { Deployer } from "scripts/Deployer.sol";
+import { Deployer } from "scripts/deploy/Deployer.sol";
 
 import { Proxy } from "src/universal/Proxy.sol";
 import { ProxyAdmin } from "src/universal/ProxyAdmin.sol";
@@ -18,16 +18,16 @@ import { DelayedWETH } from "src/dispute/weth/DelayedWETH.sol";
 import { AnchorStateRegistry } from "src/dispute/AnchorStateRegistry.sol";
 import { PreimageOracle } from "src/cannon/PreimageOracle.sol";
 import { MIPS } from "src/cannon/MIPS.sol";
-import { Chains } from "scripts/Chains.sol";
-import { Config } from "scripts/Config.sol";
+import { Chains } from "scripts/libraries/Chains.sol";
+import { Config } from "scripts/libraries/Config.sol";
 
 import { IBigStepper } from "src/dispute/interfaces/IBigStepper.sol";
 import { IPreimageOracle } from "src/cannon/interfaces/IPreimageOracle.sol";
 import { AlphabetVM } from "test/mocks/AlphabetVM.sol";
 import "src/dispute/lib/Types.sol";
 import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
-import { ChainAssertions } from "scripts/ChainAssertions.sol";
-import { Types } from "scripts/Types.sol";
+import { ChainAssertions } from "scripts/deploy/ChainAssertions.sol";
+import { Types } from "scripts/libraries/Types.sol";
 
 /// @title Deploy
 /// @notice Script used to upgrade the FP contracts

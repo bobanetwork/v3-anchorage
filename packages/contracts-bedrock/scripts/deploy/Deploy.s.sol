@@ -44,8 +44,8 @@ import { L1ERC721Bridge } from "src/L1/L1ERC721Bridge.sol";
 import { ProtocolVersions, ProtocolVersion } from "src/L1/ProtocolVersions.sol";
 import { StorageSetter } from "src/universal/StorageSetter.sol";
 import { Predeploys } from "src/libraries/Predeploys.sol";
-import { Chains } from "scripts/Chains.sol";
-import { Config } from "scripts/Config.sol";
+import { Chains } from "scripts/libraries/Chains.sol";
+import { Config } from "scripts/libraries/Config.sol";
 import { BOBA } from "src/boba/BOBA.sol";
 
 import { IBigStepper } from "src/dispute/interfaces/IBigStepper.sol";
