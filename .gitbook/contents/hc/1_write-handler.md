@@ -1,6 +1,6 @@
 # Write an Off-Chain Handler
 
-The first step is to write our *offchain handler*. This handler is responsible for receiving requests from the bundler along with their payloads and returning the appropriate responses.
+The first step is to write our *off-chain handler*. This handler is responsible for receiving requests from the bundler along with their payloads and returning the appropriate responses.
 
 ## Simple Example
 

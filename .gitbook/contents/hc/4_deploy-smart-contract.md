@@ -1,4 +1,4 @@
-## Deploy the Smart Contract
+# Deploy the Smart Contract
 
 With a few adjustments to the `deploy.py` script, we can easily deploy our newly created smart contract.
 

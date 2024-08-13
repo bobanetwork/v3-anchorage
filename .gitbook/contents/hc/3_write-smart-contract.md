@@ -85,7 +85,7 @@ Lastly, we define a function `countFail()` as well as `justemit()`, which will b
 
 The `HybridAccount` contract has been previously registered to provide access to the `addsub2()` function on our off-chain function. We'll explain more about this later.
 
-## Calling Offchain
+## Calling Off-Chain
 
 As already mentioned in the previous section, our off-chain server maps the request made by the bundler via the hashed representation of our function-signature. Let's decode the function-signature we want to call on the off-chain server:
 
@@ -119,7 +119,7 @@ In this example, the `HybridAccount` implements a simple whitelist of contracts 
 
 There is an opportunity for a `HybridAccount` contract to implement a billing system here, requiring a payment of `ERC20` tokens or some other mechanism of collecting payment from the calling contract. This is optional.
 
-## Helper Contract Implementation
+## Implement a Helper Contract
 
 ```solidity
 function TryCallOffchain(bytes32 userKey, bytes memory req) public returns (uint32, bytes memory) {
