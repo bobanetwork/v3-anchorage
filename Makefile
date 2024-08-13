@@ -194,17 +194,6 @@ devnet-up: pre-devnet ## Starts the local devnet
 devnet-test: pre-devnet ## Runs tests on the local devnet
 	make -C op-e2e test-devnet
 
-devnet-hardhat-up:
-	@if [ ! -e op-program/bin ]; then \
-		make cannon-prestate; \
-	fi
-	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=.
-.PHONY: devnet-hardhat-up
-
-devnet-hardhat-test:
-	PYTHONPATH=./bedrock-devnet ${PYTHON} ./bedrock-devnet/hardhat.py --monorepo-dir=. --test
-.PHONY: devnet-hardhat-test
-
 devnet-down: ## Stops the local devnet
 	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker compose stop)
 .PHONY: devnet-down
