@@ -1623,7 +1623,6 @@ workflows:
             - op-e2e-action-tests
             - op-e2e-action-tests-plasma
             - op-e2e-ext-erigon-tests
-            - boba-chain-ops-tests
       - docker-build:
           name: op-node-docker-build
           docker_name: op-node
