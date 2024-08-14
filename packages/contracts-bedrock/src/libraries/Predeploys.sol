@@ -86,16 +86,17 @@ library Predeploys {
     /// @notice Address of the CrossL2Inbox predeploy.
     address internal constant CROSS_L2_INBOX = 0x4200000000000000000000000000000000000022;
 
-    address internal constant L2_BOBA = 0x4200000000000000000000000000000000000023;
-
     /// @notice Address of the L2ToL2CrossDomainMessenger predeploy.
     address internal constant L2_TO_L2_CROSS_DOMAIN_MESSENGER = 0x4200000000000000000000000000000000000024;
 
     /// @notice Address of the SuperchainWETH predeploy.
-    address internal constant SUPERCHAIN_WETH = 0x4200000000000000000000000000000000000024;
+    address internal constant SUPERCHAIN_WETH = 0x4200000000000000000000000000000000000025;
 
     /// @notice Address of the ETHLiquidity predeploy.
-    address internal constant ETH_LIQUIDITY = 0x4200000000000000000000000000000000000025;
+    address internal constant ETH_LIQUIDITY = 0x4200000000000000000000000000000000000026;
+
+    /// @notice Address of the L2Boba predeploy.
+    address internal constant L2_BOBA = 0xa18bF3994C0Cc6E3b63ac420308E5383f53120D7;
 
     /// @notice Returns the name of the predeploy at the given address.
     function getName(address _addr) internal pure returns (string memory out_) {

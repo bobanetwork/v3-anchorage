@@ -52,7 +52,7 @@ contract Deploy is Deployer {
     ////////////////////////////////////////////////////////////////
 
     /// @notice read proxyd address from the hardhat deployment files
-    function readProxyAddress(string memory _contractName) internal returns (address _proxyAddress) {
+    function readProxyAddress(string memory _contractName) internal view returns (address _proxyAddress) {
         string memory _hardhatDeploymentPath = vm.envOr("HARDHAT_DEPLOYMENT_PATH", string(""));
         require(
             bytes(_hardhatDeploymentPath).length > 0,

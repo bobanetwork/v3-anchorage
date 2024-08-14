@@ -147,18 +147,18 @@ contract L2GenesisTest is Test {
         genesis.setPredeployProxies();
         genesis.writeGenesisAllocs(_path);
 
-        // 2 predeploys do not have proxies
-        assertEq(getCodeCount(_path, "Proxy.sol:Proxy"), Predeploys.PREDEPLOY_COUNT - 2);
+        // 1 predeploys do not have proxies
+        assertEq(getCodeCount(_path, "Proxy.sol:Proxy"), Predeploys.PREDEPLOY_COUNT - 1);
 
         // 21 proxies have the implementation set if useInterop is true and 17 if useInterop is false
         assertEq(getPredeployCountWithSlotSet(_path, Constants.PROXY_IMPLEMENTATION_ADDRESS), _useInterop ? 21 : 17);
 
-        // All proxies except 2 have the proxy 1967 admin slot set to the proxy admin
+        // All proxies except 1 have the proxy 1967 admin slot set to the proxy admin
         assertEq(
             getPredeployCountWithSlotSetToValue(
                 _path, Constants.PROXY_OWNER_ADDRESS, bytes32(uint256(uint160(Predeploys.PROXY_ADMIN)))
             ),
-            Predeploys.PREDEPLOY_COUNT - 2
+            Predeploys.PREDEPLOY_COUNT - 1
         );
 
         // Also see Predeploys.t.test_predeploysSet_succeeds which uses L1Genesis for the CommonTest prestate.
@@ -191,6 +191,10 @@ contract L2GenesisTest is Test {
         expected += 256; // precompiles
         expected += 12; // preinstalls
         expected += 1; // 4788 deployer account
+        // boba token contract
+        expected += 1;
+        // weth
+        expected += 1;
         // 16 prefunded dev accounts are excluded
         assertEq(expected, getJSONKeyCount(_path), "key count check");
 
