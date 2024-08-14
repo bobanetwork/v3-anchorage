@@ -19,6 +19,7 @@
     "TestCannonPoisonedPostState": "TODO, this should be investigated, is probably the debug_dbGet though",
     "TestPreregolith/UnusedGasConsumed_RegolithNotScheduled": "Erigon doesn't reject building the block when the gas exceeds the block gas limit; instead, it discards transactions until they fit within the block",
     "TestPreregolith/UnusedGasConsumed_RegolithNotYetActive": "Erigon doesn't reject building the block when the gas exceeds the block gas limit; instead, it discards transactions until they fit within the block",
-    "TestMultipleGameTypes": "TODO, this should be investigated, is probably the debug_dbGet though"
+    "TestMultipleGameTypes": "TODO, this should be investigated, is probably the debug_dbGet though",
+    "TestSystemP2PAltSync": "TODO, this is a new field and should be investigated"
   }
 }
