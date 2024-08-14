@@ -12,6 +12,7 @@ Always verify snapshots by comparing the sha256sum of the downloaded file to the
 | ------ | ------------- | -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Erigon | 2024-04-16    | 1016.4MB | [Link](https://boba-db.s3.us-east-2.amazonaws.com/mainnet/boba-mainnet-erigon-db-1149019.tgz) | `98bfd73716585f412a6388bb51a8bfb945170d0d228efb4d218d98d523d76168` |
 | Geth   | 2024-04-16    | 16.3GB   | [Link](https://boba-db.s3.us-east-2.amazonaws.com/mainnet/boba-mainnet-geth-db-114909.tgz) | `102922968680e86afe0588cf22924639f6f2ab32aee1c1e2325c3026b262692b` |
+| Geth   | 2024-07-30    | 49.7GB   | [Link](https://boba-db.s3.us-east-2.amazonaws.com/mainnet/boba-mainnet-geth-snapshot-5683043.tgz) | `9d20e16434bbdb8d2fdcdfee848f7941337e6b2cfb8feece441820c9a6364d09` |
 
 ### BOBA Mainnet (Legacy)
 
@@ -21,13 +22,12 @@ Always verify snapshots by comparing the sha256sum of the downloaded file to the
 
 ### BOBA Sepolia Testnet (Archive Node)
 
-| Client | Snapshot Date | Size   | Download Link                                                | Sha256sum                                                    |
-| ------ | ------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Erigon | 2024-01-18    | 912KB  | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-erigon-db.tgz) | `b887d2e0318e9299e844da7d39ca32040e3d0fb6a9d7abe2dd2f8624eca1cade` |
-| Geth   | 2024-01-18    | 2MB    | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-geth-db.tgz) | `b229c8e51e41a26bb21a84b329d3134ae5cc6541b04eb160aebd573f0e6b94ae` |
-| Erigon | 2024-02-13    | 586M   | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-erigon-snapshot-1126371.tgz) | `688fd431656b673d3f2c690d79277b6d659a51c48c7b73a5e36bb8fbfdbdea80` |
-| Erigon | 2024-3-01     | 956M   | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-erigon-snapshot-1857820.tgz) | `3464fa9c1f669ad3d26359e5c463c33d3d60735a7aafb8e10d2dfd4719a71c07` |
-| Geth   | 2024-07-30    | 49.7GB | [Link](https://boba-db.s3.us-east-2.amazonaws.com/mainnet/boba-mainnet-geth-snapshot-5683043.tgz) | `9d20e16434bbdb8d2fdcdfee848f7941337e6b2cfb8feece441820c9a6364d09` |
+| Client | Snapshot Date | Size  | Download Link                                                | Sha256sum                                                    |
+| ------ | ------------- | ----- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Erigon | 2024-01-18    | 912KB | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-erigon-db.tgz) | `b887d2e0318e9299e844da7d39ca32040e3d0fb6a9d7abe2dd2f8624eca1cade` |
+| Geth   | 2024-01-18    | 2MB   | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-geth-db.tgz) | `b229c8e51e41a26bb21a84b329d3134ae5cc6541b04eb160aebd573f0e6b94ae` |
+| Erigon | 2024-02-13    | 586M  | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-erigon-snapshot-1126371.tgz) | `688fd431656b673d3f2c690d79277b6d659a51c48c7b73a5e36bb8fbfdbdea80` |
+| Erigon | 2024-3-01     | 956M  | [Link](https://boba-db.s3.us-east-2.amazonaws.com/sepolia/boba-sepolia-erigon-snapshot-1857820.tgz) | `3464fa9c1f669ad3d26359e5c463c33d3d60735a7aafb8e10d2dfd4719a71c07` |
 
 ### BOBA Sepolia Testnet (Legacy)
 
