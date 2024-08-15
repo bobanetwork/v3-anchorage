@@ -1,8 +1,8 @@
 # Write the Smart Contract
 
-Now we can write the smart contract, which will call our previously created off-chain handler. You can find the needed `HybridAccount` Contract along with its dependencies in the provided repository.
+Now we can write the smart contract, which will call our previously created off-chain handler. You can find the needed `HybridAccount` Contract along with its dependencies as in our [repository](https://github.com/bobanetwork/account-abstraction-hc/blob/hc-dev/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc).
 
-In the first part of the contract, we create a mapping for the counters and define a `demoAddr`. This address will then be part of the `HybridAccount`.
+In the first part of our own contract, let's create a mapping for the counters and define a `demoAddr`. This address will then be part of the `HybridAccount`.
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -19,7 +19,6 @@ contract TestCounter {
         demoAddr = _demoAddr;
     }
 }
-
 ```
 
 Now let's add the `count()` method. We initialize the `HybridAccount` with the `demoAddr` created prior. We define `x` and `y`, do a quick check for ``b == 0``, and encode our function ``addsub2()``. The real magic happens with ``HA.CallOffChain(userkey, req)``; this call will return us the two numbers `a` and `b` (assuming no error). If we encounter an error during the `CallOffChain()` call, we either revert or set the counter. See the two `else if` statements for more information.
@@ -27,7 +26,6 @@ Now let's add the `count()` method. We initialize the `HybridAccount` with the `
 Starting in the `count()` function, we initialize a `HybridAccount` along the with the address used when we deployed the smart contract:
 
 ```solidity
-
     function count(uint32 a, uint32 b) public {
         HybridAccount HA = HybridAccount(demoAddr);
         uint256 x;
@@ -98,9 +96,9 @@ require(result == HC_ERR_NONE, "Offchain call failed");
 (x,y) = abi.decode(ret,(uint256,uint256)); // x=(a+b), y=(a-b)
 ```
 
-:::tip
+{% hint style="info" %}
 The above code block presents us with our first encounter of the acronym "HC". This stands for Hybrid Compute.
-:::
+{% endhint %}
 
 We then generate a `userKey` by encoding `msg.sender`. The `userKey` parameter is used to distinguish requests so that they may be processed concurrently without interefering with each other.
 

@@ -22,6 +22,5 @@ Before you begin, make sure you have the following prerequisites in place:
 
 - Python
 - Docker
-- API key: Obtain an API key from our system by reaching out on [Discord](https://discord.com/invite/Hvu3zpFwWd).
 
 Once your environment is ready, proceed through the following steps to implement your Hybrid Compute example.
