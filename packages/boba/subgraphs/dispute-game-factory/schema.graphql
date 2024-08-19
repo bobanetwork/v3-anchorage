@@ -77,6 +77,7 @@ type DisputeGameCreated @entity {
   blockTimestamp: BigInt
   transactionHash: Bytes
   resolvedStatus: Int
+  l2BlockNumber: BigInt
 }
 
 type ImplementationSet @entity(immutable: true) {

@@ -91,5 +91,5 @@ templates:
         - name: FaultDisputeGame
           file: ./abis/FaultDisputeGame.json
       eventHandlers:
-        - event: Resolved(indexed uint8)
+        - event: Resolved(indexed uint8,indexed bytes32,indexed uint256)
           handler: handleResolved
