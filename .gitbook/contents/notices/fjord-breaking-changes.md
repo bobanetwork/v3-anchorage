@@ -1,6 +1,6 @@
 # Prepare for Fjord Breaking Changes
 
-The Fjord upgrade for Boba Sepolia was activated on **1722297600 Tue July 30 00:00:00 UTC 2024**. The Fjord Boba Mainnet upgrade will be optimistically activated **1725951600Tue Sep 10 7:00:00 UTC 2024**.
+The Fjord upgrade for Boba Sepolia was activated on **1722297600 Tue July 30 00:00:00 UTC 2024**. The Fjord Boba Mainnet upgrade will be optimistically activated **1725951600 Tue Sep 10 7:00:00 UTC 2024**.
 
 ## For Node Operators
 
