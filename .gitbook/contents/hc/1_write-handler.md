@@ -4,7 +4,7 @@ The first step is to write our *off-chain handler*. This handler is responsible 
 
 ## Simple Example
 
-Let's begin with a simple example where the handler receives two numbers. It will perform both addition and subtraction on these numbers. If the result of the subtraction results in an overflow (i.e. the first number is greater than the second), the handler will respond with an underflow error. Create a `Python` file in which to copy all the following code blocks.
+Let's begin with a simple example where the handler receives two numbers. It will perform both addition and subtraction on these numbers. If the result of the subtraction results in an underflow (i.e. if `b > a` in the expression `a-b`), the handler will respond with an underflow error. Create a `Python` file in which to copy all the following code blocks.
 
 First, we'll need to import some `Python` libraries to help with our example:
 
@@ -44,6 +44,7 @@ With this decoded information, we can add and subtract the two numbers, re-encod
         req = parse_req(sk, src_addr, src_nonce, oo_nonce, payload)
         dec = ethabi.decode(['uint32', 'uint32'], req['reqBytes'])
 
+        # s for sum, d for difference
         if dec[0] >= dec[1]:
             s = dec[0] + dec[1]
             d = dec[0] - dec[1]
@@ -70,6 +71,7 @@ def offchain_addsub2(sk, src_addr, src_nonce, oo_nonce, payload, *args):
         req = parse_req(sk, src_addr, src_nonce, oo_nonce, payload)
         dec = ethabi.decode(['uint32', 'uint32'], req['reqBytes'])
 
+        # s for sum, d for difference
         if dec[0] >= dec[1]:
             s = dec[0] + dec[1]
             d = dec[0] - dec[1]

@@ -1,8 +1,15 @@
 # Write the Smart Contract
 
-Now we can write the smart contract, which will call our previously created off-chain handler. You can find the needed `HybridAccount` Contract along with its dependencies as in our [repository](https://github.com/bobanetwork/account-abstraction-hc/blob/hc-dev/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc).
+Now we can write the smart contract, which will call our previously created off-chain handler. Our contract has two purposes:
 
-In the first part of our own contract, let's create a mapping for the counters and define a `demoAddr`. This address will then be part of the `HybridAccount`.
+1. Intentionally burn ETH gas (in order to test gas estimation logic).
+2. Count how many times the contract has been called based on certain inputs and errors.
+
+You can find the needed `HybridAccount` contract along with its dependencies in our [repository](https://github.com/bobanetwork/account-abstraction-hc/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc).
+
+## Waste Gas
+
+To start our contract, we need to import our `HybridAccount` contract and define functions `countFail()` and `justemit()`, the second of which will be used to emit the event `CalledFrom` for troubleshooting:
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -10,53 +17,6 @@ pragma solidity ^0.8.12;
 
 import "../samples/HybridAccount.sol";
 
-contract TestCounter {
-    mapping(address => uint256) public counters;
-
-    address payable immutable demoAddr;
-
-    constructor(address payable _demoAddr) {
-        demoAddr = _demoAddr;
-    }
-}
-```
-
-Now let's add the `count()` method. We initialize the `HybridAccount` with the `demoAddr` created prior. We define `x` and `y`, do a quick check for ``b == 0``, and encode our function ``addsub2()``. The real magic happens with ``HA.CallOffChain(userkey, req)``; this call will return us the two numbers `a` and `b` (assuming no error). If we encounter an error during the `CallOffChain()` call, we either revert or set the counter. See the two `else if` statements for more information.
-
-Starting in the `count()` function, we initialize a `HybridAccount` along the with the address used when we deployed the smart contract:
-
-```solidity
-    function count(uint32 a, uint32 b) public {
-        HybridAccount HA = HybridAccount(demoAddr);
-        uint256 x;
-        uint256 y;
-        if (b == 0) {
-            counters[msg.sender] = counters[msg.sender] + a;
-            return;
-        }
-        bytes memory req = abi.encodeWithSignature("addsub2(uint32,uint32)", a, b);
-        bytes32 userKey = bytes32(abi.encode(msg.sender));
-        (uint32 error, bytes memory ret) = HA.CallOffchain(userKey, req);
-
-        if (error == 0) {
-            (x, y) = abi.decode(ret, (uint256, uint256)); // x=(a+b), y=(a-b)
-
-            this.gasWaster(x, "abcd1234");
-            counters[msg.sender] = counters[msg.sender] + y;
-        } else if (b >= 10) {
-            revert(string(ret));
-        } else if (error == 1) {
-            counters[msg.sender] = counters[msg.sender] + 100;
-        } else {
-            //revert(string(ret));
-            counters[msg.sender] = counters[msg.sender] + 1000;
-        }
-    }
-```
-
-Lastly, we define a function `countFail()` as well as `justemit()`, which will be used to emit the event `CalledFrom`.
-
-```solidity
   function countFail() public pure {
       revert("count failed");
   }
@@ -66,7 +26,11 @@ Lastly, we define a function `countFail()` as well as `justemit()`, which will b
   }
 
   event CalledFrom(address sender);
+```
 
+To implement our function to waste gas, we can leverage a `for` loop to increase the cost of transacting:
+
+```solidity
   //helper method to waste gas
   // repeat - waste gas on writing storage in a loop
   // junk - dynamic buffer to stress the function size.
@@ -81,28 +45,77 @@ Lastly, we define a function `countFail()` as well as `justemit()`, which will b
   }
 ```
 
-The `HybridAccount` contract has been previously registered to provide access to the `addsub2()` function on our off-chain function. We'll explain more about this later.
+## Set and Increment Counters
+
+For our contract's second purpose, let's create a mapping for the counters and define a `demoAddr`. This address will then be part of the `HybridAccount`.
+
+```solidity
+contract TestCounter {
+    mapping(address => uint256) public counters;
+
+    address payable immutable demoAddr;
+
+    constructor(address payable _demoAddr) {
+        demoAddr = _demoAddr;
+    }
+}
+```
+
+Now we can add the `count()` method. We initialize the `HybridAccount` with the `demoAddr` created prior, and allow for parameters `a` and `b`, our numbers to add and subtract together. We define `x` and `y`, do a quick check for `b == 0`, and encode our function `offchain_addsub2()`. We registered `HybridAccount` in the previous section to provide access to the `offchain_addsub2()` function on our off-chain function.
+
+```solidity
+    function count(uint32 a, uint32 b) public {
+        HybridAccount HA = HybridAccount(demoAddr);
+        uint256 x;
+        uint256 y;
+        if (b == 0) {
+            counters[msg.sender] = counters[msg.sender] + a;
+            return;
+        }
+
+        bytes memory req = abi.encodeWithSignature("offchain_addsub2(uint32,uint32)", a, b);
+        bytes32 userKey = bytes32(abi.encode(msg.sender));
+        (uint32 error, bytes memory ret) = HA.CallOffchain(userKey, req);
+```        
+
+The truly unique functionality of Hybrid Compute comes from `HA.CallOffChain(userkey, req)`; this call will (assuming no error) return us the two numbers `a` and `b` after making computations off-chain The `userKey` parameter we pass in, generated by encoding `msg.sender`, distinguishes requests so that they may be processed concurrently without interefering with each other. As already mentioned in the previous section, our off-chain server maps the request made by the bundler via the hashed representation of our function-signature.
+
+If we encounter an error during the `CallOffChain()` call, we either revert or set the counter forward by varying amounts. We can add these different cases in a series of `else if` blocks:
+
+```solidity
+    function count(uint32 a, uint32 b) public {
+        HybridAccount HA = HybridAccount(demoAddr);
+        uint256 x;
+        uint256 y;
+        if (b == 0) {
+            counters[msg.sender] = counters[msg.sender] + a;
+            return;
+        }
+
+        bytes memory req = abi.encodeWithSignature("offchain_addsub2(uint32,uint32)", a, b);
+        bytes32 userKey = bytes32(abi.encode(msg.sender));
+        (uint32 error, bytes memory ret) = HA.CallOffchain(userKey, req);
+
+        if (error == 0) {
+            (x, y) = abi.decode(ret, (uint256, uint256)); // x=(a+b), y=(a-b)
+            this.gasWaster(x, "abcd1234");
+            counters[msg.sender] = counters[msg.sender] + y;
+        } else if (b >= 10) {
+            revert(string(ret));
+        } else if (error == 1) {
+            counters[msg.sender] = counters[msg.sender] + 100;
+        } else {
+            //revert(string(ret));
+            counters[msg.sender] = counters[msg.sender] + 1000;
+        }
+    }
+```
+
+Notably, in the first `if` block, we decode the returned object `ret` into two `uint256` values as the off-chain function returns two integers. The variables `x` and `y` hold the results of the addition and subtraction, respectively.
 
 ## Calling Off-Chain
 
-As already mentioned in the previous section, our off-chain server maps the request made by the bundler via the hashed representation of our function-signature. Let's decode the function-signature we want to call on the off-chain server:
-
-```solidity
-bytes memory req = abi.encodeWithSignature("addsub2(uint32,uint32)", a, b);
-bytes32 userKey = bytes32(abi.encode(msg.sender));
-(uint32 error, bytes memory ret) = HA.CallOffchain(userKey, req);
-
-require(result == HC_ERR_NONE, "Offchain call failed");
-(x,y) = abi.decode(ret,(uint256,uint256)); // x=(a+b), y=(a-b)
-```
-
-{% hint style="info" %}
-The above code block presents us with our first encounter of the acronym "HC". This stands for Hybrid Compute.
-{% endhint %}
-
-We then generate a `userKey` by encoding `msg.sender`. The `userKey` parameter is used to distinguish requests so that they may be processed concurrently without interefering with each other.
-
-Within the Hybrid Account contract itself, the `CallOffchain()` method calls through to another system contract named `HCHelper`:
+Within the `HybridAccount` contract itself, the `CallOffchain()` method calls through to another system contract named `HCHelper`. This is the source code of the function:
 
 ``` solidity
 function CallOffchain(bytes32 userKey, bytes memory req) public returns (uint32, bytes memory) {
@@ -115,9 +128,11 @@ function CallOffchain(bytes32 userKey, bytes memory req) public returns (uint32,
 
 In this example, the `HybridAccount` implements a simple whitelist of contracts which are allowed to call its methods. It would also be possible for a `HybridAccount` to implement additional logic here, such as requiring payment of an `ERC20` token to perform an off-chain call. Conversely, the owner of a `HybridAccount` could choose to make the `CallOffchain()` method available to all callers without restriction.
 
-There is an opportunity for a `HybridAccount` contract to implement a billing system here, requiring a payment of `ERC20` tokens or some other mechanism of collecting payment from the calling contract. This is optional.
+You could take the **optional** opportunity for a `HybridAccount` contract to implement a billing system here, requiring a payment of `ERC20` tokens or some other mechanism of collecting payment from the calling contract.
 
 ## Implement a Helper Contract
+
+Now let's create a helper contract that checks an internal mapping to see if a response exists for the given request. If not, the method reverts with a special prefix, followed by an encoded version of the request parameters. 
 
 ```solidity
 function TryCallOffchain(bytes32 userKey, bytes memory req) public returns (uint32, bytes memory) {
@@ -152,8 +167,6 @@ function TryCallOffchain(bytes32 userKey, bytes memory req) public returns (uint
 }
 ```
 
-In the code above, the contract checks an internal mapping to see if a response exists for the given request. If not, the method reverts with a special prefix, followed by an encoded version of the request parameters. 
-
 If a response does exist, it's removed from the internal mapping and is returned to the caller. The map key encodes the request parameters, so that a response initiated by one request will not be returned later in response to a modified request from the caller.
 
 To populate the response mapping, `HybridAccount` contracts use another method in the Helper:
@@ -174,18 +187,4 @@ Note that the `msg.sender` is included in the calculation of the internal map ke
 
 Account Abstraction calls `PutResponse()` and the off-chain `userOperation` must carry a valid signature in order to execute the operation.
 
-## Read the Response Data
-
-To retrieve the response from our `AddSub` contract, we handle the off-chain call as follows:
-
-```solidity
-(uint32 error, bytes memory ret) = HA.CallOffchain(userKey, req);
-
-if (error == 0) {
-(x, y) = abi.decode(ret, (uint256, uint256)); // x=(a+b), y=(a-b)
-}
-```
-
-In this snippet, we decode the returned object `ret` into two `uint256` values, as the off-chain function returns two integers. The variables `x` and `y` will hold the results of the addition and subtraction, respectively.
-
-Now that we've written the smart contract, proceed to the next section to learn how to deploy it.
+That finishes our smart contract! Proceed to the next section to learn how to deploy it.

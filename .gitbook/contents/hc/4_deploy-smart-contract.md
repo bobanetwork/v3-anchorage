@@ -1,6 +1,6 @@
 # Deploy the Smart Contract
 
-With a few adjustments to the `deploy.py` script, we can easily deploy our newly created smart contract.
+With a few adjustments to the `deploy-local.py` script, we can easily deploy our newly created smart contract.
 
 First, we need to configure the script to connect to our L1 and L2 networks:
 
