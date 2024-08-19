@@ -33,14 +33,11 @@ ha1Addr = deploy2("HybridAccount.1", HA.constructor(epAddr, hhAddr), 1)
 tcAddr = deploy2("TestCounter", TC.constructor(ha1Addr), 0)
 ```
 
-The constructor of our smart contract takes an address as an argument. Therefore, we pass the address of
-`HybridAccount.1`, which, along with other necessary contracts, is deployed as shown above.
+The constructor of our smart contract takes an address as an argument. Therefore, we pass the address of `HybridAccount.1`, which, along with other necessary contracts, is deployed as shown above.
 
 ## Additional Examples
 
-The documentation above was precisely written for the addition of two numbers. The `hybrid-compute/` folder contains more examples that can be used and experimented with.
-
-Let's integrate them into our `server-loop`:
+The documentation above was specifically written for the addition of two numbers. The `hybrid-compute/` folder contains more examples that can be used and experimented with. Let's integrate them into our `server-loop`:
 
 ```python
   def server_loop():
