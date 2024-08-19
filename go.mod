@@ -234,6 +234,6 @@ require (
 
 replace github.com/ethereum/go-ethereum => github.com/ethereum-optimism/op-geth v1.101315.1-rc.4
 
-replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240819154617-8df002c150f0
+replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240819160649-4c9cf68b2dfe
 
 //replace github.com/ethereum/go-ethereum v1.13.5 => ../go-ethereum
