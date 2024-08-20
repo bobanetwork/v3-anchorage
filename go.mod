@@ -240,7 +240,7 @@ replace github.com/ethereum/go-ethereum v1.14.7 => github.com/ethereum-optimism/
 
 //replace github.com/ethereum/go-ethereum v1.13.9 => ../op-geth
 
-replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240813213741-a4b3e125cbf4
+replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240819154617-8df002c150f0
 
 // This release keeps breaking Go builds. Stop that.
 exclude github.com/kataras/iris/v12 v12.2.0-beta5
