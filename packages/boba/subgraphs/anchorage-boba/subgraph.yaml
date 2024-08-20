@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: L2StandardBridge
-    network: boba-sepolia
+    network: boba-bnb-l2-testnet
     source:
       abi: L2StandardBridge
       address: "0x4200000000000000000000000000000000000010"
-      startBlock: 51
+      startBlock: 675078
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -45,14 +45,14 @@ dataSources:
         - event: WithdrawalInitiated(indexed address,indexed address,indexed
             address,address,uint256,bytes)
           handler: handleWithdrawalInitiated
-      file: ./src/l-2-standard-bridge.ts
+      file: ./src/l2-standard-bridge.ts
   - kind: ethereum
     name: L2ToL1MessagePasser
-    network: boba-sepolia
+    network: boba-bnb-l2-testnet
     source:
       abi: L2ToL1MessagePasser
       address: "0x4200000000000000000000000000000000000016"
-      startBlock: 51
+      startBlock: 675078
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -69,4 +69,4 @@ dataSources:
           handler: handleMessagePassed
         - event: WithdrawerBalanceBurnt(indexed uint256)
           handler: handleWithdrawerBalanceBurnt
-      file: ./src/l-2-to-l-1-message-passer.ts
+      file: ./src/l2-to-l1-message-passer.ts
