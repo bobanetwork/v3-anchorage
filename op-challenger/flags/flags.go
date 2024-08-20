@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -43,6 +44,18 @@ var (
 		Name:    "rollup-rpc",
 		Usage:   "HTTP provider URL for the rollup node",
 		EnvVars: prefixEnvVars("ROLLUP_RPC"),
+	}
+	RollupRpcTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-timeout",
+		Usage:   "Timeout for rollup RPC requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_TIMEOUT"),
+		Value:   time.Second * 15,
+	}
+	RollupRpcBatchTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-batch-timeout",
+		Usage:   "Timeout for rollup RPC batch requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_BATCH_TIMEOUT"),
+		Value:   time.Second * 30,
 	}
 	FactoryAddressFlag = &cli.StringFlag{
 		Name:    "game-factory-address",
@@ -262,6 +275,8 @@ var optionalFlags = []cli.Flag{
 	GameWindowFlag,
 	SelectiveClaimResolutionFlag,
 	UnsafeAllowInvalidPrestate,
+	RollupRpcTimeoutFlag,
+	RollupRpcBatchTimeoutFlag,
 }
 
 func init() {
@@ -455,6 +470,8 @@ func NewConfigFromCLI(ctx *cli.Context, logger log.Logger) (*config.Config, erro
 		PollInterval:                    ctx.Duration(HTTPPollInterval.Name),
 		AdditionalBondClaimants:         claimants,
 		RollupRpc:                       ctx.String(RollupRpcFlag.Name),
+		RollupRpcTimeout:                ctx.Duration(RollupRpcTimeoutFlag.Name),
+		RollupRpcBatchTimeout:           ctx.Duration(RollupRpcBatchTimeoutFlag.Name),
 		CannonNetwork:                   ctx.String(CannonNetworkFlag.Name),
 		CannonRollupConfigPath:          ctx.String(CannonRollupConfigFlag.Name),
 		CannonL2GenesisPath:             ctx.String(CannonL2GenesisFlag.Name),

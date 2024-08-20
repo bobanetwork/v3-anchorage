@@ -36,6 +36,8 @@ contract FaultDisputeGame_Init is DisputeGameFactory_Init {
 
     event Move(uint256 indexed parentIndex, Claim indexed pivot, address indexed claimant);
 
+    event Resolved(GameStatus indexed status, Claim indexed rootClaim, uint256 indexed l2BlockNumber);
+
     event ReceiveETH(uint256 amount);
 
     function init(Claim rootClaim, Claim absolutePrestate, uint256 l2BlockNumber) public {
@@ -951,6 +953,10 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
     function test_resolve_rootUncontested_succeeds() public {
         vm.warp(block.timestamp + 3 days + 12 hours);
         gameProxy.resolveClaim(0, 0);
+
+        vm.expectEmit(true, true, true, false);
+        emit Resolved(GameStatus.DEFENDER_WINS, gameProxy.rootClaim(), gameProxy.l2BlockNumber());
+
         assertEq(uint8(gameProxy.resolve()), uint8(GameStatus.DEFENDER_WINS));
     }
 
