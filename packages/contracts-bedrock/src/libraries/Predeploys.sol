@@ -87,13 +87,13 @@ library Predeploys {
     address internal constant CROSS_L2_INBOX = 0x4200000000000000000000000000000000000022;
 
     /// @notice Address of the L2ToL2CrossDomainMessenger predeploy.
-    address internal constant L2_TO_L2_CROSS_DOMAIN_MESSENGER = 0x4200000000000000000000000000000000000024;
+    address internal constant L2_TO_L2_CROSS_DOMAIN_MESSENGER = 0x4200000000000000000000000000000000000023;
 
     /// @notice Address of the SuperchainWETH predeploy.
-    address internal constant SUPERCHAIN_WETH = 0x4200000000000000000000000000000000000025;
+    address internal constant SUPERCHAIN_WETH = 0x4200000000000000000000000000000000000024;
 
     /// @notice Address of the ETHLiquidity predeploy.
-    address internal constant ETH_LIQUIDITY = 0x4200000000000000000000000000000000000026;
+    address internal constant ETH_LIQUIDITY = 0x4200000000000000000000000000000000000025;
 
     /// @notice Address of the L2Boba predeploy.
     address internal constant L2_BOBA = 0xa18bF3994C0Cc6E3b63ac420308E5383f53120D7;
@@ -132,7 +132,7 @@ library Predeploys {
 
     /// @notice Returns true if the predeploy is not proxied.
     function notProxied(address _addr) internal pure returns (bool) {
-        return _addr == GOVERNANCE_TOKEN || _addr == WETH || _addr == L2_BOBA;
+        return _addr == GOVERNANCE_TOKEN || _addr == WETH || _addr == LEGACY_ERC20_ETH || _addr == L2_BOBA;
     }
 
     /// @notice Returns true if the address is a defined predeploy that is embedded into new OP-Stack chains.

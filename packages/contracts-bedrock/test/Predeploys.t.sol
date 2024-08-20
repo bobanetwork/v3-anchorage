@@ -22,12 +22,13 @@ contract PredeploysTest is CommonTest {
             || _addr == Predeploys.L1_BLOCK_NUMBER || _addr == Predeploys.LEGACY_MESSAGE_PASSER
             || _addr == Predeploys.PROXY_ADMIN || _addr == Predeploys.BASE_FEE_VAULT || _addr == Predeploys.L1_FEE_VAULT
             || _addr == Predeploys.GOVERNANCE_TOKEN || _addr == Predeploys.SCHEMA_REGISTRY || _addr == Predeploys.EAS
-            || _addr == Predeploys.L2_BOBA;
+            || _addr == Predeploys.L2_BOBA || _addr == Predeploys.LEGACY_ERC20_ETH;
     }
 
     /// @dev Returns true if the address is not proxied.
     function _notProxied(address _addr) internal pure returns (bool) {
-        return _addr == Predeploys.GOVERNANCE_TOKEN || _addr == Predeploys.WETH || _addr == Predeploys.L2_BOBA;
+        return _addr == Predeploys.GOVERNANCE_TOKEN || _addr == Predeploys.WETH || _addr == Predeploys.LEGACY_ERC20_ETH
+            || _addr == Predeploys.L2_BOBA;
     }
 
     /// @dev Returns true if the account is not meant to be in the L2 genesis anymore.

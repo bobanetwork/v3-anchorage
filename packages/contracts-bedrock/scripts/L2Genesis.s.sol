@@ -234,7 +234,7 @@ contract L2Genesis is Deployer {
         // 01: legacy, not used in OP-Stack
         setDeployerWhitelist(); // 2
         // 3,4,5: legacy, not used in OP-Stack.
-        setWETH(); // 6: WETH (not behind a proxy)
+        setLegacyERC20ETH(); // 6 (not behind a proxy)
         setL2CrossDomainMessenger(_l1Dependencies.l1CrossDomainMessengerProxy); // 7
         // 8,9,A,B,C,D,E: legacy, not used in OP-Stack.
         setGasPriceOracle(); // f
@@ -259,7 +259,8 @@ contract L2Genesis is Deployer {
             setSuperchainWETH(); // 24
             setETHLiquidity(); // 25
         }
-        setBOBA(_l1Dependencies.l1BobaToken); // 23
+        setBOBA(_l1Dependencies.l1BobaToken);
+        setWETH();
     }
 
     function setProxyAdmin() public {
@@ -373,6 +374,11 @@ contract L2Genesis is Deployer {
     /// @notice This predeploy is following the safety invariant #1.
     function setDeployerWhitelist() public {
         _setImplementationCode(Predeploys.DEPLOYER_WHITELIST);
+    }
+
+    function setLegacyERC20ETH() public {
+        console.log("Setting %s implementation at: %s", "LegacyERC20ETH", Predeploys.LEGACY_ERC20_ETH);
+        vm.etch(Predeploys.LEGACY_ERC20_ETH, vm.getDeployedCode("LegacyERC20ETH.sol:LegacyERC20ETH"));
     }
 
     /// @notice This predeploy is following the safety invariant #1.
