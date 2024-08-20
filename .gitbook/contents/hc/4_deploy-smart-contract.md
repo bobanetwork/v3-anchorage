@@ -59,4 +59,6 @@ The documentation above was specifically written for the addition of two numbers
     server.register_function(offchain_getprice, selector("getprice(string)"))
 ```
 
+Note: each of these `register_function()` statements represents a whitelisting for an off-chain RPC server.
+
 You've now reached the end of this tutorial! These examples aim to demonstrate the different functions and best practices you should keep in mind as you develop your own efficient, flexible smart contracts with Hybrid Compute.

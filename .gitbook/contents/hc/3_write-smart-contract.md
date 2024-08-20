@@ -47,25 +47,25 @@ To implement our function to waste gas, we can leverage a `for` loop to increase
 
 ## Set and Increment Counters
 
-For our contract's second purpose, let's create a mapping for the counters and define a `demoAddr`. This address will then be part of the `HybridAccount`.
+For our contract's second purpose, let's create a mapping for the counters and define a `hcAccount`. This address will then be part of the `HybridAccount`.
 
 ```solidity
 contract TestCounter {
     mapping(address => uint256) public counters;
 
-    address payable immutable demoAddr;
+    address payable immutable hcAccount;
 
-    constructor(address payable _demoAddr) {
-        demoAddr = _demoAddr;
+    constructor(address payable _hcAccount) {
+        hcAccount = _hcAccount;
     }
 }
 ```
 
-Now we can add the `count()` method. We initialize the `HybridAccount` with the `demoAddr` created prior, and allow for parameters `a` and `b`, our numbers to add and subtract together. We define `x` and `y`, do a quick check for `b == 0`, and encode our function `offchain_addsub2()`. We registered `HybridAccount` in the previous section to provide access to the `offchain_addsub2()` function on our off-chain function.
+Now we can add the `count()` method. We initialize the `HybridAccount` with the `hcAccount` created prior, and allow for parameters `a` and `b`, our numbers to add and subtract together. We define `x` and `y`, do a quick check for `b == 0`, and encode our function `offchain_addsub2()`. We registered `HybridAccount` in the previous section to provide access to the `offchain_addsub2()` function on our off-chain function.
 
 ```solidity
     function count(uint32 a, uint32 b) public {
-        HybridAccount HA = HybridAccount(demoAddr);
+        HybridAccount HA = HybridAccount(hcAccount);
         uint256 x;
         uint256 y;
         if (b == 0) {
@@ -84,7 +84,7 @@ If we encounter an error during the `CallOffChain()` call, we either revert or s
 
 ```solidity
     function count(uint32 a, uint32 b) public {
-        HybridAccount HA = HybridAccount(demoAddr);
+        HybridAccount HA = HybridAccount(hcAccount);
         uint256 x;
         uint256 y;
         if (b == 0) {
