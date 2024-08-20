@@ -3,9 +3,9 @@
 Now we can write the smart contract, which will call our previously created off-chain handler. Our contract has two purposes:
 
 1. Intentionally burn ETH gas (in order to test gas estimation logic).
-2. Count how many times the contract has been called based on certain inputs and errors.
+2. Increment a counter variable each time the contract is called based on certain inputs and errors.
 
-You can find the needed `HybridAccount` contract along with its dependencies in our [repository](https://github.com/bobanetwork/account-abstraction-hc/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc).
+You can find the needed `HybridAccount` contract along with its dependencies in our [repository](https://github.com/bobanetwork/account-abstraction-hc/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc/crates/types/contracts/lib/account-abstraction/).
 
 ## Waste Gas
 
@@ -130,9 +130,11 @@ In this example, the `HybridAccount` implements a simple whitelist of contracts 
 
 You could take the **optional** opportunity for a `HybridAccount` contract to implement a billing system here, requiring a payment of `ERC20` tokens or some other mechanism of collecting payment from the calling contract.
 
-## Implement a Helper Contract
+## HybridAccount Explanation
 
-Now let's create a helper contract that checks an internal mapping to see if a response exists for the given request. If not, the method reverts with a special prefix, followed by an encoded version of the request parameters. 
+Our `HybridAccount` contract acts as a system-wide helper. Let's examine some of the calls we made to it in our own contract.
+
+First, the helper checks an internal mapping to see if a response exists for the given request. If not, the method reverts with a special prefix, followed by an encoded version of the request parameters. 
 
 ```solidity
 function TryCallOffchain(bytes32 userKey, bytes memory req) public returns (uint32, bytes memory) {
