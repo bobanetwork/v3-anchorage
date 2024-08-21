@@ -41,8 +41,6 @@ vm.stopBroadcast();
 In the above example we deploy with Foundry, but feel free to deploy with whatever tooling you wish.
 {% endhint %}
 
-The constructor of our smart contract takes an address as an argument. Therefore, we pass the address of `HybridAccount.1`, which, along with other necessary contracts, is deployed as shown above.
-
 ## Additional Examples
 
 The documentation above was specifically written for the addition of two numbers. The `hybrid-compute/` folder contains more examples that can be used and experimented with. Let's integrate them into our `server-loop`:
