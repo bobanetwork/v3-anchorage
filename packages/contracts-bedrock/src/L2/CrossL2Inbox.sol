@@ -5,11 +5,12 @@ import { Predeploys } from "src/libraries/Predeploys.sol";
 import { TransientContext, TransientReentrancyAware } from "src/libraries/TransientContext.sol";
 import { ISemver } from "src/universal/ISemver.sol";
 import { ICrossL2Inbox } from "src/L2/ICrossL2Inbox.sol";
+import { SafeCall } from "src/libraries/SafeCall.sol";
 
 /// @title IDependencySet
 /// @notice Interface for L1Block with only `isInDependencySet(uint256)` method.
 interface IDependencySet {
-    /// @notice Returns true iff the chain associated with input chain ID is in the interop dependency set.
+    /// @notice Returns true if the chain associated with input chain ID is in the interop dependency set.
     ///         Every chain is in the interop dependency set of itself.
     /// @param _chainId Input chain ID.
     /// @return True if the input chain ID corresponds to a chain in the interop dependency set, and false otherwise.
@@ -55,20 +56,13 @@ contract CrossL2Inbox is ICrossL2Inbox, ISemver, TransientReentrancyAware {
     bytes32 internal constant CHAINID_SLOT = 0x6e0446e8b5098b8c8193f964f1b567ec3a2bdaeba33d36acb85c1f1d3f92d313;
 
     /// @notice Semantic version.
-    /// @custom:semver 1.0.0
-    string public constant version = "1.0.0";
+    /// @custom:semver 1.0.0-beta.4
+    string public constant version = "1.0.0-beta.4";
 
     /// @notice Emitted when a cross chain message is being executed.
-    /// @param encodedId Encoded Identifier of the message.
-    /// @param message   Message payload being executed.
-    event ExecutingMessage(bytes encodedId, bytes message);
-
-    /// @notice Enforces that cross domain message sender and source are set. Reverts if not.
-    ///         Used to differentiate between 0 and nil in transient storage.
-    modifier notEntered() {
-        if (TransientContext.callDepth() == 0) revert NotEntered();
-        _;
-    }
+    /// @param msgHash Hash of message payload being executed.
+    /// @param id Encoded Identifier of the message.
+    event ExecutingMessage(bytes32 indexed msgHash, Identifier id);
 
     /// @notice Returns the origin address of the Identifier. If not entered, reverts.
     /// @return Origin address of the Identifier.
@@ -113,21 +107,43 @@ contract CrossL2Inbox is ICrossL2Inbox, ISemver, TransientReentrancyAware {
         payable
         reentrantAware
     {
-        if (_id.timestamp > block.timestamp) revert InvalidTimestamp();
-        if (!IDependencySet(Predeploys.L1_BLOCK_ATTRIBUTES).isInDependencySet(_id.chainId)) {
-            revert InvalidChainId();
-        }
+        // Check the Identifier.
+        _checkIdentifier(_id);
 
         // Store the Identifier in transient storage.
         _storeIdentifier(_id);
 
         // Call the target account with the message payload.
-        bool success = _callWithAllGas(_target, _message);
+        bool success = SafeCall.call(_target, msg.value, _message);
 
         // Revert if the target call failed.
         if (!success) revert TargetCallFailed();
 
-        emit ExecutingMessage(abi.encode(_id), _message);
+        emit ExecutingMessage(keccak256(_message), _id);
+    }
+
+    /// @notice Validates a cross chain message on the destination chain
+    ///         and emits an ExecutingMessage event. This function is useful
+    ///         for applications that understand the schema of the _message payload and want to
+    ///         process it in a custom way.
+    /// @param _id      Identifier of the message.
+    /// @param _msgHash Hash of the message payload to call target with.
+    function validateMessage(Identifier calldata _id, bytes32 _msgHash) external {
+        // Check the Identifier.
+        _checkIdentifier(_id);
+
+        emit ExecutingMessage(_msgHash, _id);
+    }
+
+    /// @notice Validates that for a given cross chain message identifier,
+    ///         it's timestamp is not in the future and the source chainId
+    ///         is in the destination chain's dependency set.
+    /// @param _id Identifier of the message.
+    function _checkIdentifier(Identifier calldata _id) internal view {
+        if (_id.timestamp > block.timestamp) revert InvalidTimestamp();
+        if (!IDependencySet(Predeploys.L1_BLOCK_ATTRIBUTES).isInDependencySet(_id.chainId)) {
+            revert InvalidChainId();
+        }
     }
 
     /// @notice Stores the Identifier in transient storage.
@@ -138,24 +154,5 @@ contract CrossL2Inbox is ICrossL2Inbox, ISemver, TransientReentrancyAware {
         TransientContext.set(LOG_INDEX_SLOT, _id.logIndex);
         TransientContext.set(TIMESTAMP_SLOT, _id.timestamp);
         TransientContext.set(CHAINID_SLOT, _id.chainId);
-    }
-
-    /// @notice Calls the target address with the message payload and all available gas.
-    /// @param _target  Target address to call.
-    /// @param _message Message payload to call target with.
-    /// @return _success True if the call was successful, and false otherwise.
-    function _callWithAllGas(address _target, bytes memory _message) internal returns (bool _success) {
-        assembly {
-            _success :=
-                call(
-                    gas(), // gas
-                    _target, // recipient
-                    callvalue(), // ether value
-                    add(_message, 32), // inloc
-                    mload(_message), // inlen
-                    0, // outloc
-                    0 // outlen
-                )
-        }
     }
 }

@@ -22,7 +22,10 @@ High-level information about these contracts can be found within this README and
   - [Contributing Guide](#contributing-guide)
   - [Style Guide](#style-guide)
 - [Deployment](#deployment)
+  - [Deploying Production Networks](#deploying-production-networks)
+- [Generating L2 Genesis Allocs](#generating-l2-genesis-allocs)
   - [Configuration](#configuration)
+    - [Custom Gas Token](#custom-gas-token)
   - [Execution](#execution)
   - [Deploying a single contract](#deploying-a-single-contract)
 - [Testing](#testing)
@@ -52,51 +55,66 @@ graph LR
         L1StandardBridge(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/L1/L1StandardBridge.sol">L1StandardBridge</a>)
         L1ERC721Bridge(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/L1/L1ERC721Bridge.sol">L1ERC721Bridge</a>)
         L1CrossDomainMessenger(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/L1/L1CrossDomainMessenger.sol">L1CrossDomainMessenger</a>)
-        L2OutputOracle(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/L1/L2OutputOracle.sol">L2OutputOracle</a>)
         OptimismPortal(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/L1/OptimismPortal.sol">OptimismPortal</a>)
         SuperchainConfig(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/L1/SuperchainConfig.sol">SuperchainConfig</a>)
         SystemConfig(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/L1/SystemConfig.sol">SystemConfig</a>)
+        DisputeGameFactory(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/dispute/DisputeGameFactory.sol">DisputeGameFactory</a>)
+        FaultDisputeGame(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/dispute/FaultDisputeGame.sol">FaultDisputeGame</a>)
+        AnchorStateRegistry(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/dispute/AnchorStateRegistry.sol">AnchorStateRegistry</a>)
+        DelayedWETH(<a href="https://github.com/ethereum-optimism/optimism/tree/develop/packages/contracts-bedrock/src/dispute/weth/DelayedWETH.sol">DelayedWETH</a>)
     end
 
-    subgraph "User Interactions"
+    subgraph "User Interactions (Permissionless)"
         Users(Users)
+        Challengers(Challengers)
     end
 
     subgraph "System Interactions"
-        Batcher(Batcher)
-        Proposer(Proposer)
         Guardian(Guardian)
+        Batcher(Batcher)
     end
 
     subgraph "Layer 2 Interactions"
         L2Nodes(Layer 2 Nodes)
     end
 
-    Batcher -->|publish transaction batches| BatchDataEOA
-    Proposer -->|propose state outputs| L2OutputOracle
-    Guardian -->|remove invalid state outputs| L2OutputOracle
-
-    ExternalERC20 <-->|mint/burn/transfer| L1StandardBridge
-    ExternalERC721 <-->|mint/burn/transfer| L1ERC721Bridge
-
-    L1StandardBridge <-->|send/receive message| L1CrossDomainMessenger
-    L1ERC721Bridge <-->|send/receive message| L1CrossDomainMessenger
-    L1CrossDomainMessenger <-->|package/send/receive message| OptimismPortal
-    L1StandardBridge -.->|query pause state| SuperchainConfig
-    L1ERC721Bridge -.->|query pause state| SuperchainConfig
-    L1CrossDomainMessenger -.->|query pause state| SuperchainConfig
-    OptimismPortal -.->|query pause state| SuperchainConfig
-
-    OptimismPortal -.->|query config| SystemConfig
-    OptimismPortal -.->|query proposed states| L2OutputOracle
-
-    Users <-->|deposit/withdraw ETH/ERC20| L1StandardBridge
-    Users <-->|deposit/withdraw ERC721| L1ERC721Bridge
-    Users -->|prove/execute withdrawal transactions| OptimismPortal
-
     L2Nodes -.->|fetch transaction batches| BatchDataEOA
-    L2Nodes -.->|verify output roots| L2OutputOracle
     L2Nodes -.->|fetch deposit events| OptimismPortal
+
+    Batcher -->|publish transaction batches| BatchDataEOA
+
+    ExternalERC20 <-->|mint/burn/transfer tokens| L1StandardBridge
+    ExternalERC721 <-->|mint/burn/transfer tokens| L1ERC721Bridge
+
+    L1StandardBridge <-->|send/receive messages| L1CrossDomainMessenger
+    L1StandardBridge -.->|query pause state| SuperchainConfig
+
+    L1ERC721Bridge <-->|send/receive messages| L1CrossDomainMessenger
+    L1ERC721Bridge -.->|query pause state| SuperchainConfig
+
+    L1CrossDomainMessenger <-->|send/receive messages| OptimismPortal
+    L1CrossDomainMessenger -.->|query pause state| SuperchainConfig
+
+    OptimismPortal -.->|query pause state| SuperchainConfig
+    OptimismPortal -.->|query config| SystemConfig
+    OptimismPortal -.->|query state proposals| DisputeGameFactory
+
+    DisputeGameFactory -->|generate instances| FaultDisputeGame
+
+    FaultDisputeGame -->|store bonds| DelayedWETH
+    FaultDisputeGame -->|query/update anchor states| AnchorStateRegistry
+
+    Users <-->|deposit/withdraw ETH/ERC20s| L1StandardBridge
+    Users <-->|deposit/withdraw ERC721s| L1ERC721Bridge
+    Users -->|prove/execute withdrawals| OptimismPortal
+
+    Challengers -->|propose output roots| DisputeGameFactory
+    Challengers -->|verify/challenge/defend proposals| FaultDisputeGame
+
+    Guardian -->|pause/unpause| SuperchainConfig
+    Guardian -->|safety net actions| OptimismPortal
+    Guardian -->|safety net actions| DisputeGameFactory
+    Guardian -->|safety net actions| DelayedWETH
 
     classDef extContracts stroke:#ff9,stroke-width:2px;
     classDef l1Contracts stroke:#bbf,stroke-width:2px;
@@ -105,10 +123,10 @@ graph LR
     classDef systemUser stroke:#f9a,stroke-width:2px;
     classDef l2Nodes stroke:#333,stroke-width:2px
     class ExternalERC20,ExternalERC721 extContracts;
-    class L1StandardBridge,L1ERC721Bridge,L1CrossDomainMessenger,L2OutputOracle,OptimismPortal,SuperchainConfig,SystemConfig l1Contracts;
+    class L1StandardBridge,L1ERC721Bridge,L1CrossDomainMessenger,OptimismPortal,SuperchainConfig,SystemConfig,DisputeGameFactory,FaultDisputeGame,DelayedWETH,AnchorStateRegistry l1Contracts;
     class BatchDataEOA l1EOA;
-    class Users userInt;
-    class Batcher,Proposer,Guardian systemUser;
+    class Users,Challengers userInt;
+    class Batcher,Guardian systemUser;
     class L2Nodes l2Nodes;
 ```
 
@@ -233,7 +251,7 @@ graph LR
 OP Stack smart contracts are published to NPM and can be installed via:
 
 ```sh
-npm install @eth-optimism/contracts-bedrock.
+npm install @eth-optimism/contracts-bedrock
 ```
 
 Refer to the [Optimism Developer Docs](https://docs.optimism.io/builders/dapp-developers/contracts/system-contracts#using-system-contracts-in-solidity) for additional information about how to use this package.
@@ -266,29 +284,83 @@ Maintaining a consistent code style makes code easier to review and maintain, ul
 
 ## Deployment
 
-The smart contracts are deployed using `foundry` with a `hardhat-deploy` compatibility layer. When the contracts are deployed,
-they will write a temp file to disk that can then be formatted into a `hardhat-deploy` style artifact by calling another script.
+The smart contracts are deployed using `foundry`. The `DEPLOYMENT_OUTFILE` env var will determine the filepath that the
+deployment artifact is written to on disk after the deployment. It comes in the form of a JSON file where keys are
+the names of the contracts and the values are the addresses the contract was deployed to.
 
-The addresses in the `deployments` directory will be read into the script based on the backend's chain id.
-To manually define the set of addresses used in the script, set the `CONTRACT_ADDRESSES_PATH` env var to a path on the local
-filesystem that points to a JSON file full of key value pairs where the keys are names of contracts and the
-values are addresses. This works well with the JSON files in `superchain-ops`.
+The `DEPLOY_CONFIG_PATH` is a filepath to a deploy config file, see the `deploy-config` directory for examples and the
+[DeployConfig](https://github.com/ethereum-optimism/optimism/blob/develop/op-chain-ops/genesis/config.go) definition for
+descriptions of the values.
+If you are following the official deployment tutorial, please make sure to use the `getting-started.json` file.
+
+```bash
+DEPLOYMENT_OUTFILE=deployments/artifact.json \
+DEPLOY_CONFIG_PATH=<PATH_TO_MY_DEPLOY_CONFIG> \
+  forge script scripts/deploy/Deploy.s.sol:Deploy \
+  --broadcast --private-key $PRIVATE_KEY \
+  --rpc-url $ETH_RPC_URL
+```
+
+The `IMPL_SALT` env var can be used to set the `create2` salt for deploying the implementation
+contracts.
+
+This will deploy an entire new system of L1 smart contracts including a new `SuperchainConfig`.
+In the future there will be an easy way to deploy only proxies and use shared implementations
+for each of the contracts as well as a shared `SuperchainConfig` contract.
+
+### Deploying Production Networks
+
+Production users should deploy their L1 contracts from a contracts release.
+All contracts releases are on git tags with the following format: `op-contracts/vX.Y.Z`.
+See the [release process](https://github.com/ethereum-optimism/optimism?tab=readme-ov-file#development-and-release-process)
+for more information.
+
+## Generating L2 Genesis Allocs
+
+A foundry script is used to generate the L2 genesis allocs. This is a JSON file that represents the L2 genesis state.
+The `CONTRACT_ADDRESSES_PATH` env var represents the deployment artifact that was generated during a contract deployment.
+The same deploy config JSON file should be used for L1 contracts deployment as when generating the L2 genesis allocs.
+The `STATE_DUMP_PATH` env var represents the filepath at which the allocs will be written to on disk.
+
+```bash
+CONTRACT_ADDRESSES_PATH=deployments/artifact.json \
+DEPLOY_CONFIG_PATH=<PATH_TO_MY_DEPLOY_CONFIG> \
+STATE_DUMP_PATH=<PATH_TO_WRITE_L2_ALLOCS> \
+  forge script scripts/L2Genesis.s.sol:L2Genesis \
+  --sig 'runWithStateDump()'
+```
 
 ### Configuration
 
 Create or modify a file `<network-name>.json` inside of the [`deploy-config`](./deploy-config/) folder.
-By default, the network name will be selected automatically based on the chainid. Alternatively, the `DEPLOYMENT_CONTEXT` env var can be used to override the network name.
-The spec for the deploy config is defined by the `deployConfigSpec` located inside of the [`hardhat.config.ts`](./hardhat.config.ts).
+Use the env var `DEPLOY_CONFIG_PATH` to use a particular deploy config file at runtime.
+
+The script will read the latest active fork from the deploy config and the L2 genesis allocs generated will be
+compatible with this fork. The automatically detected fork can be overwritten by setting the environment variable
+`FORK` either to the lower-case fork name (currently `delta`, `ecotone`, `fjord`, or `granite`) or to `latest`, which
+will select the latest fork available (currently `granite`).
+
+By default, the script will dump the L2 genesis allocs of the detected or selected fork only, to the file at `STATE_DUMP_PATH`.
+The optional environment variable `OUTPUT_MODE` allows to modify this behavior by setting it to one of the following values:
+* `latest` (default) - only dump the selected fork's allocs.
+* `all` - also dump all intermediary fork's allocs. This only works if `STATE_DUMP_PATH` is _not_ set. In this case, all allocs
+          will be written to files `/state-dump-<fork>.json`. Another path cannot currently be specified for this use case.
+* `none` - won't dump any allocs. Only makes sense for internal test usage.
+
+#### Custom Gas Token
+
+The Custom Gas Token feature is a Beta feature of the MIT licensed OP Stack.
+While it has received initial review from core contributors, it is still undergoing testing, and may have bugs or other issues.
 
 ### Execution
 
 Before deploying the contracts, you can verify the state diff produced by the deploy script using the `runWithStateDiff()` function signature which produces the outputs inside [`snapshots/state-diff/`](./snapshots/state-diff).
-Run the deployment with state diffs by executing: `forge script -vvv scripts/Deploy.s.sol:Deploy --sig 'runWithStateDiff()' --rpc-url $ETH_RPC_URL --broadcast --private-key $PRIVATE_KEY`.
+Run the deployment with state diffs by executing: `forge script -vvv scripts/deploy/Deploy.s.sol:Deploy --sig 'runWithStateDiff()' --rpc-url $ETH_RPC_URL --broadcast --private-key $PRIVATE_KEY`.
 
-1. Set the env vars `ETH_RPC_URL`, `PRIVATE_KEY` and `ETHERSCAN_API_KEY` if contract verification is desired
-1. Deploy the contracts with `forge script -vvv scripts/Deploy.s.sol:Deploy --rpc-url $ETH_RPC_URL --broadcast --private-key $PRIVATE_KEY`
+1. Set the env vars `ETH_RPC_URL`, `PRIVATE_KEY` and `ETHERSCAN_API_KEY` if contract verification is desired.
+1. Set the `DEPLOY_CONFIG_PATH` env var to a path on the filesystem that points to a deploy config.
+1. Deploy the contracts with `forge script -vvv scripts/deploy/Deploy.s.sol:Deploy --rpc-url $ETH_RPC_URL --broadcast --private-key $PRIVATE_KEY`
    Pass the `--verify` flag to verify the deployments automatically with Etherscan.
-1. Generate the hardhat deploy artifacts with `forge script -vvv scripts/Deploy.s.sol:Deploy --sig 'sync()' --rpc-url $ETH_RPC_URL --broadcast --private-key $PRIVATE_KEY`
 
 ### Deploying a single contract
 
@@ -305,7 +377,7 @@ to reduce the overhead of maintaining multiple ways to set up the state as well 
 
 The L1 contract addresses are held in `deployments/hardhat/.deploy` and the L2 test state is held in a `.testdata` directory. The L1 addresses are used to create the L2 state
 and it is possible for stale addresses to be pulled into the L2 state, causing tests to fail. Stale addresses may happen if the order of the L1 deployments happen differently
-since some contracts are deployed using `CREATE`. Run `pnpm clean` and rerun the tests if they are failing for an unknown reason.
+since some contracts are deployed using `CREATE`. Run `just clean` and rerun the tests if they are failing for an unknown reason.
 
 ### Static Analysis
 

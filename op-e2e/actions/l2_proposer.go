@@ -3,6 +3,7 @@ package actions
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/binary"
 	"math/big"
 	"time"
 
@@ -31,6 +32,7 @@ type ProposerCfg struct {
 	OutputOracleAddr       *common.Address
 	DisputeGameFactoryAddr *common.Address
 	ProposalInterval       time.Duration
+	ProposalRetryInterval  time.Duration
 	DisputeGameType        uint32
 	ProposerKey            *ecdsa.PrivateKey
 	AllowNonFinalized      bool
@@ -77,6 +79,7 @@ func NewL2Proposer(t Testing, log log.Logger, cfg *ProposerCfg, l1 *ethclient.Cl
 		PollInterval:           time.Second,
 		NetworkTimeout:         time.Second,
 		ProposalInterval:       cfg.ProposalInterval,
+		OutputRetryInterval:    cfg.ProposalRetryInterval,
 		L2OutputOracleAddr:     cfg.OutputOracleAddr,
 		DisputeGameFactoryAddr: cfg.DisputeGameFactoryAddr,
 		DisputeGameType:        cfg.DisputeGameType,
@@ -100,7 +103,7 @@ func NewL2Proposer(t Testing, log log.Logger, cfg *ProposerCfg, l1 *ethclient.Cl
 
 	var l2OutputOracle *bindings.L2OutputOracleCaller
 	var disputeGameFactory *bindings.DisputeGameFactoryCaller
-	if e2eutils.UseFPAC() {
+	if e2eutils.UseFaultProofs() {
 		disputeGameFactory, err = bindings.NewDisputeGameFactoryCaller(*cfg.DisputeGameFactoryAddr, l1)
 		require.NoError(t, err)
 	} else {
@@ -137,7 +140,7 @@ func (p *L2Proposer) sendTx(t Testing, data []byte) {
 	require.NoError(t, err)
 
 	var addr common.Address
-	if e2eutils.UseFPAC() {
+	if e2eutils.UseFaultProofs() {
 		addr = *p.disputeGameFactoryAddr
 	} else {
 		addr = *p.l2OutputOracleAddr
@@ -205,19 +208,13 @@ func toCallArg(msg ethereum.CallMsg) interface{} {
 }
 
 func (p *L2Proposer) fetchNextOutput(t Testing) (*eth.OutputResponse, bool, error) {
-	if e2eutils.UseFPAC() {
-		blockNumber, err := p.driver.FetchCurrentBlockNumber(t.Ctx())
+	if e2eutils.UseFaultProofs() {
+		output, err := p.driver.FetchDGFOutput(t.Ctx())
 		if err != nil {
 			return nil, false, err
 		}
-
-		output, _, err := p.driver.FetchOutput(t.Ctx(), blockNumber)
-		if err != nil {
-			return nil, false, err
-		}
-
 		encodedBlockNumber := make([]byte, 32)
-		copy(encodedBlockNumber[32-len(blockNumber.Bytes()):], blockNumber.Bytes())
+		binary.BigEndian.PutUint64(encodedBlockNumber[24:], output.BlockRef.Number)
 		game, err := p.disputeGameFactory.Games(&bind.CallOpts{}, p.driver.Cfg.DisputeGameType, output.OutputRoot, encodedBlockNumber)
 		if err != nil {
 			return nil, false, err
@@ -228,7 +225,7 @@ func (p *L2Proposer) fetchNextOutput(t Testing) (*eth.OutputResponse, bool, erro
 
 		return output, true, nil
 	} else {
-		return p.driver.FetchNextOutputInfo(t.Ctx())
+		return p.driver.FetchL2OOOutput(t.Ctx())
 	}
 }
 
@@ -247,7 +244,7 @@ func (p *L2Proposer) ActMakeProposalTx(t Testing) {
 	}
 
 	var txData []byte
-	if e2eutils.UseFPAC() {
+	if e2eutils.UseFaultProofs() {
 		txData, _, err = p.driver.ProposeL2OutputDGFTxData(output)
 		require.NoError(t, err)
 	} else {

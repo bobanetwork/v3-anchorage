@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	crand "crypto/rand"
 	"fmt"
+
 	"math/big"
 	"math/rand"
 	"testing"
@@ -39,7 +40,7 @@ func TestDropSpanBatchBeforeHardfork(gt *testing.T) {
 	}
 	dp := e2eutils.MakeDeployParams(t, p)
 	// do not activate Delta hardfork for verifier
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = nil
+	applyDeltaTimeOffset(dp, nil)
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelError)
 	miner, seqEngine, sequencer := setupSequencerTest(t, sd, log)
@@ -130,7 +131,12 @@ func TestHardforkMiddleOfSpanBatch(gt *testing.T) {
 
 	// Activate HF in the middle of the first epoch
 	deltaOffset := hexutil.Uint64(6)
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = &deltaOffset
+	applyDeltaTimeOffset(dp, &deltaOffset)
+	// Applies to HF that goes into Delta. Otherwise we end up with more upgrade txs and things during this case.
+	dp.DeployConfig.L2GenesisEcotoneTimeOffset = nil
+	dp.DeployConfig.L2GenesisFjordTimeOffset = nil
+	dp.DeployConfig.L2GenesisGraniteTimeOffset = nil
+
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelError)
 	miner, seqEngine, sequencer := setupSequencerTest(t, sd, log)
@@ -238,7 +244,7 @@ func TestAcceptSingularBatchAfterHardfork(gt *testing.T) {
 	dp := e2eutils.MakeDeployParams(t, p)
 
 	// activate Delta hardfork for verifier.
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = &minTs
+	applyDeltaTimeOffset(dp, &minTs)
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelError)
 	miner, seqEngine, sequencer := setupSequencerTest(t, sd, log)
@@ -324,7 +330,7 @@ func TestMixOfBatchesAfterHardfork(gt *testing.T) {
 	dp := e2eutils.MakeDeployParams(t, p)
 
 	// Activate Delta hardfork for verifier.
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = &minTs
+	applyDeltaTimeOffset(dp, &minTs)
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelError)
 	miner, seqEngine, sequencer := setupSequencerTest(t, sd, log)
@@ -414,7 +420,7 @@ func TestSpanBatchEmptyChain(gt *testing.T) {
 	dp := e2eutils.MakeDeployParams(t, p)
 	minTs := hexutil.Uint64(0)
 	// Activate Delta hardfork
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = &minTs
+	applyDeltaTimeOffset(dp, &minTs)
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelError)
 	miner, seqEngine, sequencer := setupSequencerTest(t, sd, log)
@@ -477,7 +483,7 @@ func TestSpanBatchLowThroughputChain(gt *testing.T) {
 	dp := e2eutils.MakeDeployParams(t, p)
 	minTs := hexutil.Uint64(0)
 	// Activate Delta hardfork
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = &minTs
+	applyDeltaTimeOffset(dp, &minTs)
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelError)
 	miner, seqEngine, sequencer := setupSequencerTest(t, sd, log)
@@ -515,7 +521,7 @@ func TestSpanBatchLowThroughputChain(gt *testing.T) {
 	totalTxCount := 0
 	// Make 600 L2 blocks (L1BlockTime / L2BlockTime * 50) including 1~3 txs
 	for i := 0; i < 50; i++ {
-		for sequencer.engine.UnsafeL2Head().L1Origin.Number < sequencer.l1State.L1Head().Number {
+		for sequencer.engine.UnsafeL2Head().L1Origin.Number < sequencer.syncStatus.L1Head().Number {
 			sequencer.ActL2StartBlock(t)
 			// fill the block with random number of L2 txs
 			for j := 0; j < rand.Intn(3); j++ {
@@ -591,7 +597,7 @@ func TestBatchEquivalence(gt *testing.T) {
 	// Delta activated deploy config
 	dp := e2eutils.MakeDeployParams(t, p)
 	minTs := hexutil.Uint64(0)
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = &minTs
+	applyDeltaTimeOffset(dp, &minTs)
 	sdDeltaActivated := e2eutils.Setup(t, dp, defaultAlloc)
 
 	// Delta deactivated deploy config
@@ -654,7 +660,7 @@ func TestBatchEquivalence(gt *testing.T) {
 	sequencer.ActL2PipelineFull(t)
 	totalTxCount := 0
 	// Build random blocks
-	for sequencer.engine.UnsafeL2Head().L1Origin.Number < sequencer.l1State.L1Head().Number {
+	for sequencer.engine.UnsafeL2Head().L1Origin.Number < sequencer.syncStatus.L1Head().Number {
 		sequencer.ActL2StartBlock(t)
 		// fill the block with random number of L2 txs
 		for j := 0; j < rand.Intn(3); j++ {
