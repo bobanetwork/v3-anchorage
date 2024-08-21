@@ -422,7 +422,7 @@ abstract contract StandardBridge is Initializable {
 
         // Emit the correct events. By default this will be ERC20BridgeFinalized, but child
         // contracts may override this function in order to emit legacy events as well.
-        _emitERC20BridgeFinalized(_localToken, _remoteToken, _from, _to, _amount, hex"");
+        _emitERC20BridgeFinalized(_localToken, _remoteToken, _from, _target, _amount, hex"");
     }
 
     /// @notice Checks if a given address is an OptimismMintableERC20. Not perfect, but good enough.
