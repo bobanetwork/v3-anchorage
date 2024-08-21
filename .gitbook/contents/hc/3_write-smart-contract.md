@@ -2,7 +2,7 @@
 
 Now we can write the smart contract, which will call our previously created off-chain handler. Our contract has two purposes:
 
-1. Intentionally burn ETH gas (in order to test gas estimation logic).
+1. Intentionally burn (or "waste") ETH gas to simulate a more true-to-life Hybrid Compute request.
 2. Increment a counter variable each time the contract is called based on certain inputs and errors.
 
 You can find the needed `HybridAccount` contract along with its dependencies in our [repository](https://github.com/bobanetwork/account-abstraction-hc/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc/crates/types/contracts/lib/account-abstraction/).
@@ -28,7 +28,7 @@ import "../samples/HybridAccount.sol";
   event CalledFrom(address sender);
 ```
 
-To implement our function to waste gas, we can leverage a `for` loop to increase the cost of transacting:
+To implement our function to waste gas, we can leverage a `for` loop to increase transaction time:
 
 ```solidity
   //helper method to waste gas
@@ -47,7 +47,7 @@ To implement our function to waste gas, we can leverage a `for` loop to increase
 
 ## Set and Increment Counters
 
-For our contract's second purpose, let's create a mapping for the counters and define a `hcAccount`. This address will then be part of the `HybridAccount`.
+For our contract's second purpose, let's create a mapping for the counters and define `hcAccount`. This address will then be part of the `HybridAccount`.
 
 ```solidity
 contract TestCounter {

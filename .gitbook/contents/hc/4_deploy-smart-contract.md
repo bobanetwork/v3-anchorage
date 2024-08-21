@@ -22,16 +22,24 @@ TC = loadContract(w3, "TestCounter", path_prefix + "test/TestCounter.sol")
 
 Here `path_prefix` indicates where the contract is located.
 
-After loading the contract, we can deploy it as follows:
+After loading the contract, we can deploy it in this manner:
 
 ```solidity
-epAddr = deploy2("EntryPoint", EP.constructor(), 0)
-hhAddr = deploy2("HCHelper", HH.constructor(epAddr, boba_addr, 0), 0)
-saAddr = deploy2("SimpleAccount", SA.constructor(epAddr), 0)
-ha0Addr = deploy2("HybridAccount.0", HA.constructor(epAddr, hhAddr), 0)
-ha1Addr = deploy2("HybridAccount.1", HA.constructor(epAddr, hhAddr), 1)
-tcAddr = deploy2("TestCounter", TC.constructor(ha1Addr), 0)
+vm.startBroadcast(deployerPrivateKey);
+
+// These contracts are one example each
+ret[0] = address(new AuctionFactory(ha1Addr));
+ret[1] = address(new TestCaptcha(ha1Addr));
+ret[2] = address(new TestCounter(ha1Addr));
+ret[3] = address(new RainfallInsurance(ha1Addr));
+ret[4] = address(new SportsBetting(ha1Addr));
+
+vm.stopBroadcast();
 ```
+
+{% hint style="info" %}
+In the above example we deploy with Foundry, but feel free to deploy with whatever tooling you wish.
+{% endhint %}
 
 The constructor of our smart contract takes an address as an argument. Therefore, we pass the address of `HybridAccount.1`, which, along with other necessary contracts, is deployed as shown above.
 
