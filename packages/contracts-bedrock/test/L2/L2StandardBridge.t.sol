@@ -432,7 +432,7 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         // The l2StandardBridge should emit an event
         vm.expectEmit(true, true, true, true);
-        emit ERC20BridgeFinalized(address(L2ETHToken), address(0), alice, 100, hex"");
+        emit ERC20BridgeFinalized(address(L2ETHToken), address(0), alice, alice, 100, hex"");
 
         uint256 nonce = l2CrossDomainMessenger.messageNonce();
         bytes32 withdrawalHash = Hashing.hashWithdrawal(
@@ -469,6 +469,10 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
 
         // The l2StandardBridge should burn the tokens
         vm.expectCall(address(L2ETHToken), abi.encodeWithSelector(OptimismMintableERC20.burn.selector, alice, 100));
+
+        // The l2StandardBridge should emit an event
+        vm.expectEmit(true, true, true, true);
+        emit ERC20BridgeFinalized(address(L2ETHToken), address(0), alice, bob, 100, hex"");
 
         uint256 nonce = l2CrossDomainMessenger.messageNonce();
         bytes32 withdrawalHash = Hashing.hashWithdrawal(
