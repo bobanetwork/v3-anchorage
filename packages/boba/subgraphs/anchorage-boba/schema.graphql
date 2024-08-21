@@ -53,7 +53,7 @@ type ETHBridgeInitiated @entity(immutable: true) {
   from: Bytes! # address
   to: Bytes! # address
   amount: BigInt! # uint256
-  extraData: Bytes! # bytes
+  extraData: Bytes # bytes
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
