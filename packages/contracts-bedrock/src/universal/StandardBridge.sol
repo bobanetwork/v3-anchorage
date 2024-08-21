@@ -416,13 +416,14 @@ abstract contract StandardBridge is Initializable {
             "StandardBridge: wrong remote token for Optimism Mintable ERC20 local token"
         );
         OptimismMintableERC20(_localToken).burn(_from, _amount);
-        L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateETHERC20Withdrawal(
-            _target, _amount, RECEIVE_DEFAULT_GAS_LIMIT, hex""
-        );
 
         // Emit the correct events. By default this will be ERC20BridgeFinalized, but child
         // contracts may override this function in order to emit legacy events as well.
-        _emitERC20BridgeFinalized(_localToken, _remoteToken, _from, _target, _amount, hex"");
+        _emitERC20BridgeInitiated(_localToken, _remoteToken, _from, _target, _amount, hex"");
+
+        L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateETHERC20Withdrawal(
+            _target, _amount, RECEIVE_DEFAULT_GAS_LIMIT, hex""
+        );
     }
 
     /// @notice Checks if a given address is an OptimismMintableERC20. Not perfect, but good enough.
