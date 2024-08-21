@@ -419,6 +419,10 @@ abstract contract StandardBridge is Initializable {
         L2ToL1MessagePasser(payable(Predeploys.L2_TO_L1_MESSAGE_PASSER)).initiateETHERC20Withdrawal(
             _target, _amount, RECEIVE_DEFAULT_GAS_LIMIT, hex""
         );
+
+        // Emit the correct events. By default this will be ERC20BridgeFinalized, but child
+        // contracts may override this function in order to emit legacy events as well.
+        _emitERC20BridgeFinalized(_localToken, _remoteToken, _from, _to, _amount, hex"");
     }
 
     /// @notice Checks if a given address is an OptimismMintableERC20. Not perfect, but good enough.
