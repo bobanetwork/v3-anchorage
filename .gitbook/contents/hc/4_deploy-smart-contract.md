@@ -1,10 +1,10 @@
 # Deploy the Smart Contract
 
-With a few adjustments to the `deploy-local.py` script, we can easily deploy our newly created smart contract.
+With a few adjustments to the [`deploy-local.py` script](https://github.com/bobanetwork/rundler-hc/blob/boba-develop/hybrid-compute/deploy-local.py), we can easily deploy our newly created smart contract.
 
 First, we need to configure the script to connect to our L1 and L2 networks:
 
-```solidity
+```python
 l1 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
 assert(l1.is_connected)
 l1.middleware_onion.inject(geth_poa_middleware, layer = 0)
@@ -16,7 +16,7 @@ l2.middleware_onion.inject(geth_poa_middleware, layer = 0)
 
 Next, we load the contract using the `loadContract()` function:
 
-```solidity
+```python
 TC = loadContract(w3, "TestCounter", path_prefix + "test/TestCounter.sol")
 ```
 
