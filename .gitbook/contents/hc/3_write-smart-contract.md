@@ -5,11 +5,23 @@ Now we can write the smart contract, which will call our previously created off-
 1. Intentionally burn (or "waste") ETH gas to simulate a more true-to-life Hybrid Compute request.
 2. Increment a counter variable each time the contract is called based on certain inputs and errors.
 
+Our contract is an extension of an example provided by the upstream Account Abstraction framework on
+which we based our Hybrid Compute extensions: [link](https://github.com/eth-infinitism/account-abstraction/blob/develop/contracts/test/TestCounter.sol)
+
 You can find the needed `HybridAccount` contract along with its dependencies in our [repository](https://github.com/bobanetwork/account-abstraction-hc/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc/crates/types/contracts/lib/account-abstraction/).
 
-## Waste Gas
 
-To start our contract, we need to import our `HybridAccount` contract and define functions `countFail()` and `justemit()`, the second of which will be used to emit the event `CalledFrom` for troubleshooting:
+The code blocks below are edited to show the lines being discussed. It is recommended to open another
+window containing the full contract so that you can see them in the proper context.
+
+## Contract Overview
+
+To start our contract, we need to import the interface to our `HybridAccount` contract. The address of
+this HybridAccount is passed to the constructor and is stored as an immutable variable. Next we define
+other contract variables and helper functions.
+
+The "counters" mapping provides a unique numeric counter scoped to each user who calls the contract.
+
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -17,15 +29,15 @@ pragma solidity ^0.8.12;
 
 import "../samples/HybridAccount.sol";
 
-  function countFail() public pure {
-      revert("count failed");
-  }
+contract TestCounter {
+    mapping(address => uint256) public counters;
 
-  function justemit() public {
-      emit CalledFrom(msg.sender);
-  }
+    address payable immutable hcAccount;  // NOTE - this variale is named "demoAddr" in older instances of the contract
 
-  event CalledFrom(address sender);
+    constructor(address payable _hcAccount) {
+        hcAccount = _hcAccount;
+    }
+}
 ```
 
 To implement our function to waste gas, we can leverage a `for` loop to increase transaction time:
@@ -43,22 +55,6 @@ To implement our function to waste gas, we can leverage a `for` loop to increase
           xxx[offset] = i;
       }
   }
-```
-
-## Set and Increment Counters
-
-For our contract's second purpose, let's create a mapping for the counters and define `hcAccount`. This address will then be part of the `HybridAccount`.
-
-```solidity
-contract TestCounter {
-    mapping(address => uint256) public counters;
-
-    address payable immutable hcAccount;
-
-    constructor(address payable _hcAccount) {
-        hcAccount = _hcAccount;
-    }
-}
 ```
 
 Now we can add the `count()` method. We initialize the `HybridAccount` with the `hcAccount` created prior, and allow for parameters `a` and `b`, our numbers to add and subtract together. We define `x` and `y`, do a quick check for `b == 0`, and encode our function `offchain_addsub2()`. We registered `HybridAccount` in the previous section to provide access to the `offchain_addsub2()` function on our off-chain function.
@@ -130,9 +126,9 @@ In this example, the `HybridAccount` implements a simple whitelist of contracts 
 
 You could take the **optional** opportunity for a `HybridAccount` contract to implement a billing system here, requiring a payment of `ERC20` tokens or some other mechanism of collecting payment from the calling contract.
 
-## HybridAccount Explanation
+## HybridAccount / HCHelper Interaction
 
-Our `HybridAccount` contract acts as a system-wide helper. Let's examine some of the calls we made to it in our own contract.
+Our `HCHelper` contract acts as a system-wide interface to the Hybrid Compute framework. Let's examine some of the calls we made to it in our own contract.
 
 First, the helper checks an internal mapping to see if a response exists for the given request. If not, the method reverts with a special prefix, followed by an encoded version of the request parameters. 
 
