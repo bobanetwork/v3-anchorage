@@ -442,8 +442,15 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
             })
         );
 
+        // The l2StandardBridge should emit events
+        vm.expectEmit(address(l2StandardBridge));
+        emit WithdrawalInitiated(address(0), address(L2ETHToken), alice, alice, 100, hex"");
+
+        vm.expectEmit(address(l2StandardBridge));
+        emit ERC20BridgeInitiated(address(L2ETHToken), address(0), alice, alice, 100, hex"");
+
         // L2ToL1MessagePasser will emit a MessagePassed event
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(address(l2ToL1MessagePasser));
         emit MessagePassed(nonce, address(l2StandardBridge), alice, 100, 200_000, hex"", withdrawalHash);
 
         vm.prank(alice, alice);
@@ -478,8 +485,15 @@ contract L2StandardBridge_BridgeERC20ETH_Test is PreBridgeERC20 {
             })
         );
 
+        // The l2StandardBridge should emit an event
+        vm.expectEmit(address(l2StandardBridge));
+        emit WithdrawalInitiated(address(0), address(L2ETHToken), alice, bob, 100, hex"");
+
+        vm.expectEmit(address(l2StandardBridge));
+        emit ERC20BridgeInitiated(address(L2ETHToken), address(0), alice, bob, 100, hex"");
+
         // L2ToL1MessagePasser will emit a MessagePassed event
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(address(l2ToL1MessagePasser));
         emit MessagePassed(nonce, address(l2StandardBridge), bob, 100, 200_000, hex"", withdrawalHash);
 
         vm.prank(alice, alice);
