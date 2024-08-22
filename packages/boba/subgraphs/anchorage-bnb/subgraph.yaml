@@ -6,10 +6,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: L1CrossDomainMessenger
-    network: chapel
+    network: bsc
     source:
       abi: L1CrossDomainMessenger
-      address: "0x53aD38aE4a63Fe33a86E011F7AF4d3fDe3daD145"
+      address: "0x31338a7D5d123E18a9a71447136B54B6D28241ae"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -37,10 +37,10 @@ dataSources:
       file: ./src/l-1-cross-domain-messenger.ts
   - kind: ethereum
     name: L1StandardBridge
-    network: chapel
+    network: bsc
     source:
       abi: L1StandardBridge
-      address: "0xBf0939120b4F5E3196b9E12cAC291e03dD058e9a"
+      address: "0x31338a7D5d123E18a9a71447136B54B6D28241ae"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

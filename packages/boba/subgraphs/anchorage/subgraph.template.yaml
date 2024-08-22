@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: L1CrossDomainMessenger
-    network: mainnet
+    network: {{network}}
     source:
-      address: "0x3b48597212f2622511585914CC4D4152c9B1B077"
+      address: '{{contracts.L1CrossDomainMessenger.address}}'
       abi: L1CrossDomainMessenger
-      startBlock: 19478407
+      startBlock: {{contracts.L1CrossDomainMessenger.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -23,7 +23,7 @@ dataSources:
         - SentMessageExtension1
       abis:
         - name: L1CrossDomainMessenger
-          file: ./_configs/L1CrossDomainMessenger.json
+          file: ./abis/L1CrossDomainMessenger.json
       eventHandlers:
         - event: FailedRelayedMessage(indexed bytes32)
           handler: handleFailedRelayedMessage
@@ -35,14 +35,14 @@ dataSources:
           handler: handleSentMessage
         - event: SentMessageExtension1(indexed address,uint256)
           handler: handleSentMessageExtension1
-      file: ./src/l-1-cross-domain-messenger.ts
+      file: ./src/l1-cross-domain-messenger.ts
   - kind: ethereum
     name: L1StandardBridge
-    network: mainnet
+    network: {{network}}
     source:
-      address: "0xdc1664458d2f0B6090bEa60A8793A4E66c2F1c00"
+      address: '{{contracts.L1StandardBridge.address}}'
       abi: L1StandardBridge
-      startBlock: 19478408
+      startBlock: {{contracts.L1StandardBridge.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -59,7 +59,7 @@ dataSources:
         - L1StandardBridgeInitialized
       abis:
         - name: L1StandardBridge
-          file: ./_configs/L1StandardBridge.json
+          file: ./abis/L1StandardBridge.json
       eventHandlers:
         - event: ERC20BridgeFinalized(indexed address,indexed address,indexed
             address,address,uint256,bytes)
@@ -83,14 +83,14 @@ dataSources:
           handler: handleETHWithdrawalFinalized
         - event: Initialized(uint8)
           handler: handleInitialized
-      file: ./src/l-1-standard-bridge.ts
+      file: ./src/l1-standard-bridge.ts
   - kind: ethereum
     name: L2OutputOracle
-    network: mainnet
+    network: {{network}}
     source:
-      address: "0xbB7aD3f9CCbC94085b7F7B1D5258e59F5F068741"
+      address: '{{contracts.L2OutputOracle.address}}'
       abi: L2OutputOracle
-      startBlock: 19592008
+      startBlock: {{contracts.L2OutputOracle.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -101,7 +101,7 @@ dataSources:
         - OutputsDeleted
       abis:
         - name: L2OutputOracle
-          file: ./_configs/L2OutputOracle.json
+          file: ./abis/L2OutputOracle.json
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
@@ -109,14 +109,14 @@ dataSources:
           handler: handleOutputProposed
         - event: OutputsDeleted(indexed uint256,indexed uint256)
           handler: handleOutputsDeleted
-      file: ./src/l-2-output-oracle.ts
+      file: ./src/l2-output-oracle.ts
   - kind: ethereum
     name: OptimismPortal
-    network: mainnet
+    network: {{network}}
     source:
-      address: "0x7B02D13904D8e6E0f0Efaf756aB14Cb0FF21eE7e"
+      address: '{{contracts.OptimismPortal.address}}'
       abi: OptimismPortal
-      startBlock: 19592010
+      startBlock: {{contracts.OptimismPortal.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -128,7 +128,7 @@ dataSources:
         - WithdrawalProven
       abis:
         - name: OptimismPortal
-          file: ./_configs/OptimismPortal.json
+          file: ./abis/OptimismPortal.json
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized

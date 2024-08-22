@@ -9,8 +9,8 @@ import {
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { ERC20BridgeFinalized } from "../generated/schema"
 import { ERC20BridgeFinalized as ERC20BridgeFinalizedEvent } from "../generated/L1StandardBridge/L1StandardBridge"
-import { handleERC20BridgeFinalized } from "../src/l-1-standard-bridge"
-import { createERC20BridgeFinalizedEvent } from "./l-1-standard-bridge-utils"
+import { handleERC20BridgeFinalized } from "../src/l1-standard-bridge"
+import { createERC20BridgeFinalizedEvent } from "./l1-standard-bridge-utils"
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0

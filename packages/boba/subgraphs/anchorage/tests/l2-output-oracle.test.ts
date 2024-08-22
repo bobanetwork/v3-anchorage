@@ -9,8 +9,8 @@ import {
 import { Bytes, BigInt } from "@graphprotocol/graph-ts"
 import { Initialized } from "../generated/schema"
 import { Initialized as InitializedEvent } from "../generated/L2OutputOracle/L2OutputOracle"
-import { handleInitialized } from "../src/l-2-output-oracle"
-import { createInitializedEvent } from "./l-2-output-oracle-utils"
+import { handleInitialized } from "../src/l2-output-oracle"
+import { createInitializedEvent } from "./l2-output-oracle-utils"
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0

@@ -9,8 +9,8 @@ import {
 import { Bytes, Address, BigInt } from "@graphprotocol/graph-ts"
 import { FailedRelayedMessage } from "../generated/schema"
 import { FailedRelayedMessage as FailedRelayedMessageEvent } from "../generated/L1CrossDomainMessenger/L1CrossDomainMessenger"
-import { handleFailedRelayedMessage } from "../src/l-1-cross-domain-messenger"
-import { createFailedRelayedMessageEvent } from "./l-1-cross-domain-messenger-utils"
+import { handleFailedRelayedMessage } from "../src/l1-cross-domain-messenger"
+import { createFailedRelayedMessageEvent } from "./l1-cross-domain-messenger-utils"
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0
