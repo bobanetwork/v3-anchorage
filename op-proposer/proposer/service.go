@@ -32,6 +32,9 @@ type ProposerConfig struct {
 	PollInterval   time.Duration
 	NetworkTimeout time.Duration
 
+	// How frequently to retry fetching an output if one fails
+	OutputRetryInterval time.Duration
+
 	// How frequently to post L2 outputs when the DisputeGameFactory is configured
 	ProposalInterval time.Duration
 
@@ -89,6 +92,7 @@ func (ps *ProposerService) initFromCLIConfig(ctx context.Context, version string
 	ps.initMetrics(cfg)
 
 	ps.PollInterval = cfg.PollInterval
+	ps.OutputRetryInterval = cfg.OutputRetryInterval
 	ps.NetworkTimeout = cfg.TxMgrConfig.NetworkTimeout
 	ps.AllowNonFinalized = cfg.AllowNonFinalized
 	ps.WaitNodeSync = cfg.WaitNodeSync
@@ -186,19 +190,19 @@ func (ps *ProposerService) initPProf(cfg *CLIConfig) error {
 
 func (ps *ProposerService) initMetricsServer(cfg *CLIConfig) error {
 	if !cfg.MetricsConfig.Enabled {
-		ps.Log.Info("metrics disabled")
+		ps.Log.Info("Metrics disabled")
 		return nil
 	}
 	m, ok := ps.Metrics.(opmetrics.RegistryMetricer)
 	if !ok {
 		return fmt.Errorf("metrics were enabled, but metricer %T does not expose registry for metrics-server", ps.Metrics)
 	}
-	ps.Log.Debug("starting metrics server", "addr", cfg.MetricsConfig.ListenAddr, "port", cfg.MetricsConfig.ListenPort)
+	ps.Log.Debug("Starting metrics server", "addr", cfg.MetricsConfig.ListenAddr, "port", cfg.MetricsConfig.ListenPort)
 	metricsSrv, err := opmetrics.StartServer(m.Registry(), cfg.MetricsConfig.ListenAddr, cfg.MetricsConfig.ListenPort)
 	if err != nil {
 		return fmt.Errorf("failed to start metrics server: %w", err)
 	}
-	ps.Log.Info("started metrics server", "addr", metricsSrv.Addr())
+	ps.Log.Info("Started metrics server", "addr", metricsSrv.Addr())
 	ps.metricsSrv = metricsSrv
 	return nil
 }

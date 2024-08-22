@@ -21,6 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip4844"
 	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/txpool"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/log"
@@ -401,14 +402,14 @@ func TestAlreadyReserved(t *testing.T) {
 	h := newTestHarnessWithConfig(t, conf)
 
 	sendTx := func(ctx context.Context, tx *types.Transaction) error {
-		return ErrAlreadyReserved
+		return txpool.ErrAlreadyReserved
 	}
 	h.backend.setTxSender(sendTx)
 
 	_, err := h.mgr.Send(context.Background(), TxCandidate{
 		To: &common.Address{},
 	})
-	require.ErrorIs(t, err, ErrAlreadyReserved)
+	require.ErrorIs(t, err, txpool.ErrAlreadyReserved)
 }
 
 // TestTxMgrConfirmsAtHigherGasPrice asserts that Send properly returns the max gas
@@ -565,7 +566,7 @@ func TestTxMgr_CraftBlobTx(t *testing.T) {
 
 	// verify the blobs
 	for i := range sidecar.Blobs {
-		require.NoError(t, kzg4844.VerifyBlobProof(sidecar.Blobs[i], sidecar.Commitments[i], sidecar.Proofs[i]))
+		require.NoError(t, kzg4844.VerifyBlobProof(&sidecar.Blobs[i], sidecar.Commitments[i], sidecar.Proofs[i]))
 	}
 	b1 := eth.Blob(sidecar.Blobs[0])
 	d1, err := b1.ToData()
@@ -1323,7 +1324,7 @@ func TestMinFees(t *testing.T) {
 			conf.MinTipCap = tt.minTipCap
 			h := newTestHarnessWithConfig(t, conf)
 
-			tip, baseFee, _, err := h.mgr.suggestGasPriceCaps(context.TODO())
+			tip, baseFee, _, err := h.mgr.SuggestGasPriceCaps(context.TODO())
 			require.NoError(err)
 
 			if tt.expectMinBaseFee {

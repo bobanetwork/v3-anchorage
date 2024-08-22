@@ -68,6 +68,13 @@ const (
 	ResultCodeUnknownErr  byte = 3
 )
 
+var resultCodeString = []string{
+	"success",
+	"not found",
+	"invalid request",
+	"unknown error",
+}
+
 func PayloadByNumberProtocolID(l2ChainID *big.Int) protocol.ID {
 	return protocol.ID(fmt.Sprintf("/opstack/req/payload_by_number/%d/0", l2ChainID))
 }
@@ -269,9 +276,12 @@ type SyncClient struct {
 	// Don't allow anything to be added to the wait-group while, or after, we are shutting down.
 	// This is protected by peersLock.
 	closingPeers bool
+
+	extra               ExtraHostFeatures
+	syncOnlyReqToStatic bool
 }
 
-func NewSyncClient(log log.Logger, cfg *rollup.Config, newStream newStreamFn, rcv receivePayloadFn, metrics SyncClientMetrics, appScorer SyncPeerScorer) *SyncClient {
+func NewSyncClient(log log.Logger, cfg *rollup.Config, host HostNewStream, rcv receivePayloadFn, metrics SyncClientMetrics, appScorer SyncPeerScorer) *SyncClient {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	c := &SyncClient{
@@ -279,7 +289,7 @@ func NewSyncClient(log log.Logger, cfg *rollup.Config, newStream newStreamFn, rc
 		cfg:                 cfg,
 		metrics:             metrics,
 		appScorer:           appScorer,
-		newStreamFn:         newStream,
+		newStreamFn:         host.NewStream,
 		payloadByNumber:     PayloadByNumberProtocolID(cfg.L2ChainID),
 		peers:               make(map[peer.ID]context.CancelFunc),
 		quarantineByNum:     make(map[uint64]common.Hash),
@@ -293,6 +303,10 @@ func NewSyncClient(log log.Logger, cfg *rollup.Config, newStream newStreamFn, rc
 		resCtx:              ctx,
 		resCancel:           cancel,
 		receivePayload:      rcv,
+	}
+	if extra, ok := host.(ExtraHostFeatures); ok && extra.SyncOnlyReqToStatic() {
+		c.extra = extra
+		c.syncOnlyReqToStatic = true
 	}
 
 	// never errors with positive LRU cache size
@@ -549,6 +563,15 @@ func (s *SyncClient) peerLoop(ctx context.Context, id peer.ID) {
 	// so we don't be too aggressive to the server.
 	rl := rate.NewLimiter(peerServerBlocksRateLimit, peerServerBlocksBurst)
 
+	// if onlyReqToStatic is on, ensure that only static peers are dealing with the request
+	peerRequests := s.peerRequests
+	if s.syncOnlyReqToStatic && !s.extra.IsStatic(id) {
+		// for non-static peers, set peerRequests to nil
+		// this will effectively make the peer loop not perform outgoing sync-requests.
+		// while sync-requests will block, the loop may still process other events (if added in the future).
+		peerRequests = nil
+	}
+
 	for {
 		// wait for a global allocation to be available
 		if err := s.globalRL.Wait(ctx); err != nil {
@@ -561,7 +584,7 @@ func (s *SyncClient) peerLoop(ctx context.Context, id peer.ID) {
 
 		// once the peer is available, wait for a sync request.
 		select {
-		case pr := <-s.peerRequests:
+		case pr := <-peerRequests:
 			if !s.activeRangeRequests.get(pr.rangeReqId) {
 				log.Debug("dropping cancelled p2p sync request", "num", pr.num)
 				s.inFlight.delete(pr.num)
@@ -573,7 +596,7 @@ func (s *SyncClient) peerLoop(ctx context.Context, id peer.ID) {
 			start := time.Now()
 
 			resultCode := ResultCodeSuccess
-			err := s.doRequest(ctx, id, pr.num)
+			err := panicGuard(s.doRequest)(ctx, id, pr.num)
 			if err != nil {
 				s.inFlight.delete(pr.num)
 				log.Warn("failed p2p sync request", "num", pr.num, "err", err)
@@ -614,7 +637,13 @@ func (s *SyncClient) peerLoop(ctx context.Context, id peer.ID) {
 type requestResultErr byte
 
 func (r requestResultErr) Error() string {
-	return fmt.Sprintf("peer failed to serve request with code %d", uint8(r))
+	var errStr string
+	if ri := int(r); ri < len(resultCodeString) {
+		errStr = resultCodeString[ri]
+	} else {
+		errStr = "invalid code"
+	}
+	return fmt.Sprintf("peer failed to serve request with code %d: %s", uint8(r), errStr)
 }
 
 func (r requestResultErr) ResultCode() byte {
@@ -657,13 +686,11 @@ func (s *SyncClient) doRequest(ctx context.Context, id peer.ID, expectedBlockNum
 	if _, err := io.ReadFull(r, versionData[:]); err != nil {
 		return fmt.Errorf("failed to read version part of response: %w", err)
 	}
-	version := binary.LittleEndian.Uint32(versionData[:])
-	if version != 0 && version != 1 {
-		return fmt.Errorf("unrecognized version: %d", version)
-	}
+
 	// payload is SSZ encoded with Snappy framed compression
 	r = snappy.NewReader(r)
 	r = io.LimitReader(r, maxGossipSize)
+
 	// We cannot stream straight into the SSZ decoder, since we need the scope of the SSZ payload.
 	// The server does not prepend it, nor would we trust a claimed length anyway, so we buffer the data we get.
 	data, err := io.ReadAll(r)
@@ -671,22 +698,12 @@ func (s *SyncClient) doRequest(ctx context.Context, id peer.ID, expectedBlockNum
 		return fmt.Errorf("failed to read response: %w", err)
 	}
 
-	envelope := &eth.ExecutionPayloadEnvelope{}
-
-	if version == 0 {
-		expectedBlockTime := s.cfg.TimestampForBlock(expectedBlockNum)
-		envelope, err = s.readExecutionPayload(data, expectedBlockTime)
-		if err != nil {
-			return err
-		}
-	} else if version == 1 {
-		if err := envelope.UnmarshalSSZ(uint32(len(data)), bytes.NewReader(data)); err != nil {
-			return fmt.Errorf("failed to decode execution payload envelope response: %w", err)
-		}
-	} else {
-		panic(fmt.Errorf("should have already filtered by version, but got: %d", version))
+	version := binary.LittleEndian.Uint32(versionData[:])
+	isCanyon := s.cfg.IsCanyon(s.cfg.TimestampForBlock(expectedBlockNum))
+	envelope, err := readExecutionPayload(version, data, isCanyon)
+	if err != nil {
+		return err
 	}
-
 	if err := str.CloseRead(); err != nil {
 		return fmt.Errorf("failed to close reading side")
 	}
@@ -701,18 +718,41 @@ func (s *SyncClient) doRequest(ctx context.Context, id peer.ID, expectedBlockNum
 	return nil
 }
 
-func (s *SyncClient) readExecutionPayload(data []byte, expectedTime uint64) (*eth.ExecutionPayloadEnvelope, error) {
-	blockVersion := eth.BlockV1
-	if s.cfg.IsCanyon(expectedTime) {
-		blockVersion = eth.BlockV2
+// panicGuard is a generic function that takes another function with generic arguments and returns an error.
+// It recovers from any panic that occurs during the execution of the function.
+func panicGuard[T, S, U any](fn func(T, S, U) error) func(T, S, U) error {
+	return func(arg0 T, arg1 S, arg2 U) (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = fmt.Errorf("recovered from a panic: %v", r)
+			}
+		}()
+		return fn(arg0, arg1, arg2)
 	}
+}
 
-	var res eth.ExecutionPayload
-	if err := res.UnmarshalSSZ(blockVersion, uint32(len(data)), bytes.NewReader(data)); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+// readExecutionPayload will unmarshal the supplied data into an ExecutionPayloadEnvelope.
+func readExecutionPayload(version uint32, data []byte, isCanyon bool) (*eth.ExecutionPayloadEnvelope, error) {
+	switch version {
+	case 0:
+		blockVersion := eth.BlockV1
+		if isCanyon {
+			blockVersion = eth.BlockV2
+		}
+		var res eth.ExecutionPayload
+		if err := res.UnmarshalSSZ(blockVersion, uint32(len(data)), bytes.NewReader(data)); err != nil {
+			return nil, fmt.Errorf("failed to decode response: %w", err)
+		}
+		return &eth.ExecutionPayloadEnvelope{ExecutionPayload: &res}, nil
+	case 1:
+		envelope := &eth.ExecutionPayloadEnvelope{}
+		if err := envelope.UnmarshalSSZ(uint32(len(data)), bytes.NewReader(data)); err != nil {
+			return nil, fmt.Errorf("failed to decode execution payload envelope response: %w", err)
+		}
+		return envelope, nil
+	default:
+		return nil, fmt.Errorf("unrecognized version: %d", version)
 	}
-
-	return &eth.ExecutionPayloadEnvelope{ExecutionPayload: &res}, nil
 }
 
 func verifyBlock(envelope *eth.ExecutionPayloadEnvelope, expectedNum uint64) error {
@@ -793,7 +833,7 @@ func (srv *ReqRespServer) HandleSyncRequest(ctx context.Context, log log.Logger,
 		log.Warn("failed to serve p2p sync request", "req", req, "err", err)
 		if errors.Is(err, ethereum.NotFound) {
 			resultCode = ResultCodeNotFoundErr
-		} else if errors.Is(err, invalidRequestErr) {
+		} else if errors.Is(err, errInvalidRequest) {
 			resultCode = ResultCodeInvalidErr
 		} else {
 			resultCode = ResultCodeUnknownErr
@@ -806,7 +846,7 @@ func (srv *ReqRespServer) HandleSyncRequest(ctx context.Context, log log.Logger,
 	srv.metrics.ServerPayloadByNumberEvent(req, resultCode, time.Since(start))
 }
 
-var invalidRequestErr = errors.New("invalid request")
+var errInvalidRequest = errors.New("invalid request")
 
 func (srv *ReqRespServer) handleSyncRequest(ctx context.Context, stream network.Stream) (uint64, error) {
 	peerId := stream.Conn().RemotePeer()
@@ -852,14 +892,14 @@ func (srv *ReqRespServer) handleSyncRequest(ctx context.Context, stream network.
 
 	// Check the request is within the expected range of blocks
 	if req < srv.cfg.Genesis.L2.Number {
-		return req, fmt.Errorf("cannot serve request for L2 block %d before genesis %d: %w", req, srv.cfg.Genesis.L2.Number, invalidRequestErr)
+		return req, fmt.Errorf("cannot serve request for L2 block %d before genesis %d: %w", req, srv.cfg.Genesis.L2.Number, errInvalidRequest)
 	}
 	max, err := srv.cfg.TargetBlockNumber(uint64(time.Now().Unix()))
 	if err != nil {
-		return req, fmt.Errorf("cannot determine max target block number to verify request: %w", invalidRequestErr)
+		return req, fmt.Errorf("cannot determine max target block number to verify request: %w", errInvalidRequest)
 	}
 	if req > max {
-		return req, fmt.Errorf("cannot serve request for L2 block %d after max expected block (%v): %w", req, max, invalidRequestErr)
+		return req, fmt.Errorf("cannot serve request for L2 block %d after max expected block (%v): %w", req, max, errInvalidRequest)
 	}
 
 	envelope, err := srv.l2.PayloadByNumber(ctx, req)

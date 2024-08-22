@@ -271,7 +271,8 @@ func check4844Precompile(ctx context.Context, env *actionEnv) error {
 		return fmt.Errorf("failed to compute commitment: %w", err)
 	}
 	point := kzg4844.Point{}
-	proof, claim, err := kzg4844.ComputeProof(kzg4844.Blob(x), point)
+	blob := kzg4844.Blob(x)
+	proof, claim, err := kzg4844.ComputeProof(&blob, point)
 	if err != nil {
 		return fmt.Errorf("failed to compute proof: %w", err)
 	}
@@ -667,7 +668,7 @@ func checkUpgradeTxs(ctx context.Context, env *actionEnv) error {
 	if err != nil {
 		return fmt.Errorf("failed to create eth client")
 	}
-	activBlock, txs, err := l2EthCl.InfoAndTxsByNumber(ctx, activationBlockNum)
+	activeBlock, txs, err := l2EthCl.InfoAndTxsByNumber(ctx, activationBlockNum)
 	if err != nil {
 		return fmt.Errorf("failed to get activation block: %w", err)
 	}
@@ -679,7 +680,7 @@ func checkUpgradeTxs(ctx context.Context, env *actionEnv) error {
 			return fmt.Errorf("unexpected non-deposit tx in activation block, index %d, hash %s", i, tx.Hash())
 		}
 	}
-	_, receipts, err := l2EthCl.FetchReceipts(ctx, activBlock.Hash())
+	_, receipts, err := l2EthCl.FetchReceipts(ctx, activeBlock.Hash())
 	if err != nil {
 		return fmt.Errorf("failed to fetch receipts of activation block: %w", err)
 	}
@@ -725,11 +726,11 @@ func checkGPO(ctx context.Context, env *actionEnv) error {
 	}
 	_, err = cl.Overhead(nil)
 	if err == nil || !strings.Contains(err.Error(), "revert") {
-		return fmt.Errorf("expected revert on legacy overhead attribute acccess, but got %w", err)
+		return fmt.Errorf("expected revert on legacy overhead attribute access, but got %w", err)
 	}
 	_, err = cl.Scalar(nil)
 	if err == nil || !strings.Contains(err.Error(), "revert") {
-		return fmt.Errorf("expected revert on legacy scalar attribute acccess, but got %w", err)
+		return fmt.Errorf("expected revert on legacy scalar attribute access, but got %w", err)
 	}
 	isEcotone, err := cl.IsEcotone(nil)
 	if err != nil {
@@ -844,7 +845,7 @@ func checkL1Fees(ctx context.Context, env *actionEnv) error {
 		return fmt.Errorf("expected %d L1 gas, but only spent %d", expectedCalldataGas, receipt.L1GasUsed)
 	}
 	if big.NewInt(0).Cmp(receipt.L1Fee) >= 0 {
-		return fmt.Errorf("calculated to low L1 fee: %d", receipt.L1Fee)
+		return fmt.Errorf("calculated too low L1 fee: %d", receipt.L1Fee)
 	}
 	env.log.Info("L1 fees test: success")
 	return nil

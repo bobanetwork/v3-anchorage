@@ -42,20 +42,19 @@ func verifyCodeHashMatches(t Testing, client *ethclient.Client, address common.A
 func TestEcotoneNetworkUpgradeTransactions(gt *testing.T) {
 	t := NewDefaultTesting(gt)
 	dp := e2eutils.MakeDeployParams(t, defaultRollupTestParams)
-	genesisBlock := hexutil.Uint64(0)
 	ecotoneOffset := hexutil.Uint64(4)
 
-	dp.DeployConfig.L1CancunTimeOffset = &genesisBlock // can be removed once Cancun on L1 is the default
+	log := testlog.Logger(t, log.LevelDebug)
 
+	require.Zero(t, *dp.DeployConfig.L1CancunTimeOffset)
 	// Activate all forks at genesis, and schedule Ecotone the block after
-	dp.DeployConfig.L2GenesisRegolithTimeOffset = &genesisBlock
-	dp.DeployConfig.L2GenesisCanyonTimeOffset = &genesisBlock
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = &genesisBlock
 	dp.DeployConfig.L2GenesisEcotoneTimeOffset = &ecotoneOffset
-	require.NoError(t, dp.DeployConfig.Check(), "must have valid config")
+	dp.DeployConfig.L2GenesisFjordTimeOffset = nil
+	dp.DeployConfig.L2GenesisGraniteTimeOffset = nil
+	// New forks have to be added here...
+	require.NoError(t, dp.DeployConfig.Check(log), "must have valid config")
 
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
-	log := testlog.Logger(t, log.LevelDebug)
 	_, _, miner, sequencer, engine, verifier, _, _ := setupReorgTestActors(t, dp, sd, log)
 	ethCl := engine.EthClient()
 
@@ -74,7 +73,8 @@ func TestEcotoneNetworkUpgradeTransactions(gt *testing.T) {
 	scalar, err := gasPriceOracle.Scalar(nil)
 	require.NoError(t, err)
 	require.True(t, scalar.Cmp(big.NewInt(0)) > 0, "scalar must start non-zero")
-	require.True(t, scalar.Cmp(new(big.Int).SetUint64(dp.DeployConfig.GasPriceOracleScalar)) == 0, "must match deploy config")
+	feeScalar := dp.DeployConfig.FeeScalar()
+	require.Equal(t, scalar, new(big.Int).SetBytes(feeScalar[:]), "must match deploy config")
 
 	// Get current implementations addresses (by slot) for L1Block + GasPriceOracle
 	initialGasPriceOracleAddress, err := ethCl.StorageAt(context.Background(), predeploys.GasPriceOracleAddr, genesis.ImplementationSlot, nil)
@@ -193,7 +193,7 @@ func TestEcotoneNetworkUpgradeTransactions(gt *testing.T) {
 	// test if the migrated scalar matches the deploy config
 	basefeeScalar, err := gasPriceOracle.BaseFeeScalar(nil)
 	require.NoError(t, err)
-	require.True(t, uint64(basefeeScalar) == dp.DeployConfig.GasPriceOracleScalar, "must match deploy config")
+	require.Equal(t, uint64(basefeeScalar), dp.DeployConfig.GasPriceOracleScalar, "must match deploy config")
 
 	cost, err = gasPriceOracle.GetL1Fee(nil, []byte{0, 1, 2, 3, 4})
 	require.NoError(t, err)

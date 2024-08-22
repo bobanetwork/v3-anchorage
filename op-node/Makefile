@@ -26,7 +26,7 @@ ifeq ($(shell uname),Darwin)
 endif
 
 op-node:
-	env GO111MODULE=on go build -v $(LDFLAGS) -o ./bin/op-node ./cmd/main.go
+	env GO111MODULE=on GOOS=$(TARGETOS) GOARCH=$(TARGETARCH) CGO_ENABLED=0 go build -v $(LDFLAGS) -o ./bin/op-node ./cmd/main.go
 
 clean:
 	rm bin/op-node
@@ -52,8 +52,12 @@ fuzz:
 generate-mocks:
 	go generate ./...
 
+readme:
+	doctoc README.md
+
 .PHONY: \
 	op-node \
 	clean \
 	test \
-	fuzz
+	fuzz \
+	readme

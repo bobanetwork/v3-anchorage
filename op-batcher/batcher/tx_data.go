@@ -15,6 +15,7 @@ import (
 // different channels.
 type txData struct {
 	frames []frameData
+	asBlob bool // indicates whether this should be sent as blob
 }
 
 func singleFrameTxData(frame frameData) txData {
@@ -62,7 +63,7 @@ func (td *txData) Len() (l int) {
 	return l
 }
 
-// Frame returns the single frame of this tx data.
+// Frames returns the single frame of this tx data.
 func (td *txData) Frames() []frameData {
 	return td.frames
 }

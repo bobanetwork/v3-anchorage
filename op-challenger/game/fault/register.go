@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/outputs"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/prestates"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/utils"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/vm"
 	faultTypes "github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
 	keccakTypes "github.com/ethereum-optimism/optimism/op-challenger/game/keccak/types"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/scheduler"
@@ -30,8 +31,8 @@ import (
 type CloseFunc func()
 
 type Registry interface {
-	RegisterGameType(gameType uint32, creator scheduler.PlayerCreator)
-	RegisterBondContract(gameType uint32, creator claims.BondContractCreator)
+	RegisterGameType(gameType faultTypes.GameType, creator scheduler.PlayerCreator)
+	RegisterBondContract(gameType faultTypes.GameType, creator claims.BondContractCreator)
 }
 
 type OracleRegistry interface {
@@ -73,23 +74,37 @@ func RegisterGameTypes(
 	}
 	syncValidator := newSyncStatusValidator(rollupClient)
 
-	if cfg.TraceTypeEnabled(config.TraceTypeCannon) {
-		if err := registerCannon(faultTypes.CannonGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, cfg, syncValidator, rollupClient, txSender, gameFactory, caller, l2Client, l1HeaderSource, selective, claimants); err != nil {
+	if cfg.TraceTypeEnabled(faultTypes.TraceTypeCannon) {
+		vmConfig := vm.NewOpProgramVmConfig()
+		if err := registerCannon(faultTypes.CannonGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, cfg, vmConfig, syncValidator, rollupClient, txSender, gameFactory, caller, l2Client, l1HeaderSource, selective, claimants); err != nil {
 			return nil, fmt.Errorf("failed to register cannon game type: %w", err)
 		}
 	}
-	if cfg.TraceTypeEnabled(config.TraceTypePermissioned) {
-		if err := registerCannon(faultTypes.PermissionedGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, cfg, syncValidator, rollupClient, txSender, gameFactory, caller, l2Client, l1HeaderSource, selective, claimants); err != nil {
+	if cfg.TraceTypeEnabled(faultTypes.TraceTypePermissioned) {
+		vmConfig := vm.NewOpProgramVmConfig()
+		if err := registerCannon(faultTypes.PermissionedGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, cfg, vmConfig, syncValidator, rollupClient, txSender, gameFactory, caller, l2Client, l1HeaderSource, selective, claimants); err != nil {
 			return nil, fmt.Errorf("failed to register permissioned cannon game type: %w", err)
 		}
 	}
-	if cfg.TraceTypeEnabled(config.TraceTypeAsterisc) {
-		if err := registerAsterisc(faultTypes.AsteriscGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, cfg, syncValidator, rollupClient, txSender, gameFactory, caller, l2Client, l1HeaderSource, selective, claimants); err != nil {
+	if cfg.TraceTypeEnabled(faultTypes.TraceTypeAsterisc) {
+		vmConfig := vm.NewOpProgramVmConfig()
+		if err := registerAsterisc(faultTypes.AsteriscGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, cfg, vmConfig, syncValidator, rollupClient, txSender, gameFactory, caller, l2Client, l1HeaderSource, selective, claimants); err != nil {
 			return nil, fmt.Errorf("failed to register asterisc game type: %w", err)
 		}
 	}
-	if cfg.TraceTypeEnabled(config.TraceTypeAlphabet) {
-		if err := registerAlphabet(registry, oracles, ctx, systemClock, l1Clock, logger, m, syncValidator, rollupClient, l2Client, txSender, gameFactory, caller, l1HeaderSource, selective, claimants); err != nil {
+	if cfg.TraceTypeEnabled(faultTypes.TraceTypeAsteriscKona) {
+		vmConfig := vm.NewKonaVmConfig()
+		if err := registerAsterisc(faultTypes.AsteriscKonaGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, cfg, vmConfig, syncValidator, rollupClient, txSender, gameFactory, caller, l2Client, l1HeaderSource, selective, claimants); err != nil {
+			return nil, fmt.Errorf("failed to register asterisc kona game type: %w", err)
+		}
+	}
+	if cfg.TraceTypeEnabled(faultTypes.TraceTypeFast) {
+		if err := registerAlphabet(faultTypes.FastGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, syncValidator, rollupClient, l2Client, txSender, gameFactory, caller, l1HeaderSource, selective, claimants); err != nil {
+			return nil, fmt.Errorf("failed to register fast game type: %w", err)
+		}
+	}
+	if cfg.TraceTypeEnabled(faultTypes.TraceTypeAlphabet) {
+		if err := registerAlphabet(faultTypes.AlphabetGameType, registry, oracles, ctx, systemClock, l1Clock, logger, m, syncValidator, rollupClient, l2Client, txSender, gameFactory, caller, l1HeaderSource, selective, claimants); err != nil {
 			return nil, fmt.Errorf("failed to register alphabet game type: %w", err)
 		}
 	}
@@ -97,6 +112,7 @@ func RegisterGameTypes(
 }
 
 func registerAlphabet(
+	gameType faultTypes.GameType,
 	registry Registry,
 	oracles OracleRegistry,
 	ctx context.Context,
@@ -148,20 +164,20 @@ func registerAlphabet(
 		startingValidator := NewPrestateValidator("output root", contract.GetStartingRootHash, prestateProvider)
 		return NewGamePlayer(ctx, systemClock, l1Clock, logger, m, dir, game.Proxy, txSender, contract, syncValidator, []Validator{prestateValidator, startingValidator}, creator, l1HeaderSource, selective, claimants)
 	}
-	err := registerOracle(ctx, m, oracles, gameFactory, caller, faultTypes.AlphabetGameType)
+	err := registerOracle(ctx, m, oracles, gameFactory, caller, gameType)
 	if err != nil {
 		return err
 	}
-	registry.RegisterGameType(faultTypes.AlphabetGameType, playerCreator)
+	registry.RegisterGameType(gameType, playerCreator)
 
 	contractCreator := func(game types.GameMetadata) (claims.BondContract, error) {
 		return contracts.NewFaultDisputeGameContract(ctx, m, game.Proxy, caller)
 	}
-	registry.RegisterBondContract(faultTypes.AlphabetGameType, contractCreator)
+	registry.RegisterBondContract(gameType, contractCreator)
 	return nil
 }
 
-func registerOracle(ctx context.Context, m metrics.Metricer, oracles OracleRegistry, gameFactory *contracts.DisputeGameFactoryContract, caller *batching.MultiCaller, gameType uint32) error {
+func registerOracle(ctx context.Context, m metrics.Metricer, oracles OracleRegistry, gameFactory *contracts.DisputeGameFactoryContract, caller *batching.MultiCaller, gameType faultTypes.GameType) error {
 	implAddr, err := gameFactory.GetGameImpl(ctx, gameType)
 	if err != nil {
 		return fmt.Errorf("failed to load implementation for game type %v: %w", gameType, err)
@@ -179,7 +195,7 @@ func registerOracle(ctx context.Context, m metrics.Metricer, oracles OracleRegis
 }
 
 func registerAsterisc(
-	gameType uint32,
+	gameType faultTypes.GameType,
 	registry Registry,
 	oracles OracleRegistry,
 	ctx context.Context,
@@ -188,6 +204,7 @@ func registerAsterisc(
 	logger log.Logger,
 	m metrics.Metricer,
 	cfg *config.Config,
+	vmCfg vm.OracleServerExecutor,
 	syncValidator SyncValidator,
 	rollupClient outputs.OutputRollupClient,
 	txSender TxSender,
@@ -198,12 +215,7 @@ func registerAsterisc(
 	selective bool,
 	claimants []common.Address,
 ) error {
-	var prestateSource PrestateSource
-	if cfg.AsteriscAbsolutePreStateBaseURL != nil {
-		prestateSource = prestates.NewMultiPrestateProvider(cfg.AsteriscAbsolutePreStateBaseURL, filepath.Join(cfg.Datadir, "asterisc-prestates"))
-	} else {
-		prestateSource = prestates.NewSinglePrestateSource(cfg.AsteriscAbsolutePreState)
-	}
+	prestateSource := prestates.NewPrestateSource(cfg.AsteriscAbsolutePreStateBaseURL, cfg.AsteriscAbsolutePreState, filepath.Join(cfg.Datadir, "asterisc-prestates"))
 	prestateProviderCache := prestates.NewPrestateProviderCache(m, fmt.Sprintf("prestates-%v", gameType), func(prestateHash common.Hash) (faultTypes.PrestateProvider, error) {
 		prestatePath, err := prestateSource.PrestatePath(prestateHash)
 		if err != nil {
@@ -244,7 +256,11 @@ func registerAsterisc(
 		}
 		prestateProvider := outputs.NewPrestateProvider(rollupClient, prestateBlock)
 		creator := func(ctx context.Context, logger log.Logger, gameDepth faultTypes.Depth, dir string) (faultTypes.TraceAccessor, error) {
-			accessor, err := outputs.NewOutputAsteriscTraceAccessor(logger, m, cfg, l2Client, prestateProvider, rollupClient, dir, l1HeadID, splitDepth, prestateBlock, poststateBlock)
+			asteriscPrestate, err := prestateSource.PrestatePath(requiredPrestatehash)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get asterisc prestate: %w", err)
+			}
+			accessor, err := outputs.NewOutputAsteriscTraceAccessor(logger, m, cfg.Asterisc, vmCfg, l2Client, prestateProvider, asteriscPrestate, rollupClient, dir, l1HeadID, splitDepth, prestateBlock, poststateBlock)
 			if err != nil {
 				return nil, err
 			}
@@ -268,7 +284,7 @@ func registerAsterisc(
 }
 
 func registerCannon(
-	gameType uint32,
+	gameType faultTypes.GameType,
 	registry Registry,
 	oracles OracleRegistry,
 	ctx context.Context,
@@ -277,6 +293,7 @@ func registerCannon(
 	logger log.Logger,
 	m metrics.Metricer,
 	cfg *config.Config,
+	vmCfg vm.OracleServerExecutor,
 	syncValidator SyncValidator,
 	rollupClient outputs.OutputRollupClient,
 	txSender TxSender,
@@ -287,12 +304,7 @@ func registerCannon(
 	selective bool,
 	claimants []common.Address,
 ) error {
-	var prestateSource PrestateSource
-	if cfg.CannonAbsolutePreStateBaseURL != nil {
-		prestateSource = prestates.NewMultiPrestateProvider(cfg.CannonAbsolutePreStateBaseURL, filepath.Join(cfg.Datadir, "cannon-prestates"))
-	} else {
-		prestateSource = prestates.NewSinglePrestateSource(cfg.CannonAbsolutePreState)
-	}
+	prestateSource := prestates.NewPrestateSource(cfg.CannonAbsolutePreStateBaseURL, cfg.CannonAbsolutePreState, filepath.Join(cfg.Datadir, "cannon-prestates"))
 	prestateProviderCache := prestates.NewPrestateProviderCache(m, fmt.Sprintf("prestates-%v", gameType), func(prestateHash common.Hash) (faultTypes.PrestateProvider, error) {
 		prestatePath, err := prestateSource.PrestatePath(prestateHash)
 		if err != nil {
@@ -311,7 +323,6 @@ func registerCannon(
 		}
 
 		cannonPrestateProvider, err := prestateProviderCache.GetOrCreate(requiredPrestatehash)
-
 		if err != nil {
 			return nil, fmt.Errorf("required prestate %v not available for game %v: %w", requiredPrestatehash, game.Proxy, err)
 		}
@@ -335,7 +346,11 @@ func registerCannon(
 		}
 		prestateProvider := outputs.NewPrestateProvider(rollupClient, prestateBlock)
 		creator := func(ctx context.Context, logger log.Logger, gameDepth faultTypes.Depth, dir string) (faultTypes.TraceAccessor, error) {
-			accessor, err := outputs.NewOutputCannonTraceAccessor(logger, m, cfg, l2Client, prestateProvider, rollupClient, dir, l1HeadID, splitDepth, prestateBlock, poststateBlock)
+			cannonPrestate, err := prestateSource.PrestatePath(requiredPrestatehash)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get cannon prestate: %w", err)
+			}
+			accessor, err := outputs.NewOutputCannonTraceAccessor(logger, m, cfg.Cannon, vmCfg, l2Client, prestateProvider, cannonPrestate, rollupClient, dir, l1HeadID, splitDepth, prestateBlock, poststateBlock)
 			if err != nil {
 				return nil, err
 			}

@@ -6,20 +6,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum-optimism/optimism/op-chain-ops/genesis"
-	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/geth"
-	"github.com/ethereum-optimism/optimism/op-program/client/driver"
-	opp "github.com/ethereum-optimism/optimism/op-program/host"
-	oppconf "github.com/ethereum-optimism/optimism/op-program/host/config"
-	"github.com/ethereum-optimism/optimism/op-service/client"
-	"github.com/ethereum-optimism/optimism/op-service/sources"
-	"github.com/ethereum-optimism/optimism/op-service/testlog"
+	"github.com/stretchr/testify/require"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/stretchr/testify/require"
+
+	"github.com/ethereum-optimism/optimism/op-chain-ops/genesis"
+	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/geth"
+	"github.com/ethereum-optimism/optimism/op-program/client/claim"
+	opp "github.com/ethereum-optimism/optimism/op-program/host"
+	oppconf "github.com/ethereum-optimism/optimism/op-program/host/config"
+	"github.com/ethereum-optimism/optimism/op-service/client"
+	"github.com/ethereum-optimism/optimism/op-service/sources"
+	"github.com/ethereum-optimism/optimism/op-service/testlog"
 )
 
 func TestVerifyL2OutputRoot(t *testing.T) {
@@ -132,7 +134,8 @@ func testVerifyL2OutputRootEmptyBlock(t *testing.T, detached bool, spanBatchActi
 	l2OutputRoot := agreedL2Output.OutputRoot
 
 	t.Log("=====Stopping batch submitter=====")
-	err = sys.BatchSubmitter.Driver().StopBatchSubmitting(ctx)
+	driver := sys.BatchSubmitter.TestDriver()
+	err = driver.StopBatchSubmitting(ctx)
 	require.NoError(t, err, "could not stop batch submitter")
 
 	// Wait for the sequencer to catch up with the current L1 head so we know all submitted batches are processed
@@ -160,7 +163,7 @@ func testVerifyL2OutputRootEmptyBlock(t *testing.T, detached bool, spanBatchActi
 	l2Claim := l2Output.OutputRoot
 
 	t.Log("=====Restarting batch submitter=====")
-	err = sys.BatchSubmitter.Driver().StartBatchSubmitting()
+	err = driver.StartBatchSubmitting()
 	require.NoError(t, err, "could not start batch submitter")
 
 	t.Log("Add a transaction to the next batch after sequence of empty blocks")
@@ -320,7 +323,7 @@ func testFaultProofProgramScenario(t *testing.T, ctx context.Context, sys *Syste
 	if s.Detached {
 		require.Error(t, err, "exit status 1")
 	} else {
-		require.ErrorIs(t, err, driver.ErrClaimNotValid)
+		require.ErrorIs(t, err, claim.ErrClaimNotValid)
 	}
 }
 
