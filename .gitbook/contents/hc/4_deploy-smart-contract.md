@@ -14,9 +14,9 @@ python ./deploy-local.py --boba-path /home/user/boba  # Supply the path where yo
 This script uses the Foundry toolkit to deploy the base contracts and a set
 of examples, via Forge scripts located in `rundler-hc/crates/types/contracts/hc_scripts`.
 
-The Forge scripts are written in Solidity, with toolkit extensions to support scripting (for example
-reading system environment variables and using them within Solidity functions). Code which executes
-within a block:
+The Forge scripts are written in Solidity, with toolkit extensions to support scripting, such as
+reading system environment variables and using them within Solidity functions. Code which executes
+within a block (like the following) is translated into a transaction which is first simulated locally and then executed on-chain:
 
 ```solidity
 vm.startBroadcast(deployerPrivateKey);
