@@ -108,7 +108,7 @@ is only performed for contracts which have not yet been registered.
 ## Additional Examples
 
 The preceding documentation was written to focus on the example showing addition and subtraction of
-two numbers, however the `hybrid-compute/` folder contains more examples that can be used and
+two numbers. Additionally, the `hybrid-compute/` folder contains more examples that can be used and
 experimented with. As Hybrid Compute in general is under active development, some of these examples
 may not be up to date with recent changes.
 
