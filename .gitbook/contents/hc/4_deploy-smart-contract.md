@@ -100,8 +100,8 @@ for a in example_addrs:
 
 ```
 
-Here we are performing a sequence of transactions to add individual example contract addresses to the
-list of contracts which are permitted to use our HybridAccount. There is a check so that this operation
+Here we perform a sequence of transactions to add individual example contract addresses to the
+list of contracts which are permitted to use our `HybridAccount`. There is a check so that this operation
 is only performed for contracts which have not yet been registered.
 
 
