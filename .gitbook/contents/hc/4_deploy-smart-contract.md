@@ -26,8 +26,7 @@ vm.startBroadcast(deployerPrivateKey);
 vm.stopBroadcast();
 ```
 
-is translated into a transaction which is first simulated locally and then executed on-chain. The
-addresses of newly deployed contracts are returned as an array of values:
+The addresses of newly deployed contracts are then returned as an array of values:
 
 ```solidity
 // These contracts are one example each
