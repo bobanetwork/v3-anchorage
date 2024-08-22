@@ -134,7 +134,7 @@ To integrate additional methods into our offchain-RPC `server-loop`:
     server.register_function(offchain_getprice, selector("getprice(string)"))
 ```
 
-You can see how these methods are invoked from the `TestCounter.sol` contract, for example "ramble" is 
+You can see how these methods are invoked from the `TestCounter.sol` contract. For example, "ramble" is 
 used in a simple word-guessing game:
 
 ```solidity
