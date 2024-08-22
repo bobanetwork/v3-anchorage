@@ -172,7 +172,7 @@ used in a simple word-guessing game:
 
 ```
 
-You will note the common pattern of preparing an ABI-encoded request, invoking
+Note the common pattern of preparing an ABI-encoded request, invoking
 `HA.CallOffchain(userKey, req)`, and then processing the response. This is the core of the Hybrid Compute
 framework, and the rest is up to you. We look forward to seeing your ideas and applications.
 
