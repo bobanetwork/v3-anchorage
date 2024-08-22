@@ -2,6 +2,7 @@
 
 * [Welcome to Boba](README.md)
 * [Notices](contents/notices/README.md)
+  * [Prepare for Fjord Breaking Changes](contents/notices/fjord-breaking-changes.md)
   * [Prepare for Fraud Proofs on Boba Sepolia and Boba BNB Testnet](contents/notices/fraud-proofs.md)
 * [FAQ](FAQ.md)
 * [User Docs](contents/user/README.md)

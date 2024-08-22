@@ -5,21 +5,25 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
+
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils"
 	"github.com/ethereum-optimism/optimism/op-node/node/safedb"
+	"github.com/ethereum-optimism/optimism/op-node/rollup"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/event"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/sync"
 	plasma "github.com/ethereum-optimism/optimism/op-plasma"
 	"github.com/ethereum-optimism/optimism/op-plasma/bindings"
 	"github.com/ethereum-optimism/optimism/op-service/sources"
 	"github.com/ethereum-optimism/optimism/op-service/testlog"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/stretchr/testify/require"
 )
 
-// Devnet allocs should have plasma mode enabled for these tests to pass
+// Devnet allocs should have alt-da mode enabled for these tests to pass
 
 // L2PlasmaDA is a test harness for manipulating plasma DA state.
 type L2PlasmaDA struct {
@@ -45,8 +49,8 @@ type PlasmaParam func(p *e2eutils.TestParams)
 func NewL2PlasmaDA(t Testing, params ...PlasmaParam) *L2PlasmaDA {
 	p := &e2eutils.TestParams{
 		MaxSequencerDrift:   40,
-		SequencerWindowSize: 120,
-		ChannelTimeout:      120,
+		SequencerWindowSize: 12,
+		ChannelTimeout:      12,
 		L1BlockTime:         12,
 		UsePlasma:           true,
 	}
@@ -77,7 +81,7 @@ func NewL2PlasmaDA(t Testing, params ...PlasmaParam) *L2PlasmaDA {
 
 	daMgr := plasma.NewPlasmaDAWithStorage(log, plasmaCfg, storage, &plasma.NoopMetrics{})
 
-	sequencer := NewL2Sequencer(t, log, l1F, nil, daMgr, engCl, sd.RollupCfg, 0)
+	sequencer := NewL2Sequencer(t, log, l1F, miner.BlobStore(), daMgr, engCl, sd.RollupCfg, 0)
 	miner.ActL1SetFeeRecipient(common.Address{'A'})
 	sequencer.ActL2PipelineFull(t)
 
@@ -135,7 +139,7 @@ func (a *L2PlasmaDA) NewVerifier(t Testing) *L2Verifier {
 
 	daMgr := plasma.NewPlasmaDAWithStorage(a.log, a.plasmaCfg, a.storage, &plasma.NoopMetrics{})
 
-	verifier := NewL2Verifier(t, a.log, l1F, nil, daMgr, engCl, a.sd.RollupCfg, &sync.Config{}, safedb.Disabled)
+	verifier := NewL2Verifier(t, a.log, l1F, a.miner.BlobStore(), daMgr, engCl, a.sd.RollupCfg, &sync.Config{}, safedb.Disabled)
 
 	return verifier
 }
@@ -449,10 +453,6 @@ func TestPlasma_SequencerStalledMultiChallenges(gt *testing.T) {
 	t := NewDefaultTesting(gt)
 	a := NewL2PlasmaDA(t)
 
-	// generate some initial L1 blocks.
-	a.ActL1Blocks(t, 5)
-	a.sequencer.ActL1HeadSignal(t)
-
 	// create a new tx on l2 and commit it to l1
 	a.ActNewL2Tx(t)
 
@@ -485,7 +485,7 @@ func TestPlasma_SequencerStalledMultiChallenges(gt *testing.T) {
 	})
 
 	// include it in L1
-	a.miner.ActL1StartBlock(120)(t)
+	a.miner.ActL1StartBlock(12)(t)
 	a.miner.ActL1IncludeTx(a.dp.Addresses.Batcher)(t)
 	a.miner.ActL1EndBlock(t)
 
@@ -497,9 +497,13 @@ func TestPlasma_SequencerStalledMultiChallenges(gt *testing.T) {
 
 	// advance the pipeline until it errors out as it is still stuck
 	// on deriving the first commitment
-	for i := 0; i < 3; i++ {
-		a.sequencer.ActL2PipelineStep(t)
-	}
+	a.sequencer.ActL2EventsUntil(t, func(ev event.Event) bool {
+		x, ok := ev.(rollup.EngineTemporaryErrorEvent)
+		if ok {
+			require.ErrorContains(t, x.Err, "failed to fetch input data")
+		}
+		return ok
+	}, 100, false)
 
 	// keep track of the second commitment
 	comm2 := a.lastComm
@@ -618,6 +622,7 @@ func TestPlasma_Finalization(gt *testing.T) {
 	// advance derivation and finalize plasma via the L1 signal
 	a.sequencer.ActL2PipelineFull(t)
 	a.ActL1Finalized(t)
+	a.sequencer.ActL2PipelineFull(t) // finality event needs to be processed
 
 	// given 12s l1 time and 1s l2 time, l2 should be 12 * 3 = 36 blocks finalized
 	require.Equal(t, uint64(36), a.sequencer.SyncStatus().FinalizedL2.Number)

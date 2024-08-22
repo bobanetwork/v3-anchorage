@@ -25,11 +25,11 @@ var ErrReorg = errors.New("block does not extend existing chain")
 // channel.
 // Public functions on channelManager are safe for concurrent access.
 type channelManager struct {
-	mu        sync.Mutex
-	log       log.Logger
-	metr      metrics.Metricer
-	cfg       ChannelConfig
-	rollupCfg *rollup.Config
+	mu          sync.Mutex
+	log         log.Logger
+	metr        metrics.Metricer
+	cfgProvider ChannelConfigProvider
+	rollupCfg   *rollup.Config
 
 	// All blocks since the last request for new tx data.
 	blocks []*types.Block
@@ -49,13 +49,13 @@ type channelManager struct {
 	closed bool
 }
 
-func NewChannelManager(log log.Logger, metr metrics.Metricer, cfg ChannelConfig, rollupCfg *rollup.Config) *channelManager {
+func NewChannelManager(log log.Logger, metr metrics.Metricer, cfgProvider ChannelConfigProvider, rollupCfg *rollup.Config) *channelManager {
 	return &channelManager{
-		log:        log,
-		metr:       metr,
-		cfg:        cfg,
-		rollupCfg:  rollupCfg,
-		txChannels: make(map[string]*channel),
+		log:         log,
+		metr:        metr,
+		cfgProvider: cfgProvider,
+		rollupCfg:   rollupCfg,
+		txChannels:  make(map[string]*channel),
 	}
 }
 
@@ -203,8 +203,8 @@ func (s *channelManager) ensureChannelWithSpace(l1Head eth.BlockID) error {
 		return nil
 	}
 
-	pc, err := newChannel(s.log, s.metr, s.cfg, s.rollupCfg, s.l1OriginLastClosedChannel.Number)
-
+	cfg := s.cfgProvider.ChannelConfig()
+	pc, err := newChannel(s.log, s.metr, cfg, s.rollupCfg, s.l1OriginLastClosedChannel.Number)
 	if err != nil {
 		return fmt.Errorf("creating new channel: %w", err)
 	}
@@ -217,8 +217,11 @@ func (s *channelManager) ensureChannelWithSpace(l1Head eth.BlockID) error {
 		"l1Head", l1Head,
 		"l1OriginLastClosedChannel", s.l1OriginLastClosedChannel,
 		"blocks_pending", len(s.blocks),
-		"batch_type", s.cfg.BatchType,
-		"max_frame_size", s.cfg.MaxFrameSize,
+		"batch_type", cfg.BatchType,
+		"compression_algo", cfg.CompressorConfig.CompressionAlgo,
+		"target_num_frames", cfg.TargetNumFrames,
+		"max_frame_size", cfg.MaxFrameSize,
+		"use_blobs", cfg.UseBlobs,
 	)
 	s.metr.RecordChannelOpened(pc.ID(), len(s.blocks))
 
@@ -319,7 +322,10 @@ func (s *channelManager) outputFrames() error {
 		"num_frames", s.currentChannel.TotalFrames(),
 		"input_bytes", inBytes,
 		"output_bytes", outBytes,
+		"oldest_l1_origin", s.currentChannel.OldestL1Origin(),
 		"l1_origin", lastClosedL1Origin,
+		"oldest_l2", s.currentChannel.OldestL2(),
+		"latest_l2", s.currentChannel.LatestL2(),
 		"full_reason", s.currentChannel.FullErr(),
 		"compr_ratio", comprRatio,
 		"latest_l1_origin", s.l1OriginLastClosedChannel,

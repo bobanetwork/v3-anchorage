@@ -20,14 +20,14 @@ contract LegacyERC20ETH_Test is CommonTest {
     }
 
     /// @dev Tests that the default metadata was set correctly.
-    function test_metadata_succeeds() external {
+    function test_metadata_succeeds() external view {
         assertEq(eth.name(), "Ether");
         assertEq(eth.symbol(), "ETH");
         assertEq(eth.decimals(), 18);
     }
 
     /// @dev Tests that `l2Bridge` and `l1Token` return the correct values.
-    function test_crossDomain_succeeds() external {
+    function test_crossDomain_succeeds() external view {
         assertEq(eth.l2Bridge(), Predeploys.L2_STANDARD_BRIDGE);
         assertEq(eth.l1Token(), address(0));
     }

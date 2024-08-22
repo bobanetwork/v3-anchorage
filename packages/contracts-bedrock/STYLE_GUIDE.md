@@ -96,36 +96,48 @@ Spacers MUST be `private`.
 
 All contracts should be assumed to live behind proxies (except in certain special circumstances).
 This means that new contracts MUST be built under the assumption of upgradeability.
-We use a minimal [`Proxy`](./contracts/universal/Proxy.sol) contract designed to be owned by a
-corresponding [`ProxyAdmin`](./contracts/universal/ProxyAdmin.sol) which follow the interfaces
+We use a minimal [`Proxy`](./src/universal/Proxy.sol) contract designed to be owned by a
+corresponding [`ProxyAdmin`](./src/universal/ProxyAdmin.sol) which follow the interfaces
 of OpenZeppelin's `Proxy` and `ProxyAdmin` contracts, respectively.
 
 Unless explicitly discussed otherwise, you MUST include the following basic upgradeability
 pattern for each new implementation contract:
 
 1. Extend OpenZeppelin's `Initializable` base contract.
-2. Include a `uint8 public constant VERSION = X` at the TOP of your contract.
-3. Include a function `initialize` with the modifier `reinitializer(VERSION)`.
-4. In the `constructor`, set any `immutable` variables and call the `initialize` function for setting mutables.
+2. Include a function `initialize` with the modifier `initializer()`.
+3. In the `constructor`:
+    1. Call `_disableInitializers()` to ensure the implementation contract cannot be initialized.
+    2. Set any immutables. However, we generally prefer to not use immutables to ensure the same implementation contracts can be used for all chains, and to allow chain operators to dynamically configure parameters
+
+Because `reinitializer(uint64 version)` is not used, the process for upgrading the implementation is to atomically:
+1. Upgrade the implementation to the `StorageSetter` contract.
+2. Use that to set the initialized slot (typically slot 0) to zero.
+3. Upgrade the implementation to the desired new implementation and `initialize` it.
 
 ### Versioning
 
-All (non-library and non-abstract) contracts MUST extend the `Semver` base contract which
+All (non-library and non-abstract) contracts MUST inherit the `ISemver` interface which
 exposes a `version()` function that returns a semver-compliant version string.
 
-Contracts must have a `Semver` of `1.0.0` or greater to be production ready. Contracts
-with `Semver` values less than `1.0.0` should only be used locally or on devnets.
+Contracts must have a `version` of `1.0.0` or greater to be production ready.
 
-Additionally, contracts MUST use the following versioning scheme:
+Additionally, contracts MUST use the following versioning scheme when incrementing their version:
 
 - `patch` releases are to be used only for changes that do NOT modify contract bytecode (such as updating comments).
 - `minor` releases are to be used for changes that modify bytecode OR changes that expand the contract ABI provided that these changes do NOT break the existing interface.
 - `major` releases are to be used for changes that break the existing contract interface OR changes that modify the security model of a contract.
 
+The remainder of the contract versioning and release process can be found in [`VERSIONING.md](./VERSIONING.md).
+
 #### Exceptions
 
 We have made an exception to the `Semver` rule for the `WETH` contract to avoid
 making changes to a well-known, simple, and recognizable contract.
+
+Additionally, bumping the patch version does change the bytecode, so another exception is carved out for this.
+In other words, changing comments increments the patch version, which changes bytecode. This bytecode
+change implies a minor version increment is needed, but because it's just a version change, only a
+patch increment should be used.
 
 ### Dependencies
 

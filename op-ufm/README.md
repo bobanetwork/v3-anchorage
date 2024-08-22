@@ -1,3 +1,6 @@
+# ⚠️  Important
+This project has been moved to [ethereum-optimism/infra](https://github.com/ethereum-optimism/infra)
+
 # OP User Facing Monitoring
 
 This project simulates a synthetic user interacting with a OP Stack chain.

@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"io"
+	"time"
 
 	"github.com/ethereum-optimism/optimism/op-service/httputil"
 	"github.com/ethereum-optimism/optimism/op-service/sources/caching"
@@ -37,8 +38,8 @@ type Metricer interface {
 	RecordGameStep()
 	RecordGameMove()
 	RecordGameL2Challenge()
-	RecordCannonExecutionTime(t float64)
-	RecordAsteriscExecutionTime(t float64)
+	RecordVmExecutionTime(vmType string, t time.Duration)
+	RecordVmMemoryUsed(vmType string, memoryUsed uint64)
 	RecordClaimResolutionTime(t float64)
 	RecordGameActTime(t float64)
 
@@ -52,6 +53,8 @@ type Metricer interface {
 
 	RecordGameUpdateScheduled()
 	RecordGameUpdateCompleted()
+
+	RecordLargePreimageCount(count int)
 
 	IncActiveExecutors()
 	DecActiveExecutors()
@@ -81,6 +84,7 @@ type Metrics struct {
 
 	preimageChallenged      prometheus.Counter
 	preimageChallengeFailed prometheus.Counter
+	preimageCount           prometheus.Gauge
 
 	highestActedL1Block prometheus.Gauge
 
@@ -88,10 +92,10 @@ type Metrics struct {
 	steps        prometheus.Counter
 	l2Challenges prometheus.Counter
 
-	claimResolutionTime   prometheus.Histogram
-	gameActTime           prometheus.Histogram
-	cannonExecutionTime   prometheus.Histogram
-	asteriscExecutionTime prometheus.Histogram
+	claimResolutionTime prometheus.Histogram
+	gameActTime         prometheus.Histogram
+	vmExecutionTime     *prometheus.HistogramVec
+	vmMemoryUsed        *prometheus.HistogramVec
 
 	trackedGames  prometheus.GaugeVec
 	inflightGames prometheus.Gauge
@@ -152,14 +156,6 @@ func NewMetrics() *Metrics {
 			Name:      "l2_challenges",
 			Help:      "Number of L2 challenges made by the challenge agent",
 		}),
-		cannonExecutionTime: factory.NewHistogram(prometheus.HistogramOpts{
-			Namespace: Namespace,
-			Name:      "cannon_execution_time",
-			Help:      "Time (in seconds) to execute cannon",
-			Buckets: append(
-				[]float64{1.0, 10.0},
-				prometheus.ExponentialBuckets(30.0, 2.0, 14)...),
-		}),
 		claimResolutionTime: factory.NewHistogram(prometheus.HistogramOpts{
 			Namespace: Namespace,
 			Name:      "claim_resolution_time",
@@ -174,14 +170,21 @@ func NewMetrics() *Metrics {
 				[]float64{1.0, 2.0, 5.0, 10.0},
 				prometheus.ExponentialBuckets(30.0, 2.0, 14)...),
 		}),
-		asteriscExecutionTime: factory.NewHistogram(prometheus.HistogramOpts{
+		vmExecutionTime: factory.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: Namespace,
-			Name:      "asterisc_execution_time",
-			Help:      "Time (in seconds) to execute asterisc",
+			Name:      "vm_execution_time",
+			Help:      "Time (in seconds) to execute the fault proof VM",
 			Buckets: append(
 				[]float64{1.0, 10.0},
 				prometheus.ExponentialBuckets(30.0, 2.0, 14)...),
-		}),
+		}, []string{"vm"}),
+		vmMemoryUsed: factory.NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: Namespace,
+			Name:      "vm_memory_used",
+			Help:      "Memory used (in bytes) to execute the fault proof VM",
+			// 100MiB increments from 0 to 1.5GiB
+			Buckets: prometheus.LinearBuckets(0, 1024*1024*100, 15),
+		}, []string{"vm"}),
 		bondClaimFailures: factory.NewCounter(prometheus.CounterOpts{
 			Namespace: Namespace,
 			Name:      "claim_failures",
@@ -201,6 +204,11 @@ func NewMetrics() *Metrics {
 			Namespace: Namespace,
 			Name:      "preimage_challenge_failed",
 			Help:      "Number of preimage challenges that failed",
+		}),
+		preimageCount: factory.NewGauge(prometheus.GaugeOpts{
+			Namespace: Namespace,
+			Name:      "preimage_count",
+			Help:      "Number of large preimage proposals being tracked by the challenger",
 		}),
 		trackedGames: *factory.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: Namespace,
@@ -270,6 +278,10 @@ func (m *Metrics) RecordPreimageChallengeFailed() {
 	m.preimageChallengeFailed.Add(1)
 }
 
+func (m *Metrics) RecordLargePreimageCount(count int) {
+	m.preimageCount.Set(float64(count))
+}
+
 func (m *Metrics) RecordBondClaimFailed() {
 	m.bondClaimFailures.Add(1)
 }
@@ -278,12 +290,12 @@ func (m *Metrics) RecordBondClaimed(amount uint64) {
 	m.bondsClaimed.Add(float64(amount))
 }
 
-func (m *Metrics) RecordCannonExecutionTime(t float64) {
-	m.cannonExecutionTime.Observe(t)
+func (m *Metrics) RecordVmExecutionTime(vmType string, dur time.Duration) {
+	m.vmExecutionTime.WithLabelValues(vmType).Observe(dur.Seconds())
 }
 
-func (m *Metrics) RecordAsteriscExecutionTime(t float64) {
-	m.asteriscExecutionTime.Observe(t)
+func (m *Metrics) RecordVmMemoryUsed(vmType string, memoryUsed uint64) {
+	m.vmMemoryUsed.WithLabelValues(vmType).Observe(float64(memoryUsed))
 }
 
 func (m *Metrics) RecordClaimResolutionTime(t float64) {

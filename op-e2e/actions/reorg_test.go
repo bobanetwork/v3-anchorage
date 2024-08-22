@@ -25,7 +25,7 @@ import (
 
 func setupReorgTest(t Testing, config *e2eutils.TestParams, deltaTimeOffset *hexutil.Uint64) (*e2eutils.SetupData, *e2eutils.DeployParams, *L1Miner, *L2Sequencer, *L2Engine, *L2Verifier, *L2Engine, *L2Batcher) {
 	dp := e2eutils.MakeDeployParams(t, config)
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = deltaTimeOffset
+	applyDeltaTimeOffset(dp, deltaTimeOffset)
 
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelDebug)
@@ -147,13 +147,6 @@ func ReorgFlipFlop(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 	minerCl := miner.L1Client(t, sd.RollupCfg)
 	verifEngClient := verifierEng.EngineClient(t, sd.RollupCfg)
 	checkVerifEngine := func() {
-		// TODO: geth preserves L2 chain with origin A1 after flip-flopping to B?
-		//ref, err := verifEngClient.L2BlockRefByLabel(t.Ctx(), eth.Unsafe)
-		//require.NoError(t, err)
-		//t.Logf("l2 unsafe head %s with origin %s", ref, ref.L1Origin)
-		//require.NotEqual(t, verifier.L2Unsafe().Hash, ref.ParentHash, "TODO off by one, engine syncs A0 after reorging back from B, while rollup node only inserts up to A0 (excl.)")
-		//require.Equal(t, verifier.L2Unsafe(), ref, "verifier safe head of engine matches rollup client")
-
 		ref, err := verifEngClient.L2BlockRefByLabel(t.Ctx(), eth.Safe)
 		require.NoError(t, err)
 		require.Equal(t, verifier.L2Safe(), ref, "verifier safe head of engine matches rollup client")
@@ -404,7 +397,7 @@ func DeepReorg(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 	// Create a var to store the ref for the second to last block of the second sequencing window
 	var blockA39 eth.L1BlockRef
 
-	var aliceL2TxBlock types.Block
+	var aliceL2TxBlock *types.Block
 	// Mine enough empty blocks on L1 to reach two sequence windows.
 	for i := uint64(0); i < sd.RollupCfg.SeqWindowSize*3; i++ {
 		// At block #50, send a batch to L1 containing all L2 blocks built up to this point.
@@ -455,7 +448,7 @@ func DeepReorg(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 			b0, err := l2Client.BlockByNumber(t.Ctx(), big.NewInt(int64(sequencer.L2Unsafe().Number)))
 			require.NoError(t, err, "failed to fetch unsafe head of L2 after submitting alice's transaction")
 
-			aliceL2TxBlock = *b0
+			aliceL2TxBlock = b0
 		}
 
 		// Ask sequencer to handle new L1 head and build L2 blocks up to the L1 head
@@ -579,6 +572,8 @@ func DeepReorg(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 	require.Equal(t, verifier.L2Safe(), verifier.L2Unsafe(), "L2 safe and unsafe head should be equal")
 	checkVerifEngine()
 
+	require.NotNil(gt, aliceL2TxBlock)
+
 	// Ensure that the parent of the L2 block containing Alice's transaction still exists
 	b0, err := l2Client.BlockByHash(t.Ctx(), aliceL2TxBlock.ParentHash())
 	require.NoError(t, err, "Parent of the L2 block containing Alice's transaction should still exist on L2")
@@ -605,7 +600,7 @@ func RestartOpGeth(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 		return nil
 	}
 	dp := e2eutils.MakeDeployParams(t, defaultRollupTestParams)
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = deltaTimeOffset
+	applyDeltaTimeOffset(dp, deltaTimeOffset)
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelDebug)
 	jwtPath := e2eutils.WriteDefaultJWT(t)
@@ -693,7 +688,7 @@ func RestartOpGeth(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 func ConflictingL2Blocks(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 	t := NewDefaultTesting(gt)
 	dp := e2eutils.MakeDeployParams(t, defaultRollupTestParams)
-	dp.DeployConfig.L2GenesisDeltaTimeOffset = deltaTimeOffset
+	applyDeltaTimeOffset(dp, deltaTimeOffset)
 	sd := e2eutils.Setup(t, dp, defaultAlloc)
 	log := testlog.Logger(t, log.LevelDebug)
 
@@ -767,7 +762,7 @@ func ConflictingL2Blocks(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 	// give the unsafe block to the verifier, and see if it reorgs because of any unsafe inputs
 	head, err := altSeqEngCl.PayloadByLabel(t.Ctx(), eth.Unsafe)
 	require.NoError(t, err)
-	verifier.ActL2UnsafeGossipReceive(head)
+	verifier.ActL2UnsafeGossipReceive(head)(t)
 
 	// make sure verifier has processed everything
 	verifier.ActL2PipelineFull(t)
@@ -825,7 +820,7 @@ func SyncAfterReorg(gt *testing.T, deltaTimeOffset *hexutil.Uint64) {
 	miner.ActL1SetFeeRecipient(common.Address{'A', 0})
 	miner.ActEmptyBlock(t)
 	sequencer.ActL1HeadSignal(t)
-	for sequencer.engine.UnsafeL2Head().L1Origin.Number < sequencer.l1State.L1Head().Number {
+	for sequencer.engine.UnsafeL2Head().L1Origin.Number < sequencer.syncStatus.L1Head().Number {
 		// build L2 blocks until the L1 origin is the current L1 head(A0)
 		sequencer.ActL2PipelineFull(t)
 		sequencer.ActL2StartBlock(t)

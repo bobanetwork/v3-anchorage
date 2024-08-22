@@ -11,11 +11,11 @@ A lightweight binary for utilities accessed via `forge`'s `ffi` cheatcode in the
 
 ## Usage
 
-To build, run `pnpm build:go-ffi` from this directory or the `contract-bedrock` package.
+To build, run `just build-go-ffi` from this directory or the `contract-bedrock` package.
 
 ### In a Forge Test
 
-To use `go-ffi` in a forge test, simply invoke the binary via the `vm.ffi` cheatcode.
+To use `go-ffi` in a forge test, simply invoke the binary using the solidity `Process` library's `run` method.
 
 ```solidity
 function myFFITest() public {
@@ -23,7 +23,7 @@ function myFFITest() public {
     commands[0] = "./scripts/go-ffi/go-ffi";
     commands[1] = "trie";
     commands[2] = "valid";
-    bytes memory result = vm.ffi(commands);
+    bytes memory result = Process.run(commands);
 
     // Do something with the result of the command
 }

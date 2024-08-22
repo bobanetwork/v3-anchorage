@@ -4,14 +4,15 @@ pragma solidity ^0.8.0;
 import { console2 as console } from "forge-std/console2.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 import { Vm } from "forge-std/Vm.sol";
-import { Executables } from "scripts/Executables.sol";
+import { Executables } from "scripts/libraries/Executables.sol";
 import { Predeploys } from "src/libraries/Predeploys.sol";
-import { Config } from "scripts/Config.sol";
-import { StorageSlot } from "scripts/ForgeArtifacts.sol";
+import { Config } from "scripts/libraries/Config.sol";
+import { StorageSlot } from "scripts/libraries/ForgeArtifacts.sol";
 import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
 import { LibString } from "@solady/utils/LibString.sol";
-import { ForgeArtifacts } from "scripts/ForgeArtifacts.sol";
+import { ForgeArtifacts } from "scripts/libraries/ForgeArtifacts.sol";
 import { IAddressManager } from "scripts/interfaces/IAddressManager.sol";
+import { Process } from "scripts/libraries/Process.sol";
 
 /// @notice Represents a deployment. Is serialized to JSON as a key/value
 ///         pair. Can be accessed from within scripts.
@@ -71,7 +72,7 @@ abstract contract Artifacts {
         commands[0] = "bash";
         commands[1] = "-c";
         commands[2] = string.concat("jq -cr < ", _path);
-        string memory json = string(vm.ffi(commands));
+        string memory json = string(Process.run(commands));
         string[] memory keys = vm.parseJsonKeys(json, "");
         for (uint256 i; i < keys.length; i++) {
             string memory key = keys[i];
@@ -187,27 +188,6 @@ abstract contract Artifacts {
         _namedDeployments[_name] = deployment;
         _newDeployments.push(deployment);
         _appendDeployment(_name, _deployed);
-    }
-
-    /// @notice Reads the deployment artifact from disk that were generated
-    ///         by the deploy script.
-    /// @return An array of deployments.
-    function _getDeployments() internal returns (Deployment[] memory) {
-        string memory json = vm.readFile(deploymentOutfile);
-        string[] memory cmd = new string[](3);
-        cmd[0] = Executables.bash;
-        cmd[1] = "-c";
-        cmd[2] = string.concat(Executables.jq, " 'keys' <<< '", json, "'");
-        bytes memory res = vm.ffi(cmd);
-        string[] memory names = stdJson.readStringArray(string(res), "");
-
-        Deployment[] memory deployments = new Deployment[](names.length);
-        for (uint256 i; i < names.length; i++) {
-            string memory contractName = names[i];
-            address addr = stdJson.readAddress(json, string.concat("$.", contractName));
-            deployments[i] = Deployment({ name: contractName, addr: payable(addr) });
-        }
-        return deployments;
     }
 
     /// @notice Adds a deployment to the temp deployments file

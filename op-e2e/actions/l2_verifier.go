@@ -3,21 +3,31 @@ package actions
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+
+	"github.com/stretchr/testify/require"
+	"golang.org/x/time/rate"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	gnode "github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/stretchr/testify/require"
 
 	"github.com/ethereum-optimism/optimism/op-node/node"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/attributes"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/clsync"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/driver"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/engine"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/event"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/finality"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/status"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/sync"
 	"github.com/ethereum-optimism/optimism/op-service/client"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum-optimism/optimism/op-service/safego"
 	"github.com/ethereum-optimism/optimism/op-service/sources"
 	"github.com/ethereum-optimism/optimism/op-service/testutils"
 )
@@ -25,19 +35,26 @@ import (
 // L2Verifier is an actor that functions like a rollup node,
 // without the full P2P/API/Node stack, but just the derivation state, and simplified driver.
 type L2Verifier struct {
+	eventSys event.System
+
 	log log.Logger
 
-	eng interface {
-		derive.Engine
-		L2BlockRefByNumber(ctx context.Context, num uint64) (eth.L2BlockRef, error)
-	}
+	eng L2API
+
+	syncStatus driver.SyncStatusTracker
+
+	synchronousEvents event.Emitter
+
+	drainer event.Drainer
 
 	// L2 rollup
-	engine     *derive.EngineController
+	engine     *engine.EngineController
 	derivation *derive.DerivationPipeline
 
-	l1      derive.L1Fetcher
-	l1State *driver.L1State
+	safeHeadListener rollup.SafeHeadListener
+	syncCfg          *sync.Config
+
+	l1 derive.L1Fetcher
 
 	l2PipelineIdle bool
 	l2Building     bool
@@ -46,11 +63,15 @@ type L2Verifier struct {
 
 	rpc *rpc.Server
 
-	failRPC error // mock error
+	failRPC func(call []rpc.BatchElem) error // mock error
+
+	// The L2Verifier actor is embedded in the L2Sequencer actor,
+	// but must not be copied for the deriver-functionality to modify the same state.
+	_ safego.NoCopy
 }
 
 type L2API interface {
-	derive.Engine
+	engine.Engine
 	L2BlockRefByNumber(ctx context.Context, num uint64) (eth.L2BlockRef, error)
 	InfoByHash(ctx context.Context, hash common.Hash) (eth.BlockInfo, error)
 	// GetProof returns a proof of the account, it may return a nil result without error if the address was not found.
@@ -59,28 +80,94 @@ type L2API interface {
 }
 
 type safeDB interface {
-	derive.SafeHeadListener
+	rollup.SafeHeadListener
 	node.SafeDBReader
 }
 
-func NewL2Verifier(t Testing, log log.Logger, l1 derive.L1Fetcher, blobsSrc derive.L1BlobsFetcher, plasmaSrc derive.PlasmaInputFetcher, eng L2API, cfg *rollup.Config, syncCfg *sync.Config, safeHeadListener safeDB) *L2Verifier {
+func NewL2Verifier(t Testing, log log.Logger, l1 derive.L1Fetcher, blobsSrc derive.L1BlobsFetcher, plasmaSrc driver.PlasmaIface, eng L2API, cfg *rollup.Config, syncCfg *sync.Config, safeHeadListener safeDB) *L2Verifier {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	executor := event.NewGlobalSynchronous(ctx)
+	sys := event.NewSystem(log, executor)
+	t.Cleanup(sys.Stop)
+	opts := event.DefaultRegisterOpts()
+	opts.Emitter = event.EmitterOpts{
+		Limiting: true,
+		// TestSyncBatchType/DerivationWithFlakyL1RPC does *a lot* of quick retries
+		// TestL2BatcherBatchType/ExtendedTimeWithoutL1Batches as well.
+		Rate:  rate.Limit(100_000),
+		Burst: 100_000,
+		OnLimited: func() {
+			log.Warn("Hitting events rate-limit. An events code-path may be hot-looping.")
+			t.Fatal("Tests must not hot-loop events")
+		},
+	}
+
 	metrics := &testutils.TestDerivationMetrics{}
-	engine := derive.NewEngineController(eng, log, metrics, cfg, syncCfg.SyncMode)
-	pipeline := derive.NewDerivationPipeline(log, cfg, l1, blobsSrc, plasmaSrc, eng, engine, metrics, syncCfg, safeHeadListener)
-	pipeline.Reset()
+	ec := engine.NewEngineController(eng, log, metrics, cfg, syncCfg,
+		sys.Register("engine-controller", nil, opts))
+
+	sys.Register("engine-reset",
+		engine.NewEngineResetDeriver(ctx, log, cfg, l1, eng, syncCfg), opts)
+
+	clSync := clsync.NewCLSync(log, cfg, metrics)
+	sys.Register("cl-sync", clSync, opts)
+
+	var finalizer driver.Finalizer
+	if cfg.PlasmaEnabled() {
+		finalizer = finality.NewPlasmaFinalizer(ctx, log, cfg, l1, plasmaSrc)
+	} else {
+		finalizer = finality.NewFinalizer(ctx, log, cfg, l1)
+	}
+	sys.Register("finalizer", finalizer, opts)
+
+	sys.Register("attributes-handler",
+		attributes.NewAttributesHandler(log, cfg, ctx, eng), opts)
+
+	pipeline := derive.NewDerivationPipeline(log, cfg, l1, blobsSrc, plasmaSrc, eng, metrics)
+	sys.Register("pipeline", derive.NewPipelineDeriver(ctx, pipeline), opts)
+
+	testActionEmitter := sys.Register("test-action", nil, opts)
+
+	syncStatusTracker := status.NewStatusTracker(log, metrics)
+	sys.Register("status", syncStatusTracker, opts)
+
+	sys.Register("sync", &driver.SyncDeriver{
+		Derivation:     pipeline,
+		SafeHeadNotifs: safeHeadListener,
+		CLSync:         clSync,
+		Engine:         ec,
+		SyncCfg:        syncCfg,
+		Config:         cfg,
+		L1:             l1,
+		L2:             eng,
+		Log:            log,
+		Ctx:            ctx,
+		Drain:          executor.Drain,
+	}, opts)
+
+	sys.Register("engine", engine.NewEngDeriver(log, ctx, cfg, metrics, ec), opts)
 
 	rollupNode := &L2Verifier{
-		log:            log,
-		eng:            eng,
-		engine:         engine,
-		derivation:     pipeline,
-		l1:             l1,
-		l1State:        driver.NewL1State(log, metrics),
-		l2PipelineIdle: true,
-		l2Building:     false,
-		rollupCfg:      cfg,
-		rpc:            rpc.NewServer(),
+		eventSys:          sys,
+		log:               log,
+		eng:               eng,
+		engine:            ec,
+		derivation:        pipeline,
+		safeHeadListener:  safeHeadListener,
+		syncCfg:           syncCfg,
+		drainer:           executor,
+		l1:                l1,
+		syncStatus:        syncStatusTracker,
+		l2PipelineIdle:    true,
+		l2Building:        false,
+		rollupCfg:         cfg,
+		rpc:               rpc.NewServer(),
+		synchronousEvents: testActionEmitter,
 	}
+	sys.Register("verifier", rollupNode, opts)
+
 	t.Cleanup(rollupNode.rpc.Stop)
 
 	// setup RPC server for rollup node, hooked to the actor as backend
@@ -135,6 +222,10 @@ func (s *l2VerifierBackend) SequencerActive(ctx context.Context) (bool, error) {
 	return false, nil
 }
 
+func (s *l2VerifierBackend) OverrideLeader(ctx context.Context) error {
+	return nil
+}
+
 func (s *l2VerifierBackend) OnUnsafeL2Payload(ctx context.Context, envelope *eth.ExecutionPayloadEnvelope) error {
 	return nil
 }
@@ -160,17 +251,7 @@ func (s *L2Verifier) L2BackupUnsafe() eth.L2BlockRef {
 }
 
 func (s *L2Verifier) SyncStatus() *eth.SyncStatus {
-	return &eth.SyncStatus{
-		CurrentL1:          s.derivation.Origin(),
-		CurrentL1Finalized: s.derivation.FinalizedL1(),
-		HeadL1:             s.l1State.L1Head(),
-		SafeL1:             s.l1State.L1Safe(),
-		FinalizedL1:        s.l1State.L1Finalized(),
-		UnsafeL2:           s.L2Unsafe(),
-		SafeL2:             s.L2Safe(),
-		FinalizedL2:        s.L2Finalized(),
-		PendingSafeL2:      s.L2PendingSafe(),
-	}
+	return s.syncStatus.SyncStatus()
 }
 
 func (s *L2Verifier) RollupClient() *sources.RollupClient {
@@ -181,10 +262,11 @@ func (s *L2Verifier) RPCClient() client.RPC {
 	cl := rpc.DialInProc(s.rpc)
 	return testutils.RPCErrFaker{
 		RPC: client.NewBaseRPCClient(cl),
-		ErrFn: func() error {
-			err := s.failRPC
-			s.failRPC = nil // reset back, only error once.
-			return err
+		ErrFn: func(call []rpc.BatchElem) error {
+			if s.failRPC == nil {
+				return nil
+			}
+			return s.failRPC(call)
 		},
 	}
 }
@@ -195,72 +277,104 @@ func (s *L2Verifier) ActRPCFail(t Testing) {
 		t.InvalidAction("already set a mock rpc error")
 		return
 	}
-	s.failRPC = errors.New("mock RPC error")
+	s.failRPC = func(call []rpc.BatchElem) error {
+		s.failRPC = nil
+		return errors.New("mock RPC error")
+	}
 }
 
 func (s *L2Verifier) ActL1HeadSignal(t Testing) {
 	head, err := s.l1.L1BlockRefByLabel(t.Ctx(), eth.Unsafe)
 	require.NoError(t, err)
-	s.l1State.HandleNewL1HeadBlock(head)
+	s.synchronousEvents.Emit(status.L1UnsafeEvent{L1Unsafe: head})
+	require.NoError(t, s.drainer.DrainUntil(func(ev event.Event) bool {
+		x, ok := ev.(status.L1UnsafeEvent)
+		return ok && x.L1Unsafe == head
+	}, false))
+	require.Equal(t, head, s.syncStatus.SyncStatus().HeadL1)
 }
 
 func (s *L2Verifier) ActL1SafeSignal(t Testing) {
 	safe, err := s.l1.L1BlockRefByLabel(t.Ctx(), eth.Safe)
 	require.NoError(t, err)
-	s.l1State.HandleNewL1SafeBlock(safe)
+	s.synchronousEvents.Emit(status.L1SafeEvent{L1Safe: safe})
+	require.NoError(t, s.drainer.DrainUntil(func(ev event.Event) bool {
+		x, ok := ev.(status.L1SafeEvent)
+		return ok && x.L1Safe == safe
+	}, false))
+	require.Equal(t, safe, s.syncStatus.SyncStatus().SafeL1)
 }
 
 func (s *L2Verifier) ActL1FinalizedSignal(t Testing) {
 	finalized, err := s.l1.L1BlockRefByLabel(t.Ctx(), eth.Finalized)
 	require.NoError(t, err)
-	s.l1State.HandleNewL1FinalizedBlock(finalized)
-	s.derivation.Finalize(finalized)
+	s.synchronousEvents.Emit(finality.FinalizeL1Event{FinalizedL1: finalized})
+	require.NoError(t, s.drainer.DrainUntil(func(ev event.Event) bool {
+		x, ok := ev.(finality.FinalizeL1Event)
+		return ok && x.FinalizedL1 == finalized
+	}, false))
+	require.Equal(t, finalized, s.syncStatus.SyncStatus().FinalizedL1)
 }
 
-// ActL2PipelineStep runs one iteration of the L2 derivation pipeline
-func (s *L2Verifier) ActL2PipelineStep(t Testing) {
+func (s *L2Verifier) OnEvent(ev event.Event) bool {
+	switch x := ev.(type) {
+	case rollup.L1TemporaryErrorEvent:
+		s.log.Warn("L1 temporary error", "err", x.Err)
+	case rollup.EngineTemporaryErrorEvent:
+		s.log.Warn("Engine temporary error", "err", x.Err)
+		if errors.Is(x.Err, sync.WrongChainErr) { // action-tests don't back off on temporary errors. Avoid a bad genesis setup from looping.
+			panic(fmt.Errorf("genesis setup issue: %w", x.Err))
+		}
+	case rollup.ResetEvent:
+		s.log.Warn("Derivation pipeline is being reset", "err", x.Err)
+	case rollup.CriticalErrorEvent:
+		panic(fmt.Errorf("derivation failed critically: %w", x.Err))
+	case derive.DeriverIdleEvent:
+		s.l2PipelineIdle = true
+	case derive.PipelineStepEvent:
+		s.l2PipelineIdle = false
+	case driver.StepReqEvent:
+		s.synchronousEvents.Emit(driver.StepEvent{})
+	default:
+		return false
+	}
+	return true
+}
+
+func (s *L2Verifier) ActL2EventsUntilPending(t Testing, num uint64) {
+	s.ActL2EventsUntil(t, func(ev event.Event) bool {
+		x, ok := ev.(engine.PendingSafeUpdateEvent)
+		return ok && x.PendingSafe.Number == num
+	}, 1000, false)
+}
+
+func (s *L2Verifier) ActL2EventsUntil(t Testing, fn func(ev event.Event) bool, max int, excl bool) {
+	t.Helper()
 	if s.l2Building {
 		t.InvalidAction("cannot derive new data while building L2 block")
 		return
 	}
-
-	s.l2PipelineIdle = false
-	err := s.derivation.Step(t.Ctx())
-	if err == io.EOF || (err != nil && errors.Is(err, derive.EngineELSyncing)) {
-		s.l2PipelineIdle = true
-		return
-	} else if err != nil && errors.Is(err, derive.NotEnoughData) {
-		return
-	} else if err != nil && errors.Is(err, derive.ErrReset) {
-		s.log.Warn("Derivation pipeline is reset", "err", err)
-		s.derivation.Reset()
-		return
-	} else if err != nil && errors.Is(err, derive.ErrTemporary) {
-		s.log.Warn("Derivation process temporary error", "err", err)
-		if errors.Is(err, sync.WrongChainErr) { // action-tests don't back off on temporary errors. Avoid a bad genesis setup from looping.
-			t.Fatalf("genesis setup issue: %v", err)
+	for i := 0; i < max; i++ {
+		err := s.drainer.DrainUntil(fn, excl)
+		if err == nil {
+			return
 		}
-		return
-	} else if err != nil && errors.Is(err, derive.ErrCritical) {
-		t.Fatalf("derivation failed critically: %v", err)
-	} else if err != nil {
-		t.Fatalf("derivation failed: %v", err)
-	} else {
-		return
+		if err == io.EOF {
+			s.synchronousEvents.Emit(driver.StepEvent{})
+		}
 	}
+	t.Fatalf("event condition did not hit, ran maximum number of steps: %d", max)
 }
 
 func (s *L2Verifier) ActL2PipelineFull(t Testing) {
-	s.l2PipelineIdle = false
-	for !s.l2PipelineIdle {
-		s.ActL2PipelineStep(t)
-	}
+	s.synchronousEvents.Emit(driver.StepEvent{})
+	require.NoError(t, s.drainer.Drain(), "complete all event processing triggered by deriver step")
 }
 
 // ActL2UnsafeGossipReceive creates an action that can receive an unsafe execution payload, like gossipsub
 func (s *L2Verifier) ActL2UnsafeGossipReceive(payload *eth.ExecutionPayloadEnvelope) Action {
 	return func(t Testing) {
-		s.derivation.AddUnsafePayload(payload)
+		s.synchronousEvents.Emit(clsync.ReceivedUnsafePayloadEvent{Envelope: payload})
 	}
 }
 
