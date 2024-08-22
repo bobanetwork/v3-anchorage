@@ -57,7 +57,7 @@ and then using the `forge script` command as documented at https://book.getfound
 We deploy with Foundry, but you may deploy with whatever tooling you wish.
 {% endhint %}
 
-Further system setup is performed through the web3.py API, first by connecting to our L1 and L2 networks:
+Further system setup is performed through the `web3.py` API, first by connecting to our L1 and L2 networks:
 
 ```python
 l1 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
