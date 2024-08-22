@@ -76,7 +76,7 @@ HA = loadContract(w3, "HybridAccount", path_prefix+"samples/HybridAccount.sol")
 ```
 
 Here `path_prefix` indicates where the contract's source code is located. The current deployer script
-will compile the Solidity code itself to determine the contract ABI, rather than requiring a JSON file
+will compile the Solidity code itself to determine the contract ABI rather than requiring a JSON file
 from a previous deployment.
 
 After loading the contract, we can interact with it like this:
