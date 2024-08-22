@@ -4,7 +4,8 @@ VERSION ?= v0.0.0
 
 LDFLAGSSTRING +=-X main.GitCommit=$(GITCOMMIT)
 LDFLAGSSTRING +=-X main.GitDate=$(GITDATE)
-LDFLAGSSTRING +=-X main.Version=$(VERSION)
+LDFLAGSSTRING +=-X github.com/ethereum-optimism/optimism/op-challenger/version.Version=$(VERSION)
+LDFLAGSSTRING +=-X github.com/ethereum-optimism/optimism/op-challenger/version.Meta=$(VERSION_META)
 LDFLAGS := -ldflags "$(LDFLAGSSTRING)"
 
 # Use the old Apple linker to workaround broken xcode - https://github.com/golang/go/issues/65169
@@ -13,7 +14,7 @@ ifeq ($(shell uname),Darwin)
 endif
 
 op-challenger:
-	env GO111MODULE=on GOOS=$(TARGETOS) GOARCH=$(TARGETARCH) go build -v $(LDFLAGS) -o ./bin/op-challenger ./cmd
+	env GO111MODULE=on GOOS=$(TARGETOS) GOARCH=$(TARGETARCH) CGO_ENABLED=0 go build -v $(LDFLAGS) -o ./bin/op-challenger ./cmd
 
 fuzz:
 	go test $(FUZZLDFLAGS) -run NOTAREALTEST -v -fuzztime 10s -fuzz FuzzKeccak ./game/keccak/matrix

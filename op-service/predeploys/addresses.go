@@ -25,6 +25,8 @@ const (
 	L1FeeVault                    = "0x420000000000000000000000000000000000001a"
 	SchemaRegistry                = "0x4200000000000000000000000000000000000020"
 	EAS                           = "0x4200000000000000000000000000000000000021"
+	CrossL2Inbox                  = "0x4200000000000000000000000000000000000022"
+	L2toL2CrossDomainMessenger    = "0x4200000000000000000000000000000000000023"
 	Create2Deployer               = "0x13b0D85CcB8bf860b6b79AF3029fCA081AE9beF2"
 	MultiCall3                    = "0xcA11bde05977b3631167028862bE2a173976CA11"
 	Safe_v130                     = "0x69f4D1788e39c87893C980c06EdF4b7f686e2938"
@@ -34,11 +36,13 @@ const (
 	DeterministicDeploymentProxy  = "0x4e59b44847b379578588920cA78FbF26c0B4956C"
 	MultiSend_v130                = "0x998739BFdAAdde7C933B942a68053933098f9EDa"
 	Permit2                       = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
-	SenderCreator                 = "0x7fc98430eaedbb6070b35b39d798725049088348"
-	EntryPoint                    = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
+	SenderCreator_v060            = "0x7fc98430eaedbb6070b35b39d798725049088348"
+	EntryPoint_v060               = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
+	SenderCreator_v070            = "0xEFC2c1444eBCC4Db75e7613d20C6a62fF67A167C"
+	EntryPoint_v070               = "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 
 	// BOBA specific
-	BobaL2 = "0x4200000000000000000000000000000000000023"
+	BobaL2 = "0xa18bF3994C0Cc6E3b63ac420308E5383f53120D7"
 )
 
 var (
@@ -61,6 +65,8 @@ var (
 	L1FeeVaultAddr                    = common.HexToAddress(L1FeeVault)
 	SchemaRegistryAddr                = common.HexToAddress(SchemaRegistry)
 	EASAddr                           = common.HexToAddress(EAS)
+	CrossL2InboxAddr                  = common.HexToAddress(CrossL2Inbox)
+	L2toL2CrossDomainMessengerAddr    = common.HexToAddress(L2toL2CrossDomainMessenger)
 	Create2DeployerAddr               = common.HexToAddress(Create2Deployer)
 	MultiCall3Addr                    = common.HexToAddress(MultiCall3)
 	Safe_v130Addr                     = common.HexToAddress(Safe_v130)
@@ -70,8 +76,10 @@ var (
 	DeterministicDeploymentProxyAddr  = common.HexToAddress(DeterministicDeploymentProxy)
 	MultiSend_v130Addr                = common.HexToAddress(MultiSend_v130)
 	Permit2Addr                       = common.HexToAddress(Permit2)
-	SenderCreatorAddr                 = common.HexToAddress(SenderCreator)
-	EntryPointAddr                    = common.HexToAddress(EntryPoint)
+	SenderCreator_v060Addr            = common.HexToAddress(SenderCreator_v060)
+	EntryPoint_v060Addr               = common.HexToAddress(EntryPoint_v060)
+	SenderCreator_v070Addr            = common.HexToAddress(SenderCreator_v070)
+	EntryPoint_v070Addr               = common.HexToAddress(EntryPoint_v070)
 
 	Predeploys          = make(map[string]*Predeploy)
 	PredeploysByAddress = make(map[common.Address]*Predeploy)
@@ -91,6 +99,8 @@ func init() {
 	Predeploys["L1BlockNumber"] = &Predeploy{Address: L1BlockNumberAddr}
 	Predeploys["GasPriceOracle"] = &Predeploy{Address: GasPriceOracleAddr}
 	Predeploys["L1Block"] = &Predeploy{Address: L1BlockAddr}
+	Predeploys["CrossL2Inbox"] = &Predeploy{Address: CrossL2InboxAddr}
+	Predeploys["L2toL2CrossDomainMessenger"] = &Predeploy{Address: L2toL2CrossDomainMessengerAddr}
 	Predeploys["GovernanceToken"] = &Predeploy{
 		Address:       GovernanceTokenAddr,
 		ProxyDisabled: true,
@@ -142,12 +152,20 @@ func init() {
 		Address:       Permit2Addr,
 		ProxyDisabled: true,
 	}
-	Predeploys["SenderCreator"] = &Predeploy{
-		Address:       SenderCreatorAddr,
+	Predeploys["SenderCreator_v060"] = &Predeploy{
+		Address:       SenderCreator_v060Addr,
 		ProxyDisabled: true,
 	}
-	Predeploys["EntryPoint"] = &Predeploy{
-		Address:       EntryPointAddr,
+	Predeploys["EntryPoint_v060"] = &Predeploy{
+		Address:       EntryPoint_v060Addr,
+		ProxyDisabled: true,
+	}
+	Predeploys["SenderCreator_v070"] = &Predeploy{
+		Address:       SenderCreator_v070Addr,
+		ProxyDisabled: true,
+	}
+	Predeploys["EntryPoint_v070"] = &Predeploy{
+		Address:       EntryPoint_v070Addr,
 		ProxyDisabled: true,
 	}
 

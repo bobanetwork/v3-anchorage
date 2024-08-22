@@ -11,14 +11,17 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ethereum-optimism/optimism/cannon/mipsevm"
-	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/utils"
-	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
-	"github.com/ethereum-optimism/optimism/op-service/ioutil"
-	"github.com/ethereum-optimism/optimism/op-service/testlog"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ethereum-optimism/optimism/cannon/mipsevm/memory"
+	"github.com/ethereum-optimism/optimism/cannon/mipsevm/singlethreaded"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/utils"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/vm"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
+	"github.com/ethereum-optimism/optimism/op-service/ioutil"
+	"github.com/ethereum-optimism/optimism/op-service/testlog"
 )
 
 //go:embed test_data
@@ -48,16 +51,15 @@ func TestGet(t *testing.T) {
 
 	t.Run("ProofAfterEndOfTrace", func(t *testing.T) {
 		provider, generator := setupWithTestData(t, dataDir, prestate)
-		generator.finalState = &mipsevm.State{
-			Memory: &mipsevm.Memory{},
+		generator.finalState = &singlethreaded.State{
+			Memory: &memory.Memory{},
 			Step:   10,
 			Exited: true,
 		}
 		value, err := provider.Get(context.Background(), PositionFromTraceIndex(provider, big.NewInt(7000)))
 		require.NoError(t, err)
 		require.Contains(t, generator.generated, 7000, "should have tried to generate the proof")
-		stateHash, err := generator.finalState.EncodeWitness().StateHash()
-		require.NoError(t, err)
+		_, stateHash := generator.finalState.EncodeWitness()
 		require.Equal(t, stateHash, value)
 	})
 
@@ -105,8 +107,8 @@ func TestGetStepData(t *testing.T) {
 	t.Run("GenerateProof", func(t *testing.T) {
 		dataDir, prestate := setupTestData(t)
 		provider, generator := setupWithTestData(t, dataDir, prestate)
-		generator.finalState = &mipsevm.State{
-			Memory: &mipsevm.Memory{},
+		generator.finalState = &singlethreaded.State{
+			Memory: &memory.Memory{},
 			Step:   10,
 			Exited: true,
 		}
@@ -131,8 +133,8 @@ func TestGetStepData(t *testing.T) {
 	t.Run("ProofAfterEndOfTrace", func(t *testing.T) {
 		dataDir, prestate := setupTestData(t)
 		provider, generator := setupWithTestData(t, dataDir, prestate)
-		generator.finalState = &mipsevm.State{
-			Memory: &mipsevm.Memory{},
+		generator.finalState = &singlethreaded.State{
+			Memory: &memory.Memory{},
 			Step:   10,
 			Exited: true,
 		}
@@ -148,7 +150,7 @@ func TestGetStepData(t *testing.T) {
 		require.NoError(t, err)
 		require.Contains(t, generator.generated, 7000, "should have tried to generate the proof")
 
-		witness := generator.finalState.EncodeWitness()
+		witness, _ := generator.finalState.EncodeWitness()
 		require.EqualValues(t, witness, preimage)
 		require.Equal(t, []byte{}, proof)
 		require.Nil(t, data)
@@ -157,8 +159,8 @@ func TestGetStepData(t *testing.T) {
 	t.Run("ReadLastStepFromDisk", func(t *testing.T) {
 		dataDir, prestate := setupTestData(t)
 		provider, initGenerator := setupWithTestData(t, dataDir, prestate)
-		initGenerator.finalState = &mipsevm.State{
-			Memory: &mipsevm.Memory{},
+		initGenerator.finalState = &singlethreaded.State{
+			Memory: &memory.Memory{},
 			Step:   10,
 			Exited: true,
 		}
@@ -175,8 +177,8 @@ func TestGetStepData(t *testing.T) {
 		require.Contains(t, initGenerator.generated, 7000, "should have tried to generate the proof")
 
 		provider, generator := setupWithTestData(t, dataDir, prestate)
-		generator.finalState = &mipsevm.State{
-			Memory: &mipsevm.Memory{},
+		generator.finalState = &singlethreaded.State{
+			Memory: &memory.Memory{},
 			Step:   10,
 			Exited: true,
 		}
@@ -189,7 +191,8 @@ func TestGetStepData(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, generator.generated, "should not have to generate the proof again")
 
-		require.EqualValues(t, initGenerator.finalState.EncodeWitness(), preimage)
+		encodedWitness, _ := initGenerator.finalState.EncodeWitness()
+		require.EqualValues(t, encodedWitness, preimage)
 		require.Empty(t, proof)
 		require.Nil(t, data)
 	})
@@ -246,7 +249,7 @@ func setupWithTestData(t *testing.T, dataDir string, prestate string) (*CannonTr
 
 type stubGenerator struct {
 	generated  []int // Using int makes assertions easier
-	finalState *mipsevm.State
+	finalState *singlethreaded.State
 	proof      *utils.ProofData
 }
 
@@ -257,7 +260,7 @@ func (e *stubGenerator) GenerateProof(ctx context.Context, dir string, i uint64)
 	var err error
 	if e.finalState != nil && e.finalState.Step <= i {
 		// Requesting a trace index past the end of the trace
-		proofFile = filepath.Join(dir, utils.FinalState)
+		proofFile = filepath.Join(dir, vm.FinalState)
 		data, err = json.Marshal(e.finalState)
 		if err != nil {
 			return err

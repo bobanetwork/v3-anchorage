@@ -24,6 +24,7 @@ import (
 	p2pcli "github.com/ethereum-optimism/optimism/op-node/p2p/cli"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/driver"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/engine"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/sync"
 	opflags "github.com/ethereum-optimism/optimism/op-service/flags"
 )
@@ -139,7 +140,7 @@ func NewBeaconEndpointConfig(ctx *cli.Context) node.L1BeaconEndpointSetup {
 	return &node.L1BeaconEndpointConfig{
 		BeaconAddr:             ctx.String(flags.BeaconAddr.Name),
 		BeaconHeader:           ctx.String(flags.BeaconHeader.Name),
-		BeaconArchiverAddr:     ctx.String(flags.BeaconArchiverAddr.Name),
+		BeaconFallbackAddrs:    ctx.StringSlice(flags.BeaconFallbackAddrs.Name),
 		BeaconCheckIgnore:      ctx.Bool(flags.BeaconCheckIgnore.Name),
 		BeaconFetchAllSidecars: ctx.Bool(flags.BeaconFetchAllSidecars.Name),
 	}
@@ -243,7 +244,9 @@ Conflicting configuration is deprecated, and will stop the op-node from starting
 	defer file.Close()
 
 	var rollupConfig rollup.Config
-	if err := json.NewDecoder(file).Decode(&rollupConfig); err != nil {
+	dec := json.NewDecoder(file)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&rollupConfig); err != nil {
 		return nil, fmt.Errorf("failed to decode rollup config: %w", err)
 	}
 	return &rollupConfig, nil
@@ -262,25 +265,23 @@ func applyOverrides(ctx *cli.Context, rollupConfig *rollup.Config) {
 		ecotone := ctx.Uint64(opflags.EcotoneOverrideFlagName)
 		rollupConfig.EcotoneTime = &ecotone
 	}
-}
-
-func NewSnapshotLogger(ctx *cli.Context) (log.Logger, error) {
-	snapshotFile := ctx.String(flags.SnapshotLog.Name)
-	if snapshotFile == "" {
-		return log.NewLogger(log.DiscardHandler()), nil
+	if ctx.IsSet(opflags.FjordOverrideFlagName) {
+		fjord := ctx.Uint64(opflags.FjordOverrideFlagName)
+		rollupConfig.FjordTime = &fjord
 	}
-
-	sf, err := os.OpenFile(snapshotFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
+	if ctx.IsSet(opflags.GraniteOverrideFlagName) {
+		granite := ctx.Uint64(opflags.GraniteOverrideFlagName)
+		rollupConfig.GraniteTime = &granite
 	}
-	handler := log.JSONHandler(sf)
-	return log.NewLogger(handler), nil
+	if ctx.IsSet(opflags.HoloceneOverrideFlagName) {
+		holocene := ctx.Uint64(opflags.HoloceneOverrideFlagName)
+		rollupConfig.HoloceneTime = &holocene
+	}
 }
 
 func NewSyncConfig(ctx *cli.Context, log log.Logger) (*sync.Config, error) {
 	if ctx.IsSet(flags.L2EngineSyncEnabled.Name) && ctx.IsSet(flags.SyncModeFlag.Name) {
-		return nil, errors.New("cannot set both --l2.engine-sync and --syncmode at the same time.")
+		return nil, errors.New("cannot set both --l2.engine-sync and --syncmode at the same time")
 	} else if ctx.IsSet(flags.L2EngineSyncEnabled.Name) {
 		log.Error("l2.engine-sync is deprecated and will be removed in a future release. Use --syncmode=execution-layer instead.")
 	}
@@ -288,9 +289,12 @@ func NewSyncConfig(ctx *cli.Context, log log.Logger) (*sync.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	engineKind := engine.Kind(ctx.String(flags.L2EngineKind.Name))
 	cfg := &sync.Config{
-		SyncMode:           mode,
-		SkipSyncStartCheck: ctx.Bool(flags.SkipSyncStartCheck.Name),
+		SyncMode:                       mode,
+		SkipSyncStartCheck:             ctx.Bool(flags.SkipSyncStartCheck.Name),
+		SupportsPostFinalizationELSync: engineKind.SupportsPostFinalizationELSync(),
 	}
 	if ctx.Bool(flags.L2EngineSyncEnabled.Name) {
 		cfg.SyncMode = sync.ELSync

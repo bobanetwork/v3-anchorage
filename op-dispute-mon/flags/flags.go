@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	challengerFlags "github.com/ethereum-optimism/optimism/op-challenger/flags"
+	"github.com/ethereum-optimism/optimism/op-service/flags"
 	"github.com/urfave/cli/v2"
 
 	"github.com/ethereum-optimism/optimism/op-dispute-mon/config"
@@ -29,33 +31,22 @@ var (
 		Usage:   "HTTP provider URL for L1.",
 		EnvVars: prefixEnvVars("L1_ETH_RPC"),
 	}
-	FactoryAddressFlag = &cli.StringFlag{
-		Name:    "game-factory-address",
-		Usage:   "Address of the fault game factory contract.",
-		EnvVars: prefixEnvVars("GAME_FACTORY_ADDRESS"),
-	}
-	// Optional Flags
-	HonestActorsFlag = &cli.StringSliceFlag{
-		Name:    "honest-actors",
-		Usage:   "List of honest actors that are monitored for any claims that are resolved against them.",
-		EnvVars: prefixEnvVars("HONEST_ACTORS"),
-	}
 	RollupRpcFlag = &cli.StringFlag{
 		Name:    "rollup-rpc",
 		Usage:   "HTTP provider URL for the rollup node",
 		EnvVars: prefixEnvVars("ROLLUP_RPC"),
 	}
-	RollupRpcTimeoutFlag = &cli.DurationFlag{
-		Name:    "rollup-rpc-timeout",
-		Usage:   "Timeout for rollup RPC requests",
-		EnvVars: prefixEnvVars("ROLLUP_RPC_TIMEOUT"),
-		Value:   time.Second * 15,
+	// Optional Flags
+	GameFactoryAddressFlag = &cli.StringFlag{
+		Name:    "game-factory-address",
+		Usage:   "Address of the fault game factory contract.",
+		EnvVars: prefixEnvVars("GAME_FACTORY_ADDRESS"),
 	}
-	RollupRpcBatchTimeoutFlag = &cli.DurationFlag{
-		Name:    "rollup-rpc-batch-timeout",
-		Usage:   "Timeout for rollup RPC batch requests",
-		EnvVars: prefixEnvVars("ROLLUP_RPC_BATCH_TIMEOUT"),
-		Value:   time.Second * 30,
+	NetworkFlag      = flags.CLINetworkFlag(envVarPrefix, "")
+	HonestActorsFlag = &cli.StringSliceFlag{
+		Name:    "honest-actors",
+		Usage:   "List of honest actors that are monitored for any claims that are resolved against them.",
+		EnvVars: prefixEnvVars("HONEST_ACTORS"),
 	}
 	MonitorIntervalFlag = &cli.DurationFlag{
 		Name:    "monitor-interval",
@@ -81,17 +72,30 @@ var (
 		EnvVars: prefixEnvVars("MAX_CONCURRENCY"),
 		Value:   config.DefaultMaxConcurrency,
 	}
+	RollupRpcTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-timeout",
+		Usage:   "Timeout for rollup RPC requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_TIMEOUT"),
+		Value:   time.Second * 15,
+	}
+	RollupRpcBatchTimeoutFlag = &cli.DurationFlag{
+		Name:    "rollup-rpc-batch-timeout",
+		Usage:   "Timeout for rollup RPC batch requests",
+		EnvVars: prefixEnvVars("ROLLUP_RPC_BATCH_TIMEOUT"),
+		Value:   time.Second * 30,
+	}
 )
 
 // requiredFlags are checked by [CheckRequired]
 var requiredFlags = []cli.Flag{
 	L1EthRpcFlag,
-	FactoryAddressFlag,
+	RollupRpcFlag,
 }
 
 // optionalFlags is a list of unchecked cli flags
 var optionalFlags = []cli.Flag{
-	RollupRpcFlag,
+	GameFactoryAddressFlag,
+	NetworkFlag,
 	HonestActorsFlag,
 	MonitorIntervalFlag,
 	GameWindowFlag,
@@ -126,7 +130,7 @@ func NewConfigFromCLI(ctx *cli.Context) (*config.Config, error) {
 	if err := CheckRequired(ctx); err != nil {
 		return nil, err
 	}
-	gameFactoryAddress, err := opservice.ParseAddress(ctx.String(FactoryAddressFlag.Name))
+	gameFactoryAddress, err := challengerFlags.FactoryAddress(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -153,21 +157,26 @@ func NewConfigFromCLI(ctx *cli.Context) (*config.Config, error) {
 		}
 	}
 
+	maxConcurrency := ctx.Uint(MaxConcurrencyFlag.Name)
+	if maxConcurrency == 0 {
+		return nil, fmt.Errorf("%v must not be 0", MaxConcurrencyFlag.Name)
+	}
+
 	metricsConfig := opmetrics.ReadCLIConfig(ctx)
 	pprofConfig := oppprof.ReadCLIConfig(ctx)
 
 	return &config.Config{
 		L1EthRpc:           ctx.String(L1EthRpcFlag.Name),
 		GameFactoryAddress: gameFactoryAddress,
+		RollupRpc:          ctx.String(RollupRpcFlag.Name),
 
 		HonestActors:          actors,
-		RollupRpc:             ctx.String(RollupRpcFlag.Name),
-		RollupRpcTimeout:      ctx.Duration(RollupRpcTimeoutFlag.Name),
-		RollupRpcBatchTimeout: ctx.Duration(RollupRpcBatchTimeoutFlag.Name),
 		MonitorInterval:       ctx.Duration(MonitorIntervalFlag.Name),
 		GameWindow:            ctx.Duration(GameWindowFlag.Name),
 		IgnoredGames:          ignoredGames,
-		MaxConcurrency:        ctx.Uint(MaxConcurrencyFlag.Name),
+		MaxConcurrency:        maxConcurrency,
+		RollupRpcTimeout:      ctx.Duration(RollupRpcTimeoutFlag.Name),
+		RollupRpcBatchTimeout: ctx.Duration(RollupRpcBatchTimeoutFlag.Name),
 
 		MetricsConfig: metricsConfig,
 		PprofConfig:   pprofConfig,
