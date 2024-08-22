@@ -11,7 +11,7 @@ which we based our Hybrid Compute extensions.
 You can find the needed `HybridAccount` contract along with its dependencies in our [repository](https://github.com/bobanetwork/account-abstraction-hc/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc/crates/types/contracts/lib/account-abstraction/).
 
 
-The code blocks below are edited to show the lines being discussed. It is recommended to open another
+The code blocks below are edited to show the lines being discussed. We recommend opening another
 window containing the full contract so that you can see them in the proper context.
 
 ## Contract Overview
