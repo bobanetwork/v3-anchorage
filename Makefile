@@ -15,10 +15,7 @@ PYTHON?=python3
 help: ## Prints this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-build: build-go build-ts ## Builds both Go and TypeScript components
-.PHONY: build
-
-build-go: submodules op-node op-proposer op-batcher op-erigon
+build-go: submodules op-node op-proposer op-batcher op-erigon ## Builds Go components
 .PHONY: build-go
 
 lint-go: ## Lints Go code with specific linters
