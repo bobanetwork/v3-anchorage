@@ -54,10 +54,7 @@ contract Deploy is Deployer {
     /// @notice read proxyd address from the hardhat deployment files
     function readProxyAddress(string memory _contractName) internal view returns (address _proxyAddress) {
         string memory _deploymentPath = vm.envOr("DEPLOYMENT_PATH", string(""));
-        require(
-            bytes(_deploymentPath).length > 0,
-            "Deploy: must set DEPLOYMENT_PATH to deployment files"
-        );
+        require(bytes(_deploymentPath).length > 0, "Deploy: must set DEPLOYMENT_PATH to deployment files");
         string memory _contractJson = vm.readFile(_deploymentPath);
         bytes memory _contractAddress = stdJson.parseRaw(_contractJson, string(abi.encodePacked(".", _contractName)));
         _proxyAddress = bytesToAddress(_contractAddress);

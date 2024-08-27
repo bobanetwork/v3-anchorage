@@ -1,8 +1,6 @@
 {
   "finalSystemOwner": "0xe62B0E3a9F715493301eBdEC8310C899eae5b30c",
-  "portalGuardian": "0xe62B0E3a9F715493301eBdEC8310C899eae5b30c",
   "superchainConfigGuardian": "0xe62B0E3a9F715493301eBdEC8310C899eae5b30c",
-  "controller": "0xe62B0E3a9F715493301eBdEC8310C899eae5b30c",
 
   "l1StartingBlockTag": "0xb6404ecff691edd6895c474f4dfca5b3e27b92a19deabd80cbe05c75c1b4c924",
 
