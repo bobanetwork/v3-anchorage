@@ -1,27 +1,10 @@
 # Write the Smart Contract
 
-Now we can write the smart contract, which will call our previously created off-chain handler. Our contract has two purposes:
-
-1. Intentionally burn (or "waste") ETH gas to simulate a more true-to-life Hybrid Compute request.
-2. Increment a counter variable each time the contract is called based on certain inputs and errors.
-
-Our contract is an extension of an [example provided](https://github.com/eth-infinitism/account-abstraction/blob/develop/contracts/test/TestCounter.sol) by the upstream Account Abstraction framework on
-which we based our Hybrid Compute extensions.
-
-You can find the needed `HybridAccount` contract along with its dependencies in our [repository](https://github.com/bobanetwork/account-abstraction-hc/contracts/samples/HybridAccount.sol). Additionally, the contract is pulled in as a submodule when you checkout our [`rundler-hc` repository](https://github.com/bobanetwork/rundler-hc/crates/types/contracts/lib/account-abstraction/).
-
-
-The code blocks below are edited to show the lines being discussed. We recommend opening another
-window containing the full contract so that you can see them in the proper context.
-
-## Contract Overview
-
 To start our contract, we need to import the interface to our `HybridAccount` contract. The address of
 this HybridAccount is passed to the constructor and is stored as an immutable variable. Next we define
 other contract variables and helper functions.
 
 The "counters" mapping provides a unique numeric counter scoped to each user who calls the contract.
-
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
