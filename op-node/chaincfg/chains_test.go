@@ -256,10 +256,6 @@ var bobaBnbTestnetCfg = rollup.Config{
 	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
 }
 
-func u64Ptr(v uint64) *uint64 {
-	return &v
-}
-
 var bobaDev0Cfg = rollup.Config{
 	Genesis: rollup.Genesis{
 		L1: eth.BlockID{
@@ -293,5 +289,10 @@ var bobaDev0Cfg = rollup.Config{
 	DeltaTime:               u64Ptr(1724692140),
 	EcotoneTime:             u64Ptr(1724692141),
 	FjordTime:               u64Ptr(1724692150),
+	GraniteTime:             u64Ptr(1724914800),
 	ProtocolVersionsAddress: common.HexToAddress("0x252CbE9517F731C618961D890D534183822dcC8d"),
+}
+
+func u64Ptr(v uint64) *uint64 {
+	return &v
 }
