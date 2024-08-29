@@ -1,8 +1,6 @@
 # Write the Smart Contract
 
-To start our contract, we need to import the interface to our `HybridAccount` contract. The address of
-this HybridAccount is passed to the constructor and is stored as an immutable variable. Next we define
-other contract variables and helper functions.
+To start our contract, we need to import the interface to our `HybridAccount` contract. The address of this HybridAccount is passed to the constructor and is stored as an immutable variable. Next we define other contract variables and helper functions.
 
 The "counters" mapping provides a unique numeric counter scoped to each user who calls the contract.
 

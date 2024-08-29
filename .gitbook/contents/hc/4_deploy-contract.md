@@ -119,7 +119,7 @@ To integrate additional methods into our offchain-RPC `server-loop`:
     server.register_function(offchain_getprice, selector("fetchPrice(string)"))
 
     // Add Sub
-    server.register_function(offchain_addsub2, selector("offchain_addsub2(uint32,uint32)"))  # 97e0d7ba
+    server.register_function(offchain_addsub2, selector("addsub2(uint32,uint32)"))  # 97e0d7ba
 
     // Ramble
     server.register_function(offchain_ramble,  selector("ramble(uint256,bool)"))
