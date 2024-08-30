@@ -1,22 +1,17 @@
 # Deploy the Smart Contracts
 
-A [`deploy-local.py`](https://github.com/bobanetwork/rundler-hc/blob/boba-develop/hybrid-compute/deploy-local.py)
-script is provided to deploy and configure the necessary contracts on a local stack,
-launched from `make devnet-up` in a Boba/Optimism repository.
+A [`deploy-local.py`](https://github.com/bobanetwork/rundler-hc/blob/boba-develop/hybrid-compute/deploy-local.py) script is provided to deploy and configure the necessary contracts on a local stack, launched from `make devnet-up` in a Boba/Optimism repository.
 
-Usage example:
+This is an example of how to execute it:
 
 ```bash
 cd rundler-hc/hybrid-compute
 python ./deploy-local.py --boba-path /home/user/boba  # Supply the path where you checked out the repo
 ```
 
-This script uses the Foundry toolkit to deploy the base contracts and a set
-of examples, via Forge scripts located in `rundler-hc/crates/types/contracts/hc_scripts`.
+This script uses the Foundry toolkit to deploy the base contracts and a set of examples, via Forge scripts located in `rundler-hc/crates/types/contracts/hc_scripts`.
 
-The Forge scripts are written in Solidity, with toolkit extensions to support scripting, such as
-reading system environment variables and using them within Solidity functions. Code which executes
-within a block (like the following) is translated into a transaction which is first simulated locally and then executed on-chain:
+The Forge scripts are written in Solidity, with toolkit extensions to support scripting, such as reading system environment variables and using them within Solidity functions. Code which executes within a block (like the following) is translated into a transaction which is first simulated locally and then executed on-chain:
 
 ```solidity
 vm.startBroadcast(deployerPrivateKey);
@@ -104,7 +99,6 @@ Here we perform a sequence of transactions to add individual example contract ad
 list of contracts which are permitted to use our `HybridAccount`. There is a check so that this operation
 is only performed for contracts which have not yet been registered.
 
-
 ## Additional Examples
 
 The preceding documentation was written to focus on the example showing addition and subtraction of
@@ -121,6 +115,9 @@ To integrate additional methods into our offchain-RPC `server-loop`:
         requestHandler=RequestHandler
     )
 
+    // fetchPrice
+    server.register_function(offchain_getprice, selector("fetchPrice(string)"))
+
     // Add Sub
     server.register_function(offchain_addsub2, selector("addsub2(uint32,uint32)"))  # 97e0d7ba
 
@@ -129,9 +126,6 @@ To integrate additional methods into our offchain-RPC `server-loop`:
 
     // CheckKyc
     server.register_function(offchain_checkkyc, selector("checkkyc(string)"))
-
-    // getPrice
-    server.register_function(offchain_getprice, selector("getprice(string)"))
 ```
 
 You can see how these methods are invoked from the `TestCounter.sol` contract. For example, "ramble" is 
@@ -169,11 +163,8 @@ used in a simple word-guessing game:
         }
         emit GameResult(msg.sender,win,Pool);
     }
-
 ```
 
-Note the common pattern of preparing an ABI-encoded request, invoking
-`HA.CallOffchain(userKey, req)`, and then processing the response. This is the core of the Hybrid Compute
-framework, and the rest is up to you. We look forward to seeing your ideas and applications.
+Note the common pattern of preparing an ABI-encoded request, invoking `HA.CallOffchain(userKey, req)`, and then processing the response. This is the core of the Hybrid Compute framework, and the rest is up to you. We look forward to seeing your ideas and applications.
 
 You've now reached the end of this tutorial! These examples aim to demonstrate the different functions and best practices you should keep in mind as you develop your own efficient, flexible smart contracts with Hybrid Compute.
