@@ -44,7 +44,7 @@ To this, we can add our price fetching logic:
 
         if (error != 0) {
             emit FetchPriceError(error);
-            emit FetchPriceRet(ret);
+       
             revert(string(ret));
         }
 
