@@ -4,7 +4,7 @@ The Granite upgrade for Boba Sepolia and Boba BNB Testnet will be activated on *
 
 ## For Node Operators
 
-Node operators are required to upgrade to Fjord before the activation date to avoid chain divergence. For Boba Mainnet, the `op-node` release [v1.6.10](https://github.com/bobanetwork/boba/releases/tag/v1.6.10) and the `op-erigon` release [v1.2.2](https://github.com/bobanetwork/op-erigon/releases/tag/v1.2.2) contain these changes.
+Node operators are required to upgrade to Granite before the activation date to avoid chain divergence. For Boba Sepolia and BNB Testnet, the `op-node` release [v1.6.10](https://github.com/bobanetwork/boba/releases/tag/v1.6.10) and the `op-erigon` release [v1.2.2](https://github.com/bobanetwork/op-erigon/releases/tag/v1.2.2) contain these changes.
 
 ### Update to the Lastest Release
 
