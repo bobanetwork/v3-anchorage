@@ -18,7 +18,7 @@ Please see [our bounty program Immunefi](https://immunefi.com/bug-bounty/bobanet
 
 ### Other vulnerabilities
 
-For vulnerabilities in any of our websites, email servers or other non-critical infrastructure, please email Enya Labs at [security@enya.ai](mailto:security@enya.io). We appreciate detailed instructions for confirming the vulnerability.
+For vulnerabilities in any of our websites, email servers or other non-critical infrastructure, please email Enya Labs at [security@enya.ai](mailto:security@enya.ai). We appreciate detailed instructions for confirming the vulnerability.
 
 
 ## How we disclose vulnerabilities
