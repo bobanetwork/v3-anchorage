@@ -23,4 +23,4 @@ Before you begin, make sure you have the following prerequisites in place:
 - Python
 - Docker
 
-Once your environment is ready, proceed through the following steps to implement your Hybrid Compute example.
+Once your environment is ready, proceed through the following steps to implement your Hybrid Compute examples.

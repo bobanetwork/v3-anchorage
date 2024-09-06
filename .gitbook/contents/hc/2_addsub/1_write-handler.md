@@ -2,9 +2,9 @@
 
 The first step is to write our *off-chain handler*. This handler is responsible for receiving requests from the bundler along with their payloads and returning the appropriate responses.
 
-## Simple Example
+## Next Example
 
-Let's begin with a simple example where the handler receives two numbers. It will perform both addition and subtraction on these numbers. If the result of the subtraction results in an underflow (i.e. if `b > a` in the expression `a-b`), the handler will respond with an underflow error. Create a `Python` file in which to copy all the following code blocks.
+Let's begin by allowing our handler to receive two numbers. It will perform both addition and subtraction on these numbers. If the result of the subtraction results in an underflow (i.e. if `b > a` in the expression `a-b`), the handler will respond with an underflow error. Create a `Python` file in which to copy all the following code blocks.
 
 First, we'll need to import some `Python` libraries to help with our example:
 

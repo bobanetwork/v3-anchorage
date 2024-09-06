@@ -1,6 +1,6 @@
 # Set Up a Server
 
-With the off-chain handler created, the next step is to set up a server to run it. In this example, we will create a simple `JSON-RPC` server using the `jsonrpclib` library:
+For any smart contract, with or without an off-chain handler, the next step is to set up a server to run it. In this example, we will create a simple `JSON-RPC` server using the `jsonrpclib` library:
 
 ```python
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer, SimpleJSONRPCRequestHandler
@@ -15,7 +15,7 @@ class RequestHandler(SimpleJSONRPCRequestHandler):
 def server_loop():
     server = SimpleJSONRPCServer(
         ('0.0.0.0', 1234), requestHandler=RequestHandler)
-    server.register_function(offchain_addsub2, selector("addsub2(uint32,uint32)"))  # ASD97e0d7ba
+    server.register_function(offchain_addsub2, selector("addsub2(uint32,uint32)"))  # 97e0d7ba
 
     server.serve_forever()
 
@@ -32,7 +32,7 @@ The bundler sends us a `JSON-RPC v2` request, containing a `method` identifier. 
 {
   "jsonrpc":"2.0",
   "id":0,
-  "method":"ASD97e0d7ba",
+  "method":"97e0d7ba",
   "params":{
     "sk":"f27fb73f63cd38cee89c48053fe8bb3248ddb7a98ce9f45b9176d017df47d9ce",
     "src_addr":"b43a2532e87583351b9024d6a6d0ba7acfa54446",
