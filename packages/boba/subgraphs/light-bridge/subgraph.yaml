@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: LightBridge
-    network: sepolia
+    network: boba-sepolia
     source:
       abi: LightBridge
-      address: "0x6550b0B7e3D2dD0E0382E0638B0f56F614921CA5"
-      startBlock: 5281258
+      address: "0x2dE73Bd1660Fbf4D521a52Ec2a91CCc106113801"
+      startBlock: 51
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -31,7 +31,7 @@ dataSources:
         - Unpaused
       abis:
         - name: LightBridge
-          file: ./_configs/LightBridge.json
+          file: ./abis/LightBridge.json
       eventHandlers:
         - event: AssetBalanceWithdrawn(indexed address,indexed address,uint256)
           handler: handleAssetBalanceWithdrawn

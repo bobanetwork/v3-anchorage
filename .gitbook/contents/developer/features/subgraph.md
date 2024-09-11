@@ -1,86 +1,164 @@
-# Using GoldSky
+# Using The Graph
 
-GoldSky is an easy to use alternative to The Graph for indexing on-chain data.
+The Graph is a decentralized protocol for indexing and querying data from blockchains.
 
-## Official Subgraphs
+## Query Existing Subgraphs
 
-### 1. Lightbridge
-- [ETH Mainnet](https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/light-bridge-mainnet/v1/gn)
-- [Boba ETH](https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/light-bridge-boba-eth/v1/gn)
-- [BNB Mainnet](https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/light-bridge-bsc/v1/gn)
-- [Boba BNB](https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/light-bridge-boba-bnb/v1/gn)
-- [Arbitrum One](https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/light-bridge-arbitrum-one/v1/gn)
-- [Optimism Mainnet](https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/light-bridge-optimism/v1/gn)
+Learn how to [query existing subgraphs](https://thegraph.com/docs/en/querying/querying-the-graph/) using the official documentation.
 
-### 2. DAO
-- [Boba ETH](https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/dao-boba-eth/v1/gn)
+- [Boba Light Bridge ETH](https://thegraph.com/explorer/subgraphs/34UUDYdzZFX7afhysqX7JodzKngJmjsFKJDtWsTxi9UA?view=Query&chain=arbitrum-one)
+- [Boba Blocks](https://thegraph.com/explorer/subgraphs/5d1ZCJQCEqsfCqLRRU5iQ9ewg79tuNqZLPMkgUcpmLsD?view=Query&chain=arbitrum-one)
+- [Boba Sushiswap](https://thegraph.com/explorer/subgraphs/EC3ZtCpCaV5GyyhyPNHs584wdGA72nud7qcuxWNTfPr4?view=Query&chain=arbitrum-one)
 
+## Create a Subgraph
+This guide will quickly take you through how to initialize, create, and deploy your subgraph to Subgraph Studio.
 
-## Deploy your own Subgraphs
-<figure><img src="../../.gitbook/assets/requirements.png" alt=""><figcaption></figcaption></figure>
+This guide is written assuming that you have:
 
-The `goldsky`-CLI is required to deploy to **GoldSky**. Make sure that you have various packages installed. Please refer to the [official documentation](https://goldsky.com/).
+- A crypto wallet
+- A smart contract address on Boba Network
 
-```bash
-curl https://goldsky.com | sh
+### 1. Create a subgraph on Subgraph Studio
+
+Go to the [Subgraph Studio](https://thegraph.com/studio/) and connect your wallet.
+
+Once your wallet is connected, you can begin by clicking “Create a Subgraph." It is recommended to name the subgraph in Title Case: "Subgraph Name Chain Name."
+
+### 2. Install the Graph CLI
+
+The Graph CLI is written in TypeScript and you will need to have `node` and either `npm` or `yarn` installed to use it. Check that you have the most recent CLI version installed.
+
+On your local machine, run one of the following commands:
+
+Using [npm](https://www.npmjs.com/):
+
+```sh
+npm install -g @graphprotocol/graph-cli@latest
 ```
 
-### The Graph
-If you are using **The Graph** right now, you can easily migrate your existing subgraphs over to Goldsky. The [official GoldSky documentation](https://docs.goldsky.com/introduction) is very helpful in that matter.
+Using [yarn](https://yarnpkg.com/):
 
-
-<figure><img src="../../.gitbook/assets/building and running (1).png" alt=""><figcaption></figcaption></figure>
-
-First you need to login to your GoldSky account:
-
-```bash
-goldsky login
-````
-
-Then you can deploy your subgraph in one of the following ways (taken from the official GoldSky docs):
-
-1. **Build and deploy from source**
-```bash
-cd <your-subgraph-directory>
-graph build # Build your subgraph as normal.
-goldsky subgraph deploy my-subgraph/1.0.0
-# Can add --path <build target> to target a specific subgraph build directory
+```sh
+yarn global add @graphprotocol/graph-cli
 ```
 
-2. **Migrate from The Graph's hosted service**
-```bash
-goldsky subgraph deploy your-subgraph-name/your-version --from-url <your-subgraph-query-url>
+### 3. Initialize your subgraph from an existing contract
+
+Initialize your subgraph from an existing contract by running the initialize command:
+
+```sh
+graph init --studio <SUBGRAPH_SLUG>
 ```
 
-3. **Migrate from any existing endpoint**
-```bash
-goldsky subgraph deploy your-subgraph-name/your-version --from-ipfs-hash <deployment-hash>
+> You can find commands for your specific subgraph on the subgraph page in [Subgraph Studio](https://thegraph.com/studio/).
+
+When you initialize your subgraph, the CLI tool will ask you for the following information:
+
+- Protocol: choose the protocol your subgraph will be indexing data from
+- Subgraph slug: create a name for your subgraph. Your subgraph slug is an identifier for your subgraph.
+- Directory to create the subgraph in: choose your local directory
+- Ethereum network(optional): you may need to specify which EVM-compatible network your subgraph will be indexing data from
+- Contract address: Locate the smart contract address you’d like to query data from
+- ABI: If the ABI is not autopopulated, you will need to input it manually as a JSON file
+- Start Block: it is suggested that you input the start block to save time while your subgraph indexes blockchain data. You can locate the start block by finding the block where your contract was deployed.
+- Contract Name: input the name of your contract
+- Index contract events as entities: it is suggested that you set this to true as it will automatically add mappings to your subgraph for every emitted event
+- Add another contract(optional): you can add another contract
+
+### 4. Write your subgraph
+
+The previous commands create a scaffold subgraph that you can use as a starting point for building your subgraph. When making changes to the subgraph, you will mainly work with three files:
+
+- Manifest (`subgraph.yaml`) - The manifest defines what datasources your subgraphs will index.
+- Schema (`schema.graphql`) - The GraphQL schema defines what data you wish to retrieve from the subgraph.
+- AssemblyScript Mappings (`mapping.ts`) - This is the code that translates data from your datasources to the entities defined in the schema.
+
+For more information on how to write your subgraph, see [Creating a Subgraph](https://thegraph.com/docs/en/developing/creating-a-subgraph/).
+
+### 5. Deploy to Subgraph Studio
+
+Once your subgraph is written, run the following commands:
+
+```sh
+$ graph codegen
+$ graph build
 ```
 
-4. **Build and deploy from ABI + contract address**
-```bash
-goldsky subgraph deploy your-subgraph-name/your-version --from-abi <path-to-config-file>
+- Authenticate and deploy your subgraph. The deploy key can be found on the Subgraph page in Subgraph Studio.
+
+```sh
+$ graph auth --studio <DEPLOY_KEY>
+$ graph deploy --studio <SUBGRAPH_SLUG>
 ```
 
-_NOTE: When you log into https://thegraph.com/hosted-service/dashboard, you may have more than one account. Make sure that you are using the ACCESS\_TOKEN associated with the correct account, otherwise your depoyment will fail. You can cycle through your multiple accounts by clicking on your GitHub user ID or whatever other account is displayed next to your user Avatar._
+You will be asked for a version label. It's strongly recommended to use [semver](https://semver.org/) for versioning like `0.0.1`. That said, you are free to choose any string as version such as:`v1`, `version1`, `asdf`.
 
-<figure><img src="../../.gitbook/assets/example.png" alt=""><figcaption></figcaption></figure>
+### 6. Test your subgraph
 
-Here is some example queries to get you started:
+In Subgraph Studio's playground environment, you can test your subgraph by making a sample query.
 
-```bash
-# L2 Boba Mainnet Query
+The logs will tell you if there are any errors with your subgraph. The logs of an operational subgraph will look like this:
 
-  curl -g -X POST \
-    -H "Content-Type: application/json" \
-    -d '{"query":"{ proposalQueueds {id eta, transactionHash_}}"}' \
-   https://api.goldsky.com/api/public/project_clq6jph4q9t2p01uja7p1f0c3/subgraphs/dao-boba-eth/v1/gn
+If your subgraph is failing, you can query the subgraph health by using the GraphiQL Playground. Note that you can leverage the query below and input your deployment ID for your subgraph. In this case, `Qm...` is the deployment ID (which can be located on the Subgraph page under **Details**). The query below will tell you when a subgraph fails, so you can debug accordingly:
+
+```graphql
+{
+  indexingStatuses(subgraphs: ["Qm..."]) {
+    node
+    synced
+    health
+    fatalError {
+      message
+      block {
+        number
+        hash
+      }
+      handler
+    }
+    nonFatalErrors {
+      message
+      block {
+        number
+        hash
+      }
+      handler
+    }
+    chains {
+      network
+      chainHeadBlock {
+        number
+      }
+      earliestBlock {
+        number
+      }
+      latestBlock {
+        number
+      }
+      lastHealthyBlock {
+        number
+      }
+    }
+    entityCount
+  }
+}
 ```
 
-<figure><img src="../../.gitbook/assets/querying.png" alt=""><figcaption></figcaption></figure>
+### 7. Publish your subgraph to The Graph’s Decentralized Network
 
-To get the endpoints you can either login on the official [GoldSky dashboard](https://app.goldsky.com/dashboard/subgraphs) or use the following command:
+Once your subgraph has been deployed to Subgraph Studio, you have tested it out, and you are ready to put it into production, you can then publish it to the decentralized network.
 
-```bash
-goldsky subgraph list
-```
+In Subgraph Studio, you will be able to click the publish button on the top right of your subgraph's page.
+
+The Graph's upgrade Indexer will begin serving queries on your subgraph regardless of subgraph curation, and it will provide you with **100,000 free queries per month.**
+
+For a higher quality of service and stronger redundancy, you can [curate](https://thegraph.com/docs/en/publishing/publishing-a-subgraph/#adding-signal-to-your-subgraph) your subgraph to attract more Indexers. At the time of writing, it is recommended that you curate your own subgraph with at least 3,000 GRT to ensure 3-5 additional Indexers begin serving queries on your subgraph.
+
+To save on gas costs, you can curate your subgraph in the same transaction that you published it by selecting this button when you publish your subgraph to The Graph’s decentralized network:
+
+### 8. Query your subgraph
+
+Now, you can query your subgraph by sending GraphQL queries to your subgraph’s Query URL, which you can find by clicking on the query button.
+
+If you don't have your API key, you can query via the free, rate-limited development query URL, which can be used for development and staging.
+
+For more information about querying data from your subgraph, read more [here](https://thegraph.com/docs/en/querying/querying-the-graph/).
