@@ -6,6 +6,7 @@ import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
 
 // Libraries
 import { Predeploys } from "src/libraries/Predeploys.sol";
+import { Constants } from "src/libraries/Constants.sol";
 
 // Interfaces
 import { ISemver } from "src/universal/interfaces/ISemver.sol";
