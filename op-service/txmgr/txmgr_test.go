@@ -1617,7 +1617,9 @@ func (kms *mockKms) Sign(chainID *big.Int, tx *types.Transaction) (*types.Transa
 }
 
 func TestSign(t *testing.T) {
-	txManager := SimpleTxManager{}
+	txManager := SimpleTxManager{
+		cfg: &Config{},
+	}
 	kms := mockKms{}
 	signerFactory := func(chainID *big.Int) opcrypto.SignerFn {
 		return func(ctx context.Context, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
