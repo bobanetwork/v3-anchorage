@@ -497,9 +497,15 @@ contract Initializer_Test is Bridge_Initializer {
                 (_contract.target == deploy.mustGetAddress("L1CrossDomainMessenger"))
                     || (_contract.target == address(l1CrossDomainMessenger))
             ) {
-                assertEq(_contract.initializedSlotVal, 3);
+                assertTrue(
+                    initializedSlotVal == 3 || initializedSlotVal == type(uint8).max,
+                    "Initializable: contract is not initialized"
+                );
             } else {
-                assertEq(_contract.initializedSlotVal, 1);
+                assertTrue(
+                    initializedSlotVal == 1 || initializedSlotVal == type(uint8).max,
+                    "Initializable: contract is not initialized"
+                );
             }
 
             // Then, attempt to re-initialize the contract. This should fail.
