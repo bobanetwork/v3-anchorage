@@ -1736,8 +1736,8 @@ workflows:
           module: op-e2e
           target: test-external-erigon
           requires:
-            - go-mod-download
-            - pnpm-monorepo
+            - contracts-bedrock-build
+            - cannon-prestate
       - op-program-compat:
           requires:
             - op-program-tests

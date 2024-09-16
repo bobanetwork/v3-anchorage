@@ -163,7 +163,7 @@ var Subcommands = cli.Commands{
 				return err
 			}
 
-			return jsonutil.WriteJSON(ctx.String("outfile.l1"), l1Genesis, 0o666)
+			return jsonutil.WriteJSON(l1Genesis, ioutil.ToAtomicFile(ctx.String("outfile.l1"), 0o666))
 		},
 	},
 	{

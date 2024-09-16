@@ -371,11 +371,11 @@ func NewConfig(cfg CLIConfig, l log.Logger) (*Config, error) {
 	if cfg.KmsKeyID != "" {
 		kmsManager, err = NewKmsConfig(cfg)
 		if err != nil {
-			return Config{}, fmt.Errorf("could not init kms: %w", err)
+			return nil, fmt.Errorf("could not init kms: %w", err)
 		}
 		from, err = kmsManager.GetAddr()
 		if err != nil {
-			return Config{}, fmt.Errorf("could not get address from kms: %w", err)
+			return nil, fmt.Errorf("could not get address from kms: %w", err)
 		}
 		signerFactory = func(chainID *big.Int) opcrypto.SignerFn {
 			return func(ctx context.Context, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
@@ -385,7 +385,7 @@ func NewConfig(cfg CLIConfig, l log.Logger) (*Config, error) {
 	} else {
 		signerFactory, from, err = opcrypto.SignerFactoryFromConfig(l, cfg.PrivateKey, cfg.Mnemonic, hdPath, cfg.SignerCLIConfig)
 		if err != nil {
-			return Config{}, fmt.Errorf("could not init signer: %w", err)
+			return nil, fmt.Errorf("could not init signer: %w", err)
 		}
 	}
 

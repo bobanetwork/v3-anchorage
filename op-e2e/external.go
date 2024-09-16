@@ -36,6 +36,22 @@ type ExternalEthClient struct {
 	Endpoints external.Endpoints
 }
 
+func (eec *ExternalEthClient) HTTPEndpoint() string {
+	return eec.Endpoints.HTTPEndpoint
+}
+
+func (eec *ExternalEthClient) WSEndpoint() string {
+	return eec.Endpoints.WSEndpoint
+}
+
+func (eec *ExternalEthClient) HTTPAuthEndpoint() string {
+	return eec.Endpoints.HTTPAuthEndpoint
+}
+
+func (eec *ExternalEthClient) WSAuthEndpoint() string {
+	return eec.Endpoints.WSAuthEndpoint
+}
+
 func (eec *ExternalEthClient) UserRPC() endpoint.RPC {
 	return endpoint.WsOrHttpRPC{
 		WsURL:   eec.Endpoints.WSEndpoint,
