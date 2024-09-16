@@ -146,7 +146,7 @@ contract L2Genesis is Deployer {
                 l1CrossDomainMessengerProxy: payable(vm.envAddress("L2GENESIS_L1CrossDomainMessengerProxy")),
                 l1StandardBridgeProxy: payable(vm.envAddress("L2GENESIS_L1StandardBridgeProxy")),
                 l1ERC721BridgeProxy: payable(vm.envAddress("L2GENESIS_L1ERC721BridgeProxy")),
-                l1BobaToken: mustGetAddress("BOBA")
+                l1BobaToken: address(0)
             })
         );
     }
