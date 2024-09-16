@@ -21,6 +21,8 @@ import { MIPS } from "src/cannon/MIPS.sol";
 import { Chains } from "scripts/libraries/Chains.sol";
 import { Config } from "scripts/libraries/Config.sol";
 
+import { ISuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
+
 import { IBigStepper } from "src/dispute/interfaces/IBigStepper.sol";
 import { IPreimageOracle } from "src/cannon/interfaces/IPreimageOracle.sol";
 import { AlphabetVM } from "test/mocks/AlphabetVM.sol";
@@ -89,6 +91,7 @@ contract Deploy is Deployer {
             L1StandardBridge: mustGetAddress("L1StandardBridgeProxy"),
             L2OutputOracle: mustGetAddress("L2OutputOracleProxy"),
             DisputeGameFactory: mustGetAddress("DisputeGameFactoryProxy"),
+            PermissionedDelayedWETH: getAddress("PermissionedDelayedWETHProxy"),
             DelayedWETH: mustGetAddress("DelayedWETHProxy"),
             AnchorStateRegistry: mustGetAddress("AnchorStateRegistryProxy"),
             OptimismMintableERC20Factory: mustGetAddress("OptimismMintableERC20FactoryProxy"),
@@ -109,6 +112,7 @@ contract Deploy is Deployer {
             L2OutputOracle: getAddress("L2OutputOracleProxy"),
             DisputeGameFactory: getAddress("DisputeGameFactoryProxy"),
             DelayedWETH: getAddress("DelayedWETHProxy"),
+            PermissionedDelayedWETH: getAddress("PermissionedDelayedWETHProxy"),
             AnchorStateRegistry: getAddress("AnchorStateRegistryProxy"),
             OptimismMintableERC20Factory: getAddress("OptimismMintableERC20FactoryProxy"),
             OptimismPortal: getAddress("OptimismPortalProxy"),
@@ -350,7 +354,6 @@ contract Deploy is Deployer {
         address delayedWETH = mustGetAddress("DelayedWETH");
         address superchainConfigProxy = readProxyAddress("SuperchainConfigProxy");
         require(superchainConfigProxy != address(0), "Deploy: SuperchainConfigProxy address not found");
-        console.log("SuperchainConfigProxy: ", superchainConfigProxy);
 
         // Override superchainconfig address
         Types.ContractSet memory contracts = _proxiesUnstrict();
@@ -359,7 +362,7 @@ contract Deploy is Deployer {
         _upgradeToAndCall({
             _proxy: payable(delayedWETHProxy),
             _implementation: delayedWETH,
-            _innerCallData: abi.encodeCall(DelayedWETH.initialize, (msg.sender, SuperchainConfig(superchainConfigProxy)))
+            _innerCallData: abi.encodeCall(DelayedWETH.initialize, (msg.sender, ISuperchainConfig(superchainConfigProxy)))
         });
 
         string memory version = DelayedWETH(payable(delayedWETHProxy)).version();
@@ -372,6 +375,8 @@ contract Deploy is Deployer {
         console.log("Upgrading and initializing AnchorStateRegistry proxy");
         address anchorStateRegistryProxy = mustGetAddress("AnchorStateRegistryProxy");
         address anchorStateRegistry = mustGetAddress("AnchorStateRegistry");
+        address superchainConfigProxy = readProxyAddress("SuperchainConfigProxy");
+        require(superchainConfigProxy != address(0), "Deploy: SuperchainConfigProxy address not found");
 
         AnchorStateRegistry.StartingAnchorRoot[] memory roots = new AnchorStateRegistry.StartingAnchorRoot[](4);
         roots[0] = AnchorStateRegistry.StartingAnchorRoot({
@@ -406,7 +411,9 @@ contract Deploy is Deployer {
         _upgradeToAndCall({
             _proxy: payable(anchorStateRegistryProxy),
             _implementation: anchorStateRegistry,
-            _innerCallData: abi.encodeCall(AnchorStateRegistry.initialize, (roots))
+            _innerCallData: abi.encodeCall(
+                AnchorStateRegistry.initialize, (roots, ISuperchainConfig(superchainConfigProxy))
+            )
         });
 
         string memory version = AnchorStateRegistry(payable(anchorStateRegistryProxy)).version();
