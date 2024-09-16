@@ -21,6 +21,7 @@ import (
 	opparams "github.com/ethereum-optimism/optimism/op-node/params"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum-optimism/optimism/op-service/predeploys"
 )
 
 var (
@@ -792,6 +793,12 @@ func (d *LegacyDeployConfig) Check(log log.Logger) error {
 	return nil
 }
 
+// BobaDeployConfig configures the deployment of the Boba contract.
+type BobaDeployConfig struct {
+	// It is used to prevent the Boba contract from being deployed.
+	L1BobaToken *common.Address `json:"l1BobaTokenAddress,omitempty"`
+}
+
 // DeployConfig represents the deployment configuration for an OP Stack chain.
 // It is used to deploy the L1 contracts as well as create the L2 genesis state.
 type DeployConfig struct {
@@ -821,6 +828,9 @@ type DeployConfig struct {
 
 	// Legacy, ignored, here for strict-JSON decoding to be accepted.
 	LegacyDeployConfig `evm:"-"`
+
+	// Boba
+	BobaDeployConfig
 }
 
 // Copy will deeply copy the DeployConfig. This does a JSON roundtrip to copy
@@ -930,6 +940,19 @@ func (d *DeployConfig) RollupConfig(l1StartBlock *types.Block, l2GenesisBlockHas
 		InteropTime:            d.InteropTime(l1StartBlock.Time()),
 		AltDAConfig:            altDA,
 	}, nil
+}
+
+func (d *DeployConfig) GetL1BobaTokenAddress() (*common.Address, error) {
+	var l1TokenAddr common.Address
+	if d.L1BobaToken != nil {
+		l1TokenAddr = *d.L1BobaToken
+	} else {
+		l1TokenAddr = predeploys.BobaL2Addr
+	}
+	if l1TokenAddr == (common.Address{}) {
+		return &l1TokenAddr, fmt.Errorf("L1BobaTokenAddress cannot be address(0): %w", ErrInvalidImmutablesConfig)
+	}
+	return &l1TokenAddr, nil
 }
 
 // NewDeployConfig reads a config file given a path on the filesystem.

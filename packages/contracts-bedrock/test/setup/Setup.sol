@@ -24,6 +24,8 @@ import { L1FeeVault } from "src/L2/L1FeeVault.sol";
 import { GasPriceOracle } from "src/L2/GasPriceOracle.sol";
 import { L1Block } from "src/L2/L1Block.sol";
 import { LegacyMessagePasser } from "src/legacy/LegacyMessagePasser.sol";
+import { LegacyERC20ETH } from "src/legacy/LegacyERC20ETH.sol";
+import { StandardBridge } from "src/universal/StandardBridge.sol";
 import { FeeVault } from "src/universal/FeeVault.sol";
 import { WETH } from "src/L2/WETH.sol";
 import { SuperchainWETH } from "src/L2/SuperchainWETH.sol";
@@ -109,6 +111,7 @@ contract Setup {
     WETH weth = WETH(payable(Predeploys.WETH));
     SuperchainWETH superchainWeth = SuperchainWETH(payable(Predeploys.SUPERCHAIN_WETH));
     ETHLiquidity ethLiquidity = ETHLiquidity(Predeploys.ETH_LIQUIDITY);
+    LegacyERC20ETH legacyERC20ETH = LegacyERC20ETH(Predeploys.LEGACY_ERC20_ETH);
 
     // TODO: Replace with OptimismSuperchainERC20Factory when updating pragmas
     IOptimismERC20Factory l2OptimismSuperchainERC20Factory =
@@ -205,7 +208,8 @@ contract Setup {
             L1Dependencies({
                 l1CrossDomainMessengerProxy: payable(address(l1CrossDomainMessenger)),
                 l1StandardBridgeProxy: payable(address(l1StandardBridge)),
-                l1ERC721BridgeProxy: payable(address(l1ERC721Bridge))
+                l1ERC721BridgeProxy: payable(address(l1ERC721Bridge)),
+                l1BobaToken: address(0)
             })
         );
 

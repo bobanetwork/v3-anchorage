@@ -40,6 +40,10 @@ import { PreimageOracle } from "src/cannon/PreimageOracle.sol";
 import { MIPS } from "src/cannon/MIPS.sol";
 import { MIPS2 } from "src/cannon/MIPS2.sol";
 import { StorageSetter } from "src/universal/StorageSetter.sol";
+import { Predeploys } from "src/libraries/Predeploys.sol";
+import { Chains } from "scripts/libraries/Chains.sol";
+import { Config } from "scripts/libraries/Config.sol";
+import { BOBA } from "src/boba/BOBA.sol";
 
 // Libraries
 import { Constants } from "src/libraries/Constants.sol";
@@ -352,6 +356,7 @@ contract Deploy is Deployer {
             }
         }
         setupOpChain();
+        deployBOBA();
         console.log("set up op chain!");
     }
 
@@ -588,6 +593,19 @@ contract Deploy is Deployer {
         addr_ = address(setter);
     }
 
+    /// @notice Deploy the BOBA
+    function deployBOBA() public broadcast returns (address addr_) {
+        BOBA bobaToken = new BOBA();
+
+        save("BOBA", address(bobaToken));
+        console.log("BOBA deployed at %s", address(bobaToken));
+
+        addr_ = address(bobaToken);
+
+        address owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+        bobaToken.transfer(owner, 10000e18);
+    }
+
     ////////////////////////////////////////////////////////////////
     //                Proxy Deployment Functions                  //
     ////////////////////////////////////////////////////////////////
@@ -683,6 +701,8 @@ contract Deploy is Deployer {
         Types.ContractSet memory contracts = _proxiesUnstrict();
         contracts.L1CrossDomainMessenger = address(messenger);
         ChainAssertions.checkL1CrossDomainMessenger({ _contracts: contracts, _vm: vm, _isProxy: false });
+
+        require(loadInitializedSlot("L1CrossDomainMessenger") == 3, "L1CrossDomainMessenger is not initialized");
 
         addr_ = address(messenger);
     }
@@ -1250,6 +1270,10 @@ contract Deploy is Deployer {
         console.log("L1CrossDomainMessenger version: %s", version);
 
         ChainAssertions.checkL1CrossDomainMessenger({ _contracts: _proxies(), _vm: vm, _isProxy: true });
+
+        require(
+            loadInitializedSlot("L1CrossDomainMessengerProxy") == 3, "L1CrossDomainMessengerProxy is not initialized"
+        );
     }
 
     /// @notice Initialize the L2OutputOracle

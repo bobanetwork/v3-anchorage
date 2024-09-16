@@ -10,7 +10,9 @@ import "src/dispute/lib/Types.sol";
 interface IDisputeGame is IInitializable {
     /// @notice Emitted when the game is resolved.
     /// @param status The status of the game after resolution.
-    event Resolved(GameStatus indexed status);
+    /// @param rootClaim The root claim of the DisputeGame.
+    /// @param l2BlockNumber The L2 block number at which the output root was generated.
+    event Resolved(GameStatus indexed status, Claim indexed rootClaim, uint256 indexed l2BlockNumber);
 
     /// @notice Returns the timestamp that the DisputeGame contract was created at.
     /// @return createdAt_ The timestamp that the DisputeGame contract was created at.

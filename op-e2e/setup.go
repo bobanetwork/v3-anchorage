@@ -630,10 +630,11 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 				t.Skip("External L2 nodes do not support configuration through GethOptions")
 			}
 			ethClient = (&ExternalRunner{
-				Name:    name,
-				BinPath: cfg.ExternalL2Shim,
-				Genesis: l2Genesis,
-				JWTPath: cfg.JWTFilePath,
+				Name:     name,
+				BinPath:  cfg.ExternalL2Shim,
+				Genesis:  l2Genesis,
+				GasLimit: l2Genesis.GasLimit,
+				JWTPath:  cfg.JWTFilePath,
 			}).Run(t)
 		}
 		sys.EthInstances[name] = ethClient
@@ -959,6 +960,8 @@ func configureL2(rollupNodeCfg *rollupNode.Config, l2Node services.EthInstance, 
 	rollupNodeCfg.L2 = &rollupNode.L2EndpointConfig{
 		L2EngineAddr:      endpoint.SelectRPC(EnvRPCPreference(), l2Node.AuthRPC()),
 		L2EngineJWTSecret: jwtSecret,
+		L2RpcTimeout:      10 * time.Second,
+		L2RpcBatchTimeout: 20 * time.Second,
 	}
 }
 

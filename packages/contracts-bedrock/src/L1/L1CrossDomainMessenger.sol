@@ -52,7 +52,7 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
         ISystemConfig _systemConfig
     )
         public
-        initializer
+        reinitializer(Constants.INITIALIZER)
     {
         superchainConfig = _superchainConfig;
         portal = _portal;

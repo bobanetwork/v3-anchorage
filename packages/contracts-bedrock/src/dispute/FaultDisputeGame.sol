@@ -590,7 +590,7 @@ contract FaultDisputeGame is IFaultDisputeGame, Clone, ISemver {
         resolvedAt = Timestamp.wrap(uint64(block.timestamp));
 
         // Update the status and emit the resolved event, note that we're performing an assignment here.
-        emit Resolved(status = status_);
+        emit Resolved(status = status_, rootClaim(), l2BlockNumber());
 
         // Try to update the anchor state, this should not revert.
         ANCHOR_STATE_REGISTRY.tryUpdateAnchorState();

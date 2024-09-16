@@ -29,6 +29,7 @@ import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
 import { StandardBridge } from "src/universal/StandardBridge.sol";
 import { FeeVault } from "src/universal/FeeVault.sol";
 import { GovernanceToken } from "src/governance/GovernanceToken.sol";
+import { LegacyMintableERC20 } from "src/legacy/LegacyMintableERC20.sol";
 
 // Libraries
 import { Predeploys } from "src/libraries/Predeploys.sol";
@@ -45,6 +46,7 @@ struct L1Dependencies {
     address payable l1CrossDomainMessengerProxy;
     address payable l1StandardBridgeProxy;
     address payable l1ERC721BridgeProxy;
+    address l1BobaToken;
 }
 
 /// @title L2Genesis
@@ -111,7 +113,8 @@ contract L2Genesis is Deployer {
         return L1Dependencies({
             l1CrossDomainMessengerProxy: mustGetAddress("L1CrossDomainMessengerProxy"),
             l1StandardBridgeProxy: mustGetAddress("L1StandardBridgeProxy"),
-            l1ERC721BridgeProxy: mustGetAddress("L1ERC721BridgeProxy")
+            l1ERC721BridgeProxy: mustGetAddress("L1ERC721BridgeProxy"),
+            l1BobaToken: mustGetAddress("BOBA")
         });
     }
 
@@ -251,11 +254,12 @@ contract L2Genesis is Deployer {
         console.log("- L1CrossDomainMessengerProxy: %s", _l1Dependencies.l1CrossDomainMessengerProxy);
         console.log("- L1StandardBridgeProxy: %s", _l1Dependencies.l1StandardBridgeProxy);
         console.log("- L1ERC721BridgeProxy: %s", _l1Dependencies.l1ERC721BridgeProxy);
+        console.log("- L1BOBAToken: %s", _l1Dependencies.l1BobaToken);
         setLegacyMessagePasser(); // 0
         // 01: legacy, not used in OP-Stack
         setDeployerWhitelist(); // 2
         // 3,4,5: legacy, not used in OP-Stack.
-        setWETH(); // 6: WETH (not behind a proxy)
+        setLegacyERC20ETH(); // 6 (not behind a proxy)
         setL2CrossDomainMessenger(_l1Dependencies.l1CrossDomainMessengerProxy); // 7
         // 8,9,A,B,C,D,E: legacy, not used in OP-Stack.
         setGasPriceOracle(); // f
@@ -282,6 +286,8 @@ contract L2Genesis is Deployer {
             setOptimismSuperchainERC20Factory(); // 26
             setOptimismSuperchainERC20Beacon(); // 27
         }
+        setBOBA(_l1Dependencies.l1BobaToken);
+        setWETH();
     }
 
     function setProxyAdmin() public {
@@ -405,12 +411,44 @@ contract L2Genesis is Deployer {
         _setImplementationCode(Predeploys.DEPLOYER_WHITELIST);
     }
 
+    function setLegacyERC20ETH() public {
+        console.log("Setting %s implementation at: %s", "LegacyERC20ETH", Predeploys.LEGACY_ERC20_ETH);
+        vm.etch(Predeploys.LEGACY_ERC20_ETH, vm.getDeployedCode("LegacyERC20ETH.sol:LegacyERC20ETH"));
+    }
+
     /// @notice This predeploy is following the safety invariant #1.
     ///         This contract is NOT proxied and the state that is set
     ///         in the constructor is set manually.
     function setWETH() public {
         console.log("Setting %s implementation at: %s", "WETH", Predeploys.WETH);
         vm.etch(Predeploys.WETH, vm.getDeployedCode("WETH.sol:WETH"));
+    }
+
+    /// @notice This predeploy is following the safety invariant #1.
+    ///         This contract is NOT proxied and the state that is set
+    ///         in the constructor is set manually.
+    function setBOBA(address _l1Boba) public {
+        LegacyMintableERC20 boba = new LegacyMintableERC20({
+            _l2Bridge: Predeploys.L2_STANDARD_BRIDGE,
+            _l1Token: _l1Boba,
+            _name: "BOBA Network",
+            _symbol: "BOBA"
+        });
+        vm.etch(Predeploys.L2_BOBA, address(boba).code);
+
+        bytes32 _nameSlot = hex"0000000000000000000000000000000000000000000000000000000000000003";
+        bytes32 _symbolSlot = hex"0000000000000000000000000000000000000000000000000000000000000004";
+        bytes32 _l1Token = hex"0000000000000000000000000000000000000000000000000000000000000005";
+        bytes32 _l2Bridge = hex"0000000000000000000000000000000000000000000000000000000000000006";
+
+        vm.store(Predeploys.L2_BOBA, _nameSlot, vm.load(address(boba), _nameSlot));
+        vm.store(Predeploys.L2_BOBA, _symbolSlot, vm.load(address(boba), _symbolSlot));
+        vm.store(Predeploys.L2_BOBA, _l1Token, bytes32(uint256(uint160(_l1Boba))));
+        vm.store(Predeploys.L2_BOBA, _l2Bridge, bytes32(uint256(uint160(Predeploys.L2_STANDARD_BRIDGE))));
+
+        /// Reset so its not included state dump
+        vm.etch(address(boba), "");
+        vm.resetNonce(address(boba));
     }
 
     /// @notice This predeploy is following the safety invariant #1.

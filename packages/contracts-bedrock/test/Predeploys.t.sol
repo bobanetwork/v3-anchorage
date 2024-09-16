@@ -24,6 +24,25 @@ contract PredeploysBaseTest is CommonTest {
         return _addr == Predeploys.L1_BLOCK_ATTRIBUTES || _addr == Predeploys.L2_STANDARD_BRIDGE;
     }
 
+    /// @dev Returns true if the address is a predeploy that is active (i.e. embedded in L2 genesis).
+    function _isPredeploy(address _addr) internal pure returns (bool) {
+        return _addr == Predeploys.L2_TO_L1_MESSAGE_PASSER || _addr == Predeploys.L2_CROSS_DOMAIN_MESSENGER
+            || _addr == Predeploys.L2_STANDARD_BRIDGE || _addr == Predeploys.L2_ERC721_BRIDGE
+            || _addr == Predeploys.SEQUENCER_FEE_WALLET || _addr == Predeploys.OPTIMISM_MINTABLE_ERC20_FACTORY
+            || _addr == Predeploys.OPTIMISM_MINTABLE_ERC721_FACTORY || _addr == Predeploys.L1_BLOCK_ATTRIBUTES
+            || _addr == Predeploys.GAS_PRICE_ORACLE || _addr == Predeploys.DEPLOYER_WHITELIST || _addr == Predeploys.WETH
+            || _addr == Predeploys.L1_BLOCK_NUMBER || _addr == Predeploys.LEGACY_MESSAGE_PASSER
+            || _addr == Predeploys.PROXY_ADMIN || _addr == Predeploys.BASE_FEE_VAULT || _addr == Predeploys.L1_FEE_VAULT
+            || _addr == Predeploys.GOVERNANCE_TOKEN || _addr == Predeploys.SCHEMA_REGISTRY || _addr == Predeploys.EAS
+            || _addr == Predeploys.L2_BOBA || _addr == Predeploys.LEGACY_ERC20_ETH;
+    }
+
+    /// @dev Returns true if the address is not proxied.
+    function _notProxied(address _addr) internal pure returns (bool) {
+        return _addr == Predeploys.GOVERNANCE_TOKEN || _addr == Predeploys.WETH || _addr == Predeploys.LEGACY_ERC20_ETH
+            || _addr == Predeploys.L2_BOBA;
+    }
+
     /// @dev Returns true if the account is not meant to be in the L2 genesis anymore.
     function _isOmitted(address _addr) internal pure returns (bool) {
         return _addr == Predeploys.L1_MESSAGE_SENDER;
