@@ -64,6 +64,12 @@ for FILE in $CHANGED_FILES; do
       continue
     fi
 
+    # Skip the file if it doesn't exist.
+    if [ ! -f "$FILE" ]; then
+      echo "File $FILE not found"
+      continue
+    fi
+
     # Get the diff for the file.
     DIFF=$(git diff origin/develop...HEAD --unified=0 -- "$FILE")
 
