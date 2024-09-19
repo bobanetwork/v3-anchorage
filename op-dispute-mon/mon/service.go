@@ -117,7 +117,7 @@ func (s *Service) initResolutionMonitor() {
 }
 
 func (s *Service) initWithdrawalMonitor() {
-	s.withdrawals = NewWithdrawalMonitor(s.logger, s.metrics)
+	s.withdrawals = NewWithdrawalMonitor(s.logger, s.cl, s.metrics, s.honestActors)
 }
 
 func (s *Service) initGameCallerCreator() {
@@ -146,7 +146,7 @@ func (s *Service) initForecast(cfg *config.Config) {
 }
 
 func (s *Service) initBonds() {
-	s.bonds = bonds.NewBonds(s.logger, s.metrics, s.honestActors, s.cl)
+	s.bonds = bonds.NewBonds(s.logger, s.metrics, s.cl)
 }
 
 func (s *Service) initOutputRollupClient(ctx context.Context, cfg *config.Config) error {

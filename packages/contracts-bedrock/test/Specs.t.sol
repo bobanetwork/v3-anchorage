@@ -1,17 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+// Testing
 import { CommonTest } from "test/setup/CommonTest.sol";
-import { Executables } from "scripts/libraries/Executables.sol";
 import { console2 as console } from "forge-std/console2.sol";
-import { ProtocolVersions } from "src/L1/ProtocolVersions.sol";
-import { OptimismPortal } from "src/L1/OptimismPortal.sol";
-import { OptimismPortalInterop } from "src/L1/OptimismPortalInterop.sol";
-import { OptimismPortal2 } from "src/L1/OptimismPortal2.sol";
-import { SystemConfig } from "src/L1/SystemConfig.sol";
-import { DataAvailabilityChallenge } from "src/L1/DataAvailabilityChallenge.sol";
-import { OPStackManager } from "src/L1/OPStackManager.sol";
+
+// Scripts
+import { Executables } from "scripts/libraries/Executables.sol";
 import { ForgeArtifacts, Abi, AbiEntry } from "scripts/libraries/ForgeArtifacts.sol";
+
+// Contracts
+import { OPStackManager } from "src/L1/OPStackManager.sol";
+
+// Interfaces
+import { IOptimismPortal } from "src/L1/interfaces/IOptimismPortal.sol";
+import { IOptimismPortal2 } from "src/L1/interfaces/IOptimismPortal2.sol";
+import { IOptimismPortalInterop } from "src/L1/interfaces/IOptimismPortalInterop.sol";
+import { ISystemConfig } from "src/L1/interfaces/ISystemConfig.sol";
+import { IDataAvailabilityChallenge } from "src/L1/interfaces/IDataAvailabilityChallenge.sol";
+import { IProtocolVersions } from "src/L1/interfaces/IProtocolVersions.sol";
 
 /// @title Specification_Test
 /// @dev Specifies common security properties of entrypoints to L1 contracts, including authorization and
@@ -35,7 +42,8 @@ contract Specification_Test is CommonTest {
         DISPUTEGAMEFACTORYOWNER,
         DELAYEDWETHOWNER,
         COUNCILSAFE,
-        COUNCILSAFEOWNER
+        COUNCILSAFEOWNER,
+        DEPENDENCYMANAGER
     }
 
     /// @notice Represents the specification of a function.
@@ -79,25 +87,25 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "DataAvailabilityChallenge", _sel: _getSel("resolveWindow()") });
         _addSpec({ _name: "DataAvailabilityChallenge", _sel: _getSel("resolverRefundPercentage()") });
         _addSpec({ _name: "DataAvailabilityChallenge", _sel: _getSel("balances(address)") });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.initialize.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.initialize.selector });
         _addSpec({
             _name: "DataAvailabilityChallenge",
-            _sel: DataAvailabilityChallenge.setBondSize.selector,
+            _sel: IDataAvailabilityChallenge.setBondSize.selector,
             _auth: Role.DATAAVAILABILITYCHALLENGEOWNER
         });
         _addSpec({
             _name: "DataAvailabilityChallenge",
-            _sel: DataAvailabilityChallenge.setResolverRefundPercentage.selector,
+            _sel: IDataAvailabilityChallenge.setResolverRefundPercentage.selector,
             _auth: Role.DATAAVAILABILITYCHALLENGEOWNER
         });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.deposit.selector });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.withdraw.selector });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.getChallenge.selector });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.getChallengeStatus.selector });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.validateCommitment.selector });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.challenge.selector });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.resolve.selector });
-        _addSpec({ _name: "DataAvailabilityChallenge", _sel: DataAvailabilityChallenge.unlockBond.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.deposit.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.withdraw.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.getChallenge.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.getChallengeStatus.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.validateCommitment.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.challenge.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.resolve.selector });
+        _addSpec({ _name: "DataAvailabilityChallenge", _sel: IDataAvailabilityChallenge.unlockBond.selector });
 
         // DelayedVetoable
         _addSpec({ _name: "DelayedVetoable", _sel: _getSel("delay()") });
@@ -247,7 +255,7 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("donateETH()") });
         _addSpec({
             _name: "OptimismPortal",
-            _sel: OptimismPortal.finalizeWithdrawalTransaction.selector,
+            _sel: IOptimismPortal.finalizeWithdrawalTransaction.selector,
             _pausable: true
         });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("finalizedWithdrawals(bytes32)") });
@@ -259,7 +267,7 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("minimumGasLimit(uint64)") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("params()") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("paused()") });
-        _addSpec({ _name: "OptimismPortal", _sel: OptimismPortal.proveWithdrawalTransaction.selector, _pausable: true });
+        _addSpec({ _name: "OptimismPortal", _sel: IOptimismPortal.proveWithdrawalTransaction.selector, _pausable: true });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("provenWithdrawals(bytes32)") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("superchainConfig()") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("systemConfig()") });
@@ -279,12 +287,12 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortalInterop", _sel: _getSel("donateETH()") });
         _addSpec({
             _name: "OptimismPortalInterop",
-            _sel: OptimismPortal2.finalizeWithdrawalTransaction.selector,
+            _sel: IOptimismPortal2.finalizeWithdrawalTransaction.selector,
             _pausable: true
         });
         _addSpec({
             _name: "OptimismPortalInterop",
-            _sel: OptimismPortal2.finalizeWithdrawalTransactionExternalProof.selector,
+            _sel: IOptimismPortal2.finalizeWithdrawalTransactionExternalProof.selector,
             _pausable: true
         });
         _addSpec({ _name: "OptimismPortalInterop", _sel: _getSel("finalizedWithdrawals(bytes32)") });
@@ -296,7 +304,7 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortalInterop", _sel: _getSel("paused()") });
         _addSpec({
             _name: "OptimismPortalInterop",
-            _sel: OptimismPortal2.proveWithdrawalTransaction.selector,
+            _sel: IOptimismPortal2.proveWithdrawalTransaction.selector,
             _pausable: true
         });
         _addSpec({ _name: "OptimismPortalInterop", _sel: _getSel("provenWithdrawals(bytes32,address)") });
@@ -331,7 +339,7 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortalInterop", _sel: _getSel("setGasPayingToken(address,uint8,bytes32,bytes32)") });
         _addSpec({
             _name: "OptimismPortalInterop",
-            _sel: OptimismPortalInterop.setConfig.selector,
+            _sel: IOptimismPortalInterop.setConfig.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
 
@@ -340,12 +348,12 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("donateETH()") });
         _addSpec({
             _name: "OptimismPortal2",
-            _sel: OptimismPortal2.finalizeWithdrawalTransaction.selector,
+            _sel: IOptimismPortal2.finalizeWithdrawalTransaction.selector,
             _pausable: true
         });
         _addSpec({
             _name: "OptimismPortal2",
-            _sel: OptimismPortal2.finalizeWithdrawalTransactionExternalProof.selector,
+            _sel: IOptimismPortal2.finalizeWithdrawalTransactionExternalProof.selector,
             _pausable: true
         });
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("finalizedWithdrawals(bytes32)") });
@@ -355,7 +363,11 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("minimumGasLimit(uint64)") });
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("params()") });
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("paused()") });
-        _addSpec({ _name: "OptimismPortal2", _sel: OptimismPortal2.proveWithdrawalTransaction.selector, _pausable: true });
+        _addSpec({
+            _name: "OptimismPortal2",
+            _sel: IOptimismPortal2.proveWithdrawalTransaction.selector,
+            _pausable: true
+        });
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("provenWithdrawals(bytes32,address)") });
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("superchainConfig()") });
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("systemConfig()") });
@@ -382,19 +394,19 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "ProtocolVersions", _sel: _getSel("RECOMMENDED_SLOT()") });
         _addSpec({ _name: "ProtocolVersions", _sel: _getSel("REQUIRED_SLOT()") });
         _addSpec({ _name: "ProtocolVersions", _sel: _getSel("VERSION()") });
-        _addSpec({ _name: "ProtocolVersions", _sel: ProtocolVersions.initialize.selector });
+        _addSpec({ _name: "ProtocolVersions", _sel: IProtocolVersions.initialize.selector });
         _addSpec({ _name: "ProtocolVersions", _sel: _getSel("owner()") });
-        _addSpec({ _name: "ProtocolVersions", _sel: ProtocolVersions.recommended.selector });
+        _addSpec({ _name: "ProtocolVersions", _sel: IProtocolVersions.recommended.selector });
         _addSpec({ _name: "ProtocolVersions", _sel: _getSel("renounceOwnership()"), _auth: Role.SYSTEMCONFIGOWNER });
-        _addSpec({ _name: "ProtocolVersions", _sel: ProtocolVersions.required.selector });
+        _addSpec({ _name: "ProtocolVersions", _sel: IProtocolVersions.required.selector });
         _addSpec({
             _name: "ProtocolVersions",
-            _sel: ProtocolVersions.setRequired.selector,
+            _sel: IProtocolVersions.setRequired.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
         _addSpec({
             _name: "ProtocolVersions",
-            _sel: ProtocolVersions.setRecommended.selector,
+            _sel: IProtocolVersions.setRecommended.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
         _addSpec({ _name: "ProtocolVersions", _sel: _getSel("transferOwnership(address)") });
@@ -419,23 +431,23 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "SystemConfig", _sel: _getSel("VERSION()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("batcherHash()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("gasLimit()") });
-        _addSpec({ _name: "SystemConfig", _sel: SystemConfig.initialize.selector });
-        _addSpec({ _name: "SystemConfig", _sel: SystemConfig.minimumGasLimit.selector });
+        _addSpec({ _name: "SystemConfig", _sel: ISystemConfig.initialize.selector });
+        _addSpec({ _name: "SystemConfig", _sel: ISystemConfig.minimumGasLimit.selector });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("overhead()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("owner()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("renounceOwnership()"), _auth: Role.SYSTEMCONFIGOWNER });
-        _addSpec({ _name: "SystemConfig", _sel: SystemConfig.resourceConfig.selector });
+        _addSpec({ _name: "SystemConfig", _sel: ISystemConfig.resourceConfig.selector });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("scalar()") });
-        _addSpec({ _name: "SystemConfig", _sel: SystemConfig.setBatcherHash.selector, _auth: Role.SYSTEMCONFIGOWNER });
-        _addSpec({ _name: "SystemConfig", _sel: SystemConfig.setGasConfig.selector, _auth: Role.SYSTEMCONFIGOWNER });
-        _addSpec({ _name: "SystemConfig", _sel: SystemConfig.setGasLimit.selector, _auth: Role.SYSTEMCONFIGOWNER });
+        _addSpec({ _name: "SystemConfig", _sel: ISystemConfig.setBatcherHash.selector, _auth: Role.SYSTEMCONFIGOWNER });
+        _addSpec({ _name: "SystemConfig", _sel: ISystemConfig.setGasConfig.selector, _auth: Role.SYSTEMCONFIGOWNER });
+        _addSpec({ _name: "SystemConfig", _sel: ISystemConfig.setGasLimit.selector, _auth: Role.SYSTEMCONFIGOWNER });
         _addSpec({
             _name: "SystemConfig",
-            _sel: SystemConfig.setUnsafeBlockSigner.selector,
+            _sel: ISystemConfig.setUnsafeBlockSigner.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("transferOwnership(address)"), _auth: Role.SYSTEMCONFIGOWNER });
-        _addSpec({ _name: "SystemConfig", _sel: SystemConfig.unsafeBlockSigner.selector });
+        _addSpec({ _name: "SystemConfig", _sel: ISystemConfig.unsafeBlockSigner.selector });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("version()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("l1CrossDomainMessenger()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("l1ERC721Bridge()") });
@@ -471,27 +483,31 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("VERSION()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("batcherHash()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("gasLimit()") });
-        _addSpec({ _name: "SystemConfigInterop", _sel: SystemConfig.initialize.selector });
-        _addSpec({ _name: "SystemConfigInterop", _sel: SystemConfig.minimumGasLimit.selector });
+        _addSpec({ _name: "SystemConfigInterop", _sel: ISystemConfig.initialize.selector });
+        _addSpec({ _name: "SystemConfigInterop", _sel: ISystemConfig.minimumGasLimit.selector });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("overhead()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("owner()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("renounceOwnership()"), _auth: Role.SYSTEMCONFIGOWNER });
-        _addSpec({ _name: "SystemConfigInterop", _sel: SystemConfig.resourceConfig.selector });
+        _addSpec({ _name: "SystemConfigInterop", _sel: ISystemConfig.resourceConfig.selector });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("scalar()") });
         _addSpec({
             _name: "SystemConfigInterop",
-            _sel: SystemConfig.setBatcherHash.selector,
+            _sel: ISystemConfig.setBatcherHash.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
         _addSpec({
             _name: "SystemConfigInterop",
-            _sel: SystemConfig.setGasConfig.selector,
+            _sel: ISystemConfig.setGasConfig.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
-        _addSpec({ _name: "SystemConfigInterop", _sel: SystemConfig.setGasLimit.selector, _auth: Role.SYSTEMCONFIGOWNER });
         _addSpec({
             _name: "SystemConfigInterop",
-            _sel: SystemConfig.setUnsafeBlockSigner.selector,
+            _sel: ISystemConfig.setGasLimit.selector,
+            _auth: Role.SYSTEMCONFIGOWNER
+        });
+        _addSpec({
+            _name: "SystemConfigInterop",
+            _sel: ISystemConfig.setUnsafeBlockSigner.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
         _addSpec({
@@ -499,7 +515,7 @@ contract Specification_Test is CommonTest {
             _sel: _getSel("transferOwnership(address)"),
             _auth: Role.SYSTEMCONFIGOWNER
         });
-        _addSpec({ _name: "SystemConfigInterop", _sel: SystemConfig.unsafeBlockSigner.selector });
+        _addSpec({ _name: "SystemConfigInterop", _sel: ISystemConfig.unsafeBlockSigner.selector });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("version()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("l1CrossDomainMessenger()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("l1ERC721Bridge()") });
@@ -528,11 +544,18 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("basefeeScalar()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("blobbasefeeScalar()") });
         _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("maximumGasLimit()") });
-        _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("addDependency(uint256)"), _auth: Role.SYSTEMCONFIGOWNER });
+        _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("addDependency(uint256)"), _auth: Role.DEPENDENCYMANAGER });
         _addSpec({
             _name: "SystemConfigInterop",
             _sel: _getSel("removeDependency(uint256)"),
-            _auth: Role.SYSTEMCONFIGOWNER
+            _auth: Role.DEPENDENCYMANAGER
+        });
+        _addSpec({ _name: "SystemConfigInterop", _sel: _getSel("dependencyManager()") });
+        _addSpec({
+            _name: "SystemConfigInterop",
+            _sel: _getSel(
+                "initialize(address,uint32,uint32,bytes32,uint64,address,(uint32,uint8,uint8,uint32,uint32,uint128),address,(address,address,address,address,address,address,address),address)"
+            )
         });
 
         // ProxyAdmin
@@ -617,9 +640,11 @@ contract Specification_Test is CommonTest {
         // AnchorStateRegistry
         _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("anchors(uint32)") });
         _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("disputeGameFactory()") });
-        _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("initialize((uint32,(bytes32,uint256))[])") });
+        _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("initialize((uint32,(bytes32,uint256))[],address)") });
         _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("tryUpdateAnchorState()") });
+        _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("setAnchorState(address)"), _auth: Role.GUARDIAN });
         _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("version()") });
+        _addSpec({ _name: "AnchorStateRegistry", _sel: _getSel("superchainConfig()") });
 
         // PermissionedDisputeGame
         _addSpec({ _name: "PermissionedDisputeGame", _sel: _getSel("absolutePrestate()") });
@@ -813,7 +838,25 @@ contract Specification_Test is CommonTest {
 
         // OPStackManager
         _addSpec({ _name: "OPStackManager", _sel: _getSel("version()") });
+        _addSpec({ _name: "OPStackManager", _sel: _getSel("superchainConfig()") });
+        _addSpec({ _name: "OPStackManager", _sel: _getSel("protocolVersions()") });
+        _addSpec({ _name: "OPStackManager", _sel: _getSel("latestRelease()") });
+        _addSpec({ _name: "OPStackManager", _sel: _getSel("implementations(string,string)") });
+        _addSpec({ _name: "OPStackManager", _sel: _getSel("systemConfigs(uint256)") });
+        _addSpec({ _name: "OPStackManager", _sel: OPStackManager.initialize.selector });
         _addSpec({ _name: "OPStackManager", _sel: OPStackManager.deploy.selector });
+        _addSpec({ _name: "OPStackManager", _sel: OPStackManager.blueprints.selector });
+
+        // OPStackManagerInterop
+        _addSpec({ _name: "OPStackManagerInterop", _sel: _getSel("version()") });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: _getSel("superchainConfig()") });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: _getSel("protocolVersions()") });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: _getSel("latestRelease()") });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: _getSel("implementations(string,string)") });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: _getSel("systemConfigs(uint256)") });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: OPStackManager.initialize.selector });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: OPStackManager.deploy.selector });
+        _addSpec({ _name: "OPStackManagerInterop", _sel: OPStackManager.blueprints.selector });
 
         // DeputyGuardianModule
         _addSpec({
@@ -824,6 +867,11 @@ contract Specification_Test is CommonTest {
         _addSpec({
             _name: "DeputyGuardianModule",
             _sel: _getSel("setRespectedGameType(address,uint32)"),
+            _auth: Role.DEPUTYGUARDIAN
+        });
+        _addSpec({
+            _name: "DeputyGuardianModule",
+            _sel: _getSel("setAnchorState(address,address)"),
             _auth: Role.DEPUTYGUARDIAN
         });
         _addSpec({ _name: "DeputyGuardianModule", _sel: _getSel("pause()"), _auth: Role.DEPUTYGUARDIAN });
@@ -892,12 +940,14 @@ contract Specification_Test is CommonTest {
 
     /// @notice Ensures that there's an auth spec for every L1 contract function.
     function testContractAuth() public {
-        string[] memory pathExcludes = new string[](3);
+        string[] memory pathExcludes = new string[](5);
         pathExcludes[0] = "src/dispute/interfaces/*";
         pathExcludes[1] = "src/dispute/lib/*";
-        pathExcludes[2] = "src/Safe/SafeSigners.sol";
+        pathExcludes[2] = "src/safe/SafeSigners.sol";
+        pathExcludes[3] = "src/L1/interfaces/*";
+        pathExcludes[4] = "src/governance/interfaces/*";
         Abi[] memory abis = ForgeArtifacts.getContractFunctionAbis(
-            "src/{L1,dispute,governance,Safe,universal/ProxyAdmin.sol}", pathExcludes
+            "src/{L1,dispute,governance,safe,universal/ProxyAdmin.sol}", pathExcludes
         );
 
         uint256 numCheckedEntries = 0;
@@ -940,11 +990,12 @@ contract Specification_Test is CommonTest {
     /// @notice Ensures that the DeputyGuardian is authorized to take all Guardian actions.
     function testDeputyGuardianAuth() public view {
         assertEq(specsByRole[Role.DEPUTYGUARDIAN].length, specsByRole[Role.GUARDIAN].length);
-        assertEq(specsByRole[Role.DEPUTYGUARDIAN].length, 4);
+        assertEq(specsByRole[Role.DEPUTYGUARDIAN].length, 5);
 
         mapping(bytes4 => Spec) storage dgmFuncSpecs = specs["DeputyGuardianModule"];
         mapping(bytes4 => Spec) storage superchainConfigFuncSpecs = specs["SuperchainConfig"];
         mapping(bytes4 => Spec) storage portal2FuncSpecs = specs["OptimismPortal2"];
+        mapping(bytes4 => Spec) storage anchorRegFuncSpecs = specs["AnchorStateRegistry"];
 
         // Ensure that for each of the DeputyGuardianModule's methods there is a corresponding method on another
         // system contract authed to the Guardian role.
@@ -959,5 +1010,8 @@ contract Specification_Test is CommonTest {
 
         _assertRolesEq(dgmFuncSpecs[_getSel("setRespectedGameType(address,uint32)")].auth, Role.DEPUTYGUARDIAN);
         _assertRolesEq(portal2FuncSpecs[_getSel("setRespectedGameType(uint32)")].auth, Role.GUARDIAN);
+
+        _assertRolesEq(dgmFuncSpecs[_getSel("setAnchorState(address,address)")].auth, Role.DEPUTYGUARDIAN);
+        _assertRolesEq(anchorRegFuncSpecs[_getSel("setAnchorState(address)")].auth, Role.GUARDIAN);
     }
 }

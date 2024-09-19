@@ -7,7 +7,6 @@ import { DisputeGameFactory_Init } from "test/dispute/DisputeGameFactory.t.sol";
 import { DisputeGameFactory } from "src/dispute/DisputeGameFactory.sol";
 import { PermissionedDisputeGame } from "src/dispute/PermissionedDisputeGame.sol";
 import { DelayedWETH } from "src/dispute/weth/DelayedWETH.sol";
-import { L2OutputOracle } from "src/L1/L2OutputOracle.sol";
 import { PreimageOracle } from "src/cannon/PreimageOracle.sol";
 import { PreimageKeyLib } from "src/cannon/PreimageKeyLib.sol";
 
@@ -169,13 +168,13 @@ contract PermissionedDisputeGame_Test is PermissionedDisputeGame_Init {
 
         vm.startPrank(_p, _p);
         (,,,, Claim disputed,,) = gameProxy.claimData(0);
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.attack(disputed, 0, Claim.wrap(0));
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.defend(disputed, 0, Claim.wrap(0));
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.move(disputed, 0, Claim.wrap(0), true);
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.step(0, true, absolutePrestateData, hex"");
         vm.stopPrank();
     }

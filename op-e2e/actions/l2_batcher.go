@@ -19,13 +19,13 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 
+	altda "github.com/ethereum-optimism/optimism/op-alt-da"
 	"github.com/ethereum-optimism/optimism/op-batcher/batcher"
 	"github.com/ethereum-optimism/optimism/op-batcher/compressor"
 	batcherFlags "github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
-	plasma "github.com/ethereum-optimism/optimism/op-plasma"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 )
@@ -44,8 +44,8 @@ type L1TxAPI interface {
 	SendTransaction(ctx context.Context, tx *types.Transaction) error
 }
 
-type PlasmaInputSetter interface {
-	SetInput(ctx context.Context, img []byte) (plasma.CommitmentData, error)
+type AltDAInputSetter interface {
+	SetInput(ctx context.Context, img []byte) (altda.CommitmentData, error)
 }
 
 type BatcherCfg struct {
@@ -59,10 +59,10 @@ type BatcherCfg struct {
 
 	ForceSubmitSingularBatch bool
 	ForceSubmitSpanBatch     bool
-	UsePlasma                bool
+	UseAltDA                 bool
 
 	DataAvailabilityType batcherFlags.DataAvailabilityType
-	PlasmaDA             PlasmaInputSetter
+	AltDA                AltDAInputSetter
 }
 
 func DefaultBatcherCfg(dp *e2eutils.DeployParams) *BatcherCfg {
@@ -74,14 +74,14 @@ func DefaultBatcherCfg(dp *e2eutils.DeployParams) *BatcherCfg {
 	}
 }
 
-func PlasmaBatcherCfg(dp *e2eutils.DeployParams, plasmaDa PlasmaInputSetter) *BatcherCfg {
+func AltDABatcherCfg(dp *e2eutils.DeployParams, altDA AltDAInputSetter) *BatcherCfg {
 	return &BatcherCfg{
 		MinL1TxSize:          0,
 		MaxL1TxSize:          128_000,
 		BatcherKey:           dp.Secrets.Batcher,
 		DataAvailabilityType: batcherFlags.CalldataType,
-		PlasmaDA:             plasmaDa,
-		UsePlasma:            true,
+		AltDA:                altDA,
+		UseAltDA:             true,
 	}
 }
 
@@ -230,12 +230,11 @@ func (s *L2Batcher) ActL2ChannelClose(t Testing) {
 	require.NoError(t, s.l2ChannelOut.Close(), "must close channel before submitting it")
 }
 
-// ActL2BatchSubmit constructs a batch tx from previous buffered L2 blocks, and submits it to L1
-func (s *L2Batcher) ActL2BatchSubmit(t Testing, txOpts ...func(tx *types.DynamicFeeTx)) {
+func (s *L2Batcher) ReadNextOutputFrame(t Testing) []byte {
 	// Don't run this action if there's no data to submit
 	if s.l2ChannelOut == nil {
 		t.InvalidAction("need to buffer data first, cannot batch submit with empty buffer")
-		return
+		return nil
 	}
 	// Collect the output frame
 	data := new(bytes.Buffer)
@@ -249,10 +248,18 @@ func (s *L2Batcher) ActL2BatchSubmit(t Testing, txOpts ...func(tx *types.Dynamic
 		t.Fatalf("failed to output channel data to frame: %v", err)
 	}
 
-	payload := data.Bytes()
-	if s.l2BatcherCfg.UsePlasma {
-		comm, err := s.l2BatcherCfg.PlasmaDA.SetInput(t.Ctx(), payload)
-		require.NoError(t, err, "failed to set input for plasma")
+	return data.Bytes()
+}
+
+// ActL2BatchSubmit constructs a batch tx from previous buffered L2 blocks, and submits it to L1
+func (s *L2Batcher) ActL2BatchSubmit(t Testing, txOpts ...func(tx *types.DynamicFeeTx)) {
+	s.ActL2BatchSubmitRaw(t, s.ReadNextOutputFrame(t), txOpts...)
+}
+
+func (s *L2Batcher) ActL2BatchSubmitRaw(t Testing, payload []byte, txOpts ...func(tx *types.DynamicFeeTx)) {
+	if s.l2BatcherCfg.UseAltDA {
+		comm, err := s.l2BatcherCfg.AltDA.SetInput(t.Ctx(), payload)
+		require.NoError(t, err, "failed to set input for altda")
 		payload = comm.TxData()
 	}
 
@@ -401,27 +408,14 @@ func (s *L2Batcher) ActL2BatchSubmitMultiBlob(t Testing, numBlobs int) {
 // batch inbox. This *should* cause the batch inbox to reject the blocks
 // encoded within the frame, even if the blocks themselves are valid.
 func (s *L2Batcher) ActL2BatchSubmitGarbage(t Testing, kind GarbageKind) {
-	// Don't run this action if there's no data to submit
-	if s.l2ChannelOut == nil {
-		t.InvalidAction("need to buffer data first, cannot batch submit with empty buffer")
-		return
-	}
+	outputFrame := s.ReadNextOutputFrame(t)
+	s.ActL2BatchSubmitGarbageRaw(t, outputFrame, kind)
+}
 
-	// Collect the output frame
-	data := new(bytes.Buffer)
-	data.WriteByte(derive.DerivationVersion0)
-
-	// subtract one, to account for the version byte
-	if _, err := s.l2ChannelOut.OutputFrame(data, s.l2BatcherCfg.MaxL1TxSize-1); err == io.EOF {
-		s.l2ChannelOut = nil
-		s.l2Submitting = false
-	} else if err != nil {
-		s.l2Submitting = false
-		t.Fatalf("failed to output channel data to frame: %v", err)
-	}
-
-	outputFrame := data.Bytes()
-
+// ActL2BatchSubmitGarbageRaw constructs a malformed channel frame from `outputFrame` and submits it to the
+// batch inbox. This *should* cause the batch inbox to reject the blocks
+// encoded within the frame, even if the blocks themselves are valid.
+func (s *L2Batcher) ActL2BatchSubmitGarbageRaw(t Testing, outputFrame []byte, kind GarbageKind) {
 	// Malform the output frame
 	switch kind {
 	// Strip the derivation version byte from the output frame
@@ -453,31 +447,7 @@ func (s *L2Batcher) ActL2BatchSubmitGarbage(t Testing, kind GarbageKind) {
 		t.Fatalf("Unexpected garbage kind: %v", kind)
 	}
 
-	nonce, err := s.l1.PendingNonceAt(t.Ctx(), s.batcherAddr)
-	require.NoError(t, err, "need batcher nonce")
-
-	gasTipCap := big.NewInt(2 * params.GWei)
-	pendingHeader, err := s.l1.HeaderByNumber(t.Ctx(), big.NewInt(-1))
-	require.NoError(t, err, "need l1 pending header for gas price estimation")
-	gasFeeCap := new(big.Int).Add(gasTipCap, new(big.Int).Mul(pendingHeader.BaseFee, big.NewInt(2)))
-
-	rawTx := &types.DynamicFeeTx{
-		ChainID:   s.rollupCfg.L1ChainID,
-		Nonce:     nonce,
-		To:        &s.rollupCfg.BatchInboxAddress,
-		GasTipCap: gasTipCap,
-		GasFeeCap: gasFeeCap,
-		Data:      outputFrame,
-	}
-	gas, err := core.IntrinsicGas(rawTx.Data, nil, false, true, true, false)
-	require.NoError(t, err, "need to compute intrinsic gas")
-	rawTx.Gas = gas
-
-	tx, err := types.SignNewTx(s.l2BatcherCfg.BatcherKey, s.l1Signer, rawTx)
-	require.NoError(t, err, "need to sign tx")
-
-	err = s.l1.SendTransaction(t.Ctx(), tx)
-	require.NoError(t, err, "need to send tx")
+	s.ActL2BatchSubmitRaw(t, outputFrame)
 }
 
 func (s *L2Batcher) ActBufferAll(t Testing) {

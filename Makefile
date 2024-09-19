@@ -15,11 +15,15 @@ PYTHON?=python3
 help: ## Prints this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-build: build-go build-ts ## Builds both Go and TypeScript components
+build: build-go build-contracts ## Builds Go components and contracts-bedrock
 .PHONY: build
 
 build-go: submodules op-node op-proposer op-batcher op-erigon
 .PHONY: build-go
+
+build-contracts:
+	(cd packages/contracts-bedrock && just build)
+.PHONY: build-contracts
 
 lint-go: ## Lints Go code with specific linters
 	golangci-lint run -E goimports,sqlclosecheck,bodyclose,asciicheck,misspell,errorlint --timeout 5m -e "errors.As" -e "errors.Is" ./...
@@ -140,10 +144,12 @@ reproducible-prestate:   ## Builds reproducible-prestate binary
 .PHONY: reproducible-prestate
 
 # Include any files required for the devnet to build and run. This appears to be the only one that's actually needed.
-DEVNET_CANNON_PRESTATE_FILES := op-program/bin/prestate-proof.json op-program/bin/prestate.json
+DEVNET_CANNON_PRESTATE_FILES := op-program/bin/prestate-proof.json op-program/bin/prestate.json op-program/bin/prestate-proof-mt.json op-program/bin/prestate-mt.json
+
 
 $(DEVNET_CANNON_PRESTATE_FILES):
 	make cannon-prestate
+	make cannon-prestate-mt
 
 cannon-prestate: op-program cannon ## Generates prestate using cannon and op-program
 	./cannon/bin/cannon load-elf --path op-program/bin/op-program-client.elf --out op-program/bin/prestate.json --meta op-program/bin/meta.json
@@ -152,8 +158,8 @@ cannon-prestate: op-program cannon ## Generates prestate using cannon and op-pro
 .PHONY: cannon-prestate
 
 cannon-prestate-mt: op-program cannon ## Generates prestate using cannon and op-program in the multithreaded cannon format
-	./cannon/bin/cannon load-elf --type mt --path op-program/bin/op-program-client.elf --out op-program/bin/prestate-mt.json --meta op-program/bin/meta-mt.json
-	./cannon/bin/cannon run --type mt --proof-at '=0' --stop-at '=1' --input op-program/bin/prestate-mt.json --meta op-program/bin/meta-mt.json --proof-fmt 'op-program/bin/%d-mt.json' --output ""
+	./cannon/bin/cannon load-elf --type cannon-mt --path op-program/bin/op-program-client.elf --out op-program/bin/prestate-mt.bin.gz --meta op-program/bin/meta-mt.json
+	./cannon/bin/cannon run --proof-at '=0' --stop-at '=1' --input op-program/bin/prestate-mt.bin.gz --meta op-program/bin/meta-mt.json --proof-fmt 'op-program/bin/%d-mt.json' --output ""
 	mv op-program/bin/0-mt.json op-program/bin/prestate-proof-mt.json
 .PHONY: cannon-prestate
 

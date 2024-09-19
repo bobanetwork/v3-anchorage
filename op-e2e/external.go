@@ -12,6 +12,7 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-e2e/config"
 	"github.com/ethereum-optimism/optimism/op-e2e/external"
+	"github.com/ethereum-optimism/optimism/op-service/endpoint"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -49,6 +50,20 @@ func (eec *ExternalEthClient) HTTPAuthEndpoint() string {
 
 func (eec *ExternalEthClient) WSAuthEndpoint() string {
 	return eec.Endpoints.WSAuthEndpoint
+}
+
+func (eec *ExternalEthClient) UserRPC() endpoint.RPC {
+	return endpoint.WsOrHttpRPC{
+		WsURL:   eec.Endpoints.WSEndpoint,
+		HttpURL: eec.Endpoints.HTTPEndpoint,
+	}
+}
+
+func (eec *ExternalEthClient) AuthRPC() endpoint.RPC {
+	return endpoint.WsOrHttpRPC{
+		WsURL:   eec.Endpoints.WSAuthEndpoint,
+		HttpURL: eec.Endpoints.HTTPAuthEndpoint,
+	}
 }
 
 func (eec *ExternalEthClient) Close() error {
