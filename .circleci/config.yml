@@ -2097,7 +2097,7 @@ workflows:
   develop-publish-contract-artifacts:
     when:
       or:
-        - equal: [ "disable-artifacts-release", <<pipeline.git.branch>> ]
+        - equal: [ "develop", <<pipeline.git.branch>> ]
         - equal: [ true, <<pipeline.parameters.publish_contract_artifacts_dispatch>> ]
     jobs:
       - publish-contract-artifacts
