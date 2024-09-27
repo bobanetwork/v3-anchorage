@@ -109,7 +109,9 @@ contract L1CrossDomainMessenger is CrossDomainMessenger, ISemver {
         bytes memory opaqueData =
             abi.encodePacked(uint256(0), uint256(0), this.baseGas(_message, uint32(_gasLimit)), false, _data);
 
-        msgNonce = msgNonce + 1;
+        unchecked {
+            ++msgNonce;
+        }
 
         return opaqueData;
     }
