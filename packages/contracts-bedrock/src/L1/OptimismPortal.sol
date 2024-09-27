@@ -508,16 +508,16 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
         metered(_gasLimit)
     {
         (address token,) = gasPayingToken();
-        address l2ETHToken = l2ETHToken();
-        if (token != Constants.ETHER && msg.value != 0 && l2ETHToken == address(0)) revert NoValue();
-        if (token != Constants.ETHER && msg.value != 0 && l2ETHToken != address(0)) {
+        address l2ETHTokenAddr = l2ETHToken();
+        if (token != Constants.ETHER && msg.value != 0 && l2ETHTokenAddr == address(0)) revert NoValue();
+        if (token != Constants.ETHER && msg.value != 0 && l2ETHTokenAddr != address(0)) {
             require(
                 _value == 0 && _isCreation == false && tx.origin == msg.sender && _data.length == 0,
                 "OptimismPortal: invalid deposit"
             );
 
             bytes memory opaqueData = OptimismPortalHelper(systemConfig.l1CrossDomainMessenger())
-                .sendMintETHERC20Message(address(0), l2ETHToken, msg.sender, _to, msg.value, uint64(_gasLimit));
+                .sendMintETHERC20Message(address(0), l2ETHTokenAddr, msg.sender, _to, msg.value, uint64(_gasLimit));
 
             emit TransactionDeposited(
                 AddressAliasHelper.applyL1ToL2Alias(systemConfig.l1CrossDomainMessenger()),
