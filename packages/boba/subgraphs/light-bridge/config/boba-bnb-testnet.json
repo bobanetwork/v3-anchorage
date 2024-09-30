@@ -2,7 +2,7 @@
   "network": "boba-bnb-testnet",
   "contracts": {
     "LightBridge": {
-      "address": "0x670b130112C6f03E17192e63c67866e67D77c3ee",
+      "address": "0xf4d179d3a083Fa3Eede935FaF4C679D32d514186",
       "startBlock": 295353
     }
   }
