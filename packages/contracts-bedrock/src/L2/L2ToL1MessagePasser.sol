@@ -111,6 +111,7 @@ contract L2ToL1MessagePasser is ISemver {
             msg.sender == Predeploys.L2_STANDARD_BRIDGE,
             "L2ToL1MessagePasser: only the L2 standard bridge can initiate withdrawals"
         );
+        require(_target != address(0), "L2ToL1MessagePasser: target address cannot be 0x0");
 
         bytes32 withdrawalHash = Hashing.hashWithdrawal(
             Types.WithdrawalTransaction({
