@@ -31,6 +31,8 @@ services:
       --syncmode=full
       --maxpeers=0
       --rollup.sequencerhttp=https://mainnet.boba.network
+      --override.fjord=1725951600
+      --override.granite=1729753200
     ports:
       - "9545:9545"
       - "8551:8551"

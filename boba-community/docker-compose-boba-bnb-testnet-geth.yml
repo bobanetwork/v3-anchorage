@@ -31,6 +31,8 @@ services:
       --syncmode=full
       --maxpeers=0
       --rollup.sequencerhttp=https://testnet.bnb.boba.network
+      --override.fjord=1722297600
+      --override.granite=1726470000
     ports:
       - "9545:9545"
       - "8551:8551"
