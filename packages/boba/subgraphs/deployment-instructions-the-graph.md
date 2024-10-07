@@ -13,6 +13,9 @@ The subgraph.yaml file always contains the latest network chosen:
 - Install deps \
   ```yarn```
 
+- Generate `subgraph.yaml` \
+  ```yarn prepare:boba```
+
 
 - Build files \
   ```npx graph codegen && npx graph build```

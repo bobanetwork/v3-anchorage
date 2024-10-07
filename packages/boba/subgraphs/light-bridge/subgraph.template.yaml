@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: LightBridge
-    network: boba-sepolia
+    network: {{network}}
     source:
       abi: LightBridge
-      address: "0x2dE73Bd1660Fbf4D521a52Ec2a91CCc106113801"
-      startBlock: 51
+      address: '{{contracts.LightBridge.address}}'
+      startBlock: {{contracts.LightBridge.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
