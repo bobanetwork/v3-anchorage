@@ -36,6 +36,7 @@
     * [Introduction to DIA Oracles](contents/developer/oracles/introduction-to-dia-oracles.md)
     * [Introduction to SupraOracles](contents/developer/oracles/introduction-to-supraoracles.md)
   * [Indexer](contents/developer/indexer/README.md)
+    * [The Graph](contents/developer/indexer/the-graph.md)
     * [Subquery Indexer](contents/developer/indexer/subquery-indexer.md)
   * [Boba Basics](contents/developer/boba-basics/README.md)
     * [Testnet faucets for developers](contents/developer/boba-basics/faucets.md)
