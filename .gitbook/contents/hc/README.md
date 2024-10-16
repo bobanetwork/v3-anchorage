@@ -22,5 +22,18 @@ Before you begin, make sure you have the following prerequisites in place:
 
 - Python
 - Docker
+- `pnpm`
+
+Additionally, install the Hybrid Compute SDK by running the following:
+
+```bash
+pnpm i @bobanetwork/aa-hc-sdk-server
+```
+
+If you intend to integrate a UI with your project, you'll also need to install the client SDK (but note that our examples in this tutorial don't include any UI integration):
+
+```bash
+pnpm i @bobanetwork/aa-hc-sdk-client
+```
 
 Once your environment is ready, proceed through the following steps to implement your Hybrid Compute examples.
