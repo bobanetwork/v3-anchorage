@@ -3,15 +3,8 @@
 For any smart contract, with or without an off-chain handler, the next step is to set up a server to run it. In this example, we will create a simple `JSON-RPC` server using the Hybrid Compute SDK:
 
 ```python
-import { HybridComputeSDK } from '@bobanetwork/aa-hc-sdk-server';
-
-const sdk = new HybridComputeSDK();
-
-sdk.createJsonRpcServerInstance()
-   .addServerAction('myAction', (params) => {
-     // Handle action
-   })
-   .listenAt(3000);
+sdk = HybridComputeSDK()
+sdk.create_json_rpc_server_instance()
 ```
 
 ## Why is that?

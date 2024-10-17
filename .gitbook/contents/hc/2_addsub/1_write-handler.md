@@ -9,8 +9,7 @@ Let's begin by allowing our handler to receive two numbers. It will perform both
 First, we'll need to import the Hybrid Compute SDK and some `Python` libraries to help with our example:
 
 ```python
-import { HybridComputeSDK } from '@bobanetwork/aa-hc-sdk-server';
-const sdk = new HybridComputeSDK();
+sdk = HybridComputeSDK()
 
 from web3 import Web3
 from eth_abi import abi as ethabi
