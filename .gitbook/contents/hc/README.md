@@ -20,14 +20,19 @@ An account abstraction bundler is a component of a blockchain system designed to
 
 Before you begin, make sure you have the following prerequisites in place:
 
-- Python
+- Typescript or Python
 - Docker
-- `pnpm`
 
-Additionally, install the Hybrid Compute SDK by running the following:
+If using Typescript for your smart contract helper, install `pnpm` and install the Hybrid Compute SDK by running the following:
 
 ```bash
 pnpm i @bobanetwork/aa-hc-sdk-server
+```
+
+Note, the following examples in this tutorial are written in Python. If using Python, install `pip` and install the SDK by running this command:
+
+```bash
+pip install hybrid_compute_sdk
 ```
 
 If you intend to integrate a UI with your project, you'll also need to install the client SDK (but note that our examples in this tutorial don't include any UI integration):
