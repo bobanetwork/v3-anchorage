@@ -7,6 +7,7 @@ toolchain go1.22.7
 require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/andybalholm/brotli v1.1.0
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/btcsuite/btcd v0.24.2
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/cockroachdb/pebble v1.1.2
@@ -123,7 +124,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.2 // indirect
 	github.com/hashicorp/go-immutable-radix v1.0.0 // indirect
 	github.com/hashicorp/go-msgpack/v2 v2.1.2 // indirect
-	github.com/hashicorp/golang-lru v0.5.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/hashicorp/golang-lru/arc/v2 v2.0.7 // indirect
 	github.com/hashicorp/raft-boltdb v0.0.0-20231211162105-6c830fa4535e // indirect
 	github.com/holiman/billy v0.0.0-20240216141850-2abb0c79d3c4 // indirect
@@ -255,7 +256,7 @@ replace github.com/ethereum/go-ethereum v1.14.11 => github.com/ethereum-optimism
 
 //replace github.com/ethereum/go-ethereum => ../op-geth
 
-// replace github.com/ethereum-optimism/superchain-registry/superchain => ../superchain-registry/superchain
+replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240926214052-4aa1ce20dfa5
 
 // This release keeps breaking Go builds. Stop that.
 exclude (

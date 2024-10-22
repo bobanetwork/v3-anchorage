@@ -20,7 +20,11 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/retry"
 )
 
-var httpRegex = regexp.MustCompile("^http(s)?://")
+var (
+	httpRegex              = regexp.MustCompile("^http(s)?://")
+	defaultRPCTimeout      = 10 * time.Second
+	defaultRPCBatchTimeout = 20 * time.Second
+)
 
 type RPC interface {
 	Close()

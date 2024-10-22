@@ -1,9 +1,15 @@
 version: 2.1
 
 parameters:
+  registry:
+    type: string
+    default: "us-docker.pkg.dev"
   ci_builder_image:
     type: string
-    default: us-docker.pkg.dev/oplabs-tools-artifacts/images/ci-builder:v0.54.0
+    default: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/ci-builder:v1.4.0
+  repo:
+    type: string
+    default: ${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images
   ci_builder_rust_image:
     type: string
     default: us-docker.pkg.dev/oplabs-tools-artifacts/images/ci-builder-rust:latest
@@ -51,9 +57,9 @@ commands:
   gcp-oidc-authenticate:
     description: "Authenticate with GCP using a CircleCI OIDC token."
     parameters:
-      project_id:
+      project_number:
         type: env_var_name
-        default: GCP_PROJECT_ID
+        default: GCP_PROJECT_NUMBER
       workload_identity_pool_id:
         type: env_var_name
         default: GCP_WIP_ID
@@ -77,7 +83,7 @@ commands:
             echo $CIRCLE_OIDC_TOKEN > << parameters.oidc_token_file_path >>
             # Create a credential configuration for the generated OIDC ID Token
             gcloud iam workload-identity-pools create-cred-config \
-                "projects/${<< parameters.project_id >>}/locations/global/workloadIdentityPools/${<< parameters.workload_identity_pool_id >>}/providers/${<< parameters.workload_identity_pool_provider_id >>}"\
+                "projects/${<< parameters.project_number >>}/locations/global/workloadIdentityPools/${<< parameters.workload_identity_pool_id >>}/providers/${<< parameters.workload_identity_pool_provider_id >>}"\
                 --output-file="<< parameters.gcp_cred_config_file_path >>" \
                 --service-account="${<< parameters.service_account_email >>}" \
                 --credential-source-file=<< parameters.oidc_token_file_path >>
@@ -310,14 +316,6 @@ jobs:
         description: "Docker buildx bake target"
         type: string
         default: ""
-      registry:
-        description: Docker registry
-        type: string
-        default: "us-docker.pkg.dev"
-      repo:
-        description: Docker repo
-        type: string
-        default: "oplabs-tools-artifacts/images"
       save_image_tag:
         description: Save docker image with given tag
         type: string
@@ -371,12 +369,13 @@ jobs:
               echo "$DOCKER_HUB_READ_ONLY_TOKEN" | docker login -u "$DOCKER_HUB_READ_ONLY_USER" --password-stdin
             fi
 
-            export REGISTRY="<<parameters.registry>>"
-            export REPOSITORY="<<parameters.repo>>"
+            export REGISTRY="<<pipeline.parameters.registry>>"
+            export REPOSITORY="<< pipeline.parameters.repo >>"
             export IMAGE_TAGS="$(echo -ne "<<parameters.docker_tags>>" | sed "s/[^a-zA-Z0-9\n,]/-/g")"
             export GIT_COMMIT="$(git rev-parse HEAD)"
             export GIT_DATE="$(git show -s --format='%ct')"
             export PLATFORMS="<<parameters.platforms>>"
+            export VERSION="$(echo -ne "<<pipeline.git.tag>>" | sed "s#.*/\(.*\)#\1#")"
 
             echo "Checking git tags pointing at $GIT_COMMIT:"
             tags_at_commit=$(git tag --points-at $GIT_COMMIT)
@@ -409,7 +408,7 @@ jobs:
 
             DOCKER_OUTPUT_DESTINATION=""
             if [ "<<parameters.publish>>" == "true" ]; then
-              gcloud auth configure-docker <<parameters.registry>>
+              gcloud auth configure-docker <<pipeline.parameters.registry>>
               echo "Building for platforms $PLATFORMS and then publishing to registry"
               DOCKER_OUTPUT_DESTINATION="--push"
               if [ "<<parameters.save_image_tag>>" != "" ]; then
@@ -448,7 +447,7 @@ jobs:
             - run:
                 name: Save
                 command: |
-                  IMAGE_NAME="<<parameters.registry>>/<<parameters.repo>>/<<parameters.docker_name>>:<<parameters.save_image_tag>>"
+                  IMAGE_NAME="<<pipeline.parameters.registry>>/<<pipeline.parameters.repo>>/<<parameters.docker_name>>:<<parameters.save_image_tag>>"
                   docker save -o /tmp/docker_images/<<parameters.docker_name>>.tar $IMAGE_NAME
             - persist_to_workspace:
                 root: /tmp/docker_images
@@ -460,36 +459,34 @@ jobs:
             - run:
                 name: Tag
                 command: |
-                  ./ops/scripts/ci-docker-tag-op-stack-release.sh <<parameters.registry>>/<<parameters.repo>> $CIRCLE_TAG $CIRCLE_SHA1
-      - when:
-          condition:
-            or:
-              - and:
-                - "<<parameters.publish>>"
-                - "<<parameters.release>>"
-              - and:
-                - "<<parameters.publish>>"
-                - equal: [develop, << pipeline.git.branch >>]
-          steps:
-            - gcp-oidc-authenticate:
-                service_account_email: GCP_SERVICE_ATTESTOR_ACCOUNT_EMAIL
-            - run:
-                name: Sign
-                command: |
-                  VER=$(jq -r .binary_signer < versions.json)
-                  wget -O - "https://github.com/ethereum-optimism/binary_signer/archive/refs/tags/v${VER}.tar.gz" | tar xz
-                  cd "binary_signer-${VER}/signer"
+                  ./ops/scripts/ci-docker-tag-op-stack-release.sh <<pipeline.parameters.registry>>/<<pipeline.parameters.repo>> $CIRCLE_TAG $CIRCLE_SHA1
+      # - when:
+      #     condition:
+      #       and:
+      #         - or:
+      #           - "<<parameters.publish>>"
+      #           - "<<parameters.release>>"
+      #         - equal: [develop, << pipeline.git.branch >>]
+      #     steps:
+      #       - gcp-oidc-authenticate:
+      #           service_account_email: GCP_SERVICE_ATTESTOR_ACCOUNT_EMAIL
+      #       - run:
+      #           name: Sign
+      #           command: |
+      #             git clone https://github.com/ethereum-optimism/binary_signer
+      #             cd binary_signer/signer
+      #             git checkout tags/v1.0.3
 
-                  IMAGE_PATH="<<parameters.registry>>/<<parameters.repo>>/<<parameters.docker_name>>:<<pipeline.git.revision>>"
-                  echo $IMAGE_PATH
-                  pip3 install -r requirements.txt
+      #             IMAGE_PATH="<<parameters.registry>>/<<parameters.repo>>/<<parameters.docker_name>>:<<pipeline.git.revision>>"
+      #             echo $IMAGE_PATH
+      #             pip3 install -r requirements.txt
 
-                  python3 ./sign_image.py --command="sign"\
-                      --attestor-project-name="$ATTESTOR_PROJECT_NAME"\
-                      --attestor-name="$ATTESTOR_NAME"\
-                      --image-path="$IMAGE_PATH"\
-                      --signer-logging-level="INFO"\
-                      --attestor-key-id="//cloudkms.googleapis.com/v1/projects/$ATTESTOR_PROJECT_NAME/locations/global/keyRings/$ATTESTOR_NAME-key-ring/cryptoKeys/$ATTESTOR_NAME-key/cryptoKeyVersions/1"
+      #             python3 ./sign_image.py --command="sign"\
+      #                 --attestor-project-name="$ATTESTOR_PROJECT_NAME"\
+      #                 --attestor-name="$ATTESTOR_NAME"\
+      #                 --image-path="$IMAGE_PATH"\
+      #                 --signer-logging-level="INFO"\
+      #                 --attestor-key-id="//cloudkms.googleapis.com/v1/projects/$ATTESTOR_PROJECT_NAME/locations/global/keyRings/$ATTESTOR_NAME-key-ring/cryptoKeys/$ATTESTOR_NAME-key/cryptoKeyVersions/1"
 
   # Verify newly published images (built on AMD machine) will run on ARM
   check-cross-platform:
@@ -794,6 +791,10 @@ jobs:
         description: Test directory
         type: string
         default: "./..."
+      go_command:
+        description: Go command to run
+        type: string
+        default: ""
     machine:
       image: <<pipeline.parameters.base_image>>
     resource_class: xlarge
@@ -830,7 +831,7 @@ jobs:
               --jsonfile=../tmp/testlogs/log.json \
               -- -parallel=$(nproc) \
               -coverpkg=github.com/ethereum-optimism/optimism/... \
-              -coverprofile=coverage.out <<parameters.test_directory>>
+              -coverprofile=coverage.out <<parameters.test_directory>> <<parameters.go_command>> ./...
           working_directory: <<parameters.module>>
       - store_test_results:
           path: tmp/test-results
@@ -1249,8 +1250,6 @@ jobs:
       - gcp-oidc-authenticate:
           gcp_cred_config_file_path: /root/gcp_cred_config.json
           oidc_token_file_path: /root/oidc_token.json
-          project_id: GCP_TOOLS_ARTIFACTS_PROJECT_ID
-          service_account_email: GCP_CONTRACTS_PUBLISHER_SERVICE_ACCOUNT_EMAIL
       - checkout
       - install-contracts-dependencies
       - run:
@@ -1388,6 +1387,13 @@ workflows:
             - contracts-bedrock-build
             - cannon-prestate
       - op-program-compat
+      - go-e2e-test:
+          name: op-e2e-ext-erigon-tests
+          module: op-e2e
+          target: test-external-erigon
+          requires:
+            - contracts-bedrock-build
+            - cannon-prestate
       - bedrock-go-tests:
           requires:
             - go-mod-download

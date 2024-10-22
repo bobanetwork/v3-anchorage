@@ -10,6 +10,28 @@ import { Deploy } from "scripts/deploy/Deploy.s.sol";
 import { Fork, LATEST_FORK } from "scripts/libraries/Config.sol";
 import { L2Genesis, L1Dependencies } from "scripts/L2Genesis.s.sol";
 import { OutputMode, Fork, ForkUtils } from "scripts/libraries/Config.sol";
+import { Executables } from "scripts/libraries/Executables.sol";
+
+// Contracts
+import { L2CrossDomainMessenger } from "src/L2/L2CrossDomainMessenger.sol";
+import { L2StandardBridgeInterop } from "src/L2/L2StandardBridgeInterop.sol";
+import { L2ToL1MessagePasser } from "src/L2/L2ToL1MessagePasser.sol";
+import { L2ERC721Bridge } from "src/L2/L2ERC721Bridge.sol";
+import { BaseFeeVault } from "src/L2/BaseFeeVault.sol";
+import { SequencerFeeVault } from "src/L2/SequencerFeeVault.sol";
+import { L1FeeVault } from "src/L2/L1FeeVault.sol";
+import { GasPriceOracle } from "src/L2/GasPriceOracle.sol";
+import { L1Block } from "src/L2/L1Block.sol";
+import { LegacyMessagePasser } from "src/legacy/LegacyMessagePasser.sol";
+import { LegacyERC20ETH } from "src/legacy/LegacyERC20ETH.sol";
+import { StandardBridge } from "src/universal/StandardBridge.sol";
+import { FeeVault } from "src/universal/FeeVault.sol";
+import { WETH } from "src/L2/WETH.sol";
+import { SuperchainWETH } from "src/L2/SuperchainWETH.sol";
+import { ETHLiquidity } from "src/L2/ETHLiquidity.sol";
+import { DisputeGameFactory } from "src/dispute/DisputeGameFactory.sol";
+import { DelayedWETH } from "src/dispute/weth/DelayedWETH.sol";
+import { AnchorStateRegistry } from "src/dispute/AnchorStateRegistry.sol";
 
 // Libraries
 import { Predeploys } from "src/libraries/Predeploys.sol";
@@ -206,7 +228,8 @@ contract Setup {
             L1Dependencies({
                 l1CrossDomainMessengerProxy: payable(address(l1CrossDomainMessenger)),
                 l1StandardBridgeProxy: payable(address(l1StandardBridge)),
-                l1ERC721BridgeProxy: payable(address(l1ERC721Bridge))
+                l1ERC721BridgeProxy: payable(address(l1ERC721Bridge)),
+                l1BobaToken: address(0)
             })
         );
 
