@@ -1,4 +1,4 @@
-package op_e2e
+package e2esys
 
 import (
 	"encoding/json"

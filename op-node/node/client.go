@@ -78,7 +78,6 @@ func (cfg *L2EndpointConfig) Setup(ctx context.Context, log log.Logger, rollupCf
 	opts := []client.RPCOption{
 		client.WithGethRPCOptions(auth),
 		client.WithDialBackoff(10),
-		client.WithTimeout(cfg.L2RpcTimeout, cfg.L2RpcBatchTimeout),
 	}
 	l2Node, err := client.NewRPC(ctx, log, cfg.L2EngineAddr, opts...)
 	if err != nil {

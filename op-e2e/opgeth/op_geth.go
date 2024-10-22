@@ -87,7 +87,7 @@ func NewOpGeth(t testing.TB, ctx context.Context, cfg *e2esys.SystemConfig) (*Op
 		node = gethNode
 	} else {
 		safeName := strings.ReplaceAll(t.Name(), "/", "_")
-		externalNode := (&ExternalRunner{
+		externalNode := (&e2esys.ExternalRunner{
 			Name:     fmt.Sprintf("%s-l2", safeName),
 			BinPath:  cfg.ExternalL2Shim,
 			Genesis:  l2Genesis,
