@@ -1,6 +1,6 @@
 # Set Up a Server
 
-For any smart contract, with or without an off-chain handler, the next step is to set up a server to run it. In this example, we will create a simple `JSON-RPC` server using the Hybrid Compute SDK:
+For any smart contract, with or without an off-chain handler, the next step is to set up a server to run it. In this example, we will create a simple `JSON-RPC` server using the Hybrid Compute SDK. Create a new file and add these lines to it:
 
 ```python
 sdk = HybridComputeSDK()
