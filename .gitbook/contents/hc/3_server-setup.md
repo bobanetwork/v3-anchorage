@@ -5,6 +5,27 @@ For any smart contract, with or without an off-chain handler, the next step is t
 ```python
 sdk = HybridComputeSDK()
 sdk.create_json_rpc_server_instance()
+
+def main():
+    print("created server")
+    sdk.add_server_action("getprice(string)", offchain_getprice)
+
+    print("Serving!")
+    sdk.serve_forever()
+```
+
+Note: if working with TypeScript instead of Python, set up your server like this instead:
+
+```typescript
+import { HybridComputeSDK } from '@bobanetwork/aa-hc-sdk-server';
+
+const sdk = new HybridComputeSDK();
+
+sdk.createJsonRpcServerInstance()
+   .addServerAction('myAction', (params) => {
+     // Handle action
+   })
+   .listenAt(3000);
 ```
 
 ## Why is that?

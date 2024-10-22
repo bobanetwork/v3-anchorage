@@ -17,6 +17,30 @@ from eth_abi import abi as ethabi
 
 The last two, `Web3` and `eth_abi`, are established `PyPI` libraries. The third library, `offchain_utils`, was developed by the Boba Foundation. You can view the [library](https://github.com/bobanetwork/rundler-hc/blob/boba-develop/hybrid-compute/offchain/offchain_utils.py) on our Github.
 
+Note: if writing your handler in TypeScript, import the Hybrid Compute SDK and its utility functions like this:
+
+```typescript
+import { HybridComputeSDK } from '@bobanetwork/aa-hc-sdk-server';
+
+const sdk = new HybridComputeSDK();
+
+import { 
+  generateResponse, 
+  parseOffchainParameter, 
+  parseRequest, 
+  decodeAbi 
+} from '@bobanetwork/aa-hc-sdk-server';
+
+// Parse offchain parameters
+const parsedParams = parseOffchainParameter(offchainParams);
+
+// Generate a response
+const response = generateResponse(request, errorCode, responsePayload);
+
+// Decode ABI-encoded data
+const decodedData = decodeAbi(types, data);
+```
+
 Now, we can write our function. Let's start by initializing an `err_code` and a `resp` object with values in case of an exception:
 
 ```python
