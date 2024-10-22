@@ -13,19 +13,6 @@ import { SetPreinstalls } from "scripts/SetPreinstalls.s.sol";
 import { DeployUtils } from "scripts/libraries/DeployUtils.sol";
 
 // Contracts
-import { L2CrossDomainMessenger } from "src/L2/L2CrossDomainMessenger.sol";
-import { L1Block } from "src/L2/L1Block.sol";
-import { GasPriceOracle } from "src/L2/GasPriceOracle.sol";
-import { L2StandardBridge } from "src/L2/L2StandardBridge.sol";
-import { L2ERC721Bridge } from "src/L2/L2ERC721Bridge.sol";
-import { SequencerFeeVault } from "src/L2/SequencerFeeVault.sol";
-import { BaseFeeVault } from "src/L2/BaseFeeVault.sol";
-import { L1FeeVault } from "src/L2/L1FeeVault.sol";
-import { OptimismSuperchainERC20Beacon } from "src/L2/OptimismSuperchainERC20Beacon.sol";
-import { OptimismMintableERC721Factory } from "src/universal/OptimismMintableERC721Factory.sol";
-import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
-import { StandardBridge } from "src/universal/StandardBridge.sol";
-import { GovernanceToken } from "src/governance/GovernanceToken.sol";
 import { LegacyMintableERC20 } from "src/legacy/LegacyMintableERC20.sol";
 
 // Libraries

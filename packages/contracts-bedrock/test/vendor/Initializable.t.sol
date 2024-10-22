@@ -478,20 +478,11 @@ contract Initializer_Test is Bridge_Initializer {
             initializedSlotVal = deploy.loadInitializedSlot(name);
 
             // Assert that the contract is already initialized.
-            if (
-                (_contract.target == deploy.mustGetAddress("L1CrossDomainMessenger"))
-                    || (_contract.target == address(l1CrossDomainMessenger))
-            ) {
-                assertTrue(
-                    initializedSlotVal == 3 || initializedSlotVal == type(uint8).max,
-                    "Initializable: contract is not initialized"
-                );
-            } else {
-                assertTrue(
-                    initializedSlotVal == 1 || initializedSlotVal == type(uint8).max,
-                    "Initializable: contract is not initialized"
-                );
-            }
+            assertTrue(
+                // Either 1 for initialized or type(uint8).max for initializer disabled.
+                initializedSlotVal == 1 || initializedSlotVal == type(uint8).max,
+                "Initializable: contract is not initialized"
+            );
 
             // Then, attempt to re-initialize the contract. This should fail.
             (bool success, bytes memory returnData) = _contract.target.call(_contract.initCalldata);

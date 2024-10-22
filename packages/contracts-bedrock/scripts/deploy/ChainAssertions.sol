@@ -587,13 +587,4 @@ library ChainAssertions {
             "ChainAssertions: storage value is not 1 or 0xff at the given slot and offset"
         );
     }
-    /// @dev Asserts that for a given contract the value of a storage slot at an offset is 3.
-
-    function assertSlotValueIsThree(address _contractAddress, uint256 _slot, uint256 _offset) internal view {
-        bytes32 slotVal = vm.load(_contractAddress, bytes32(_slot));
-        require(
-            uint8((uint256(slotVal) >> (_offset * 8)) & 0xFF) == uint8(3),
-            "Storage value is not 3 at the given slot and offset"
-        );
-    }
 }

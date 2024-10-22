@@ -682,17 +682,6 @@ func (cfg SystemConfig) Start(t *testing.T, startOpts ...StartOption) (*System, 
 				JWTPath:  cfg.JWTFilePath,
 			}).Run(t)
 		}
-
-		l2Geth, err := geth.InitL2(name, l2Genesis, cfg.JWTFilePath, cfg.GethOptions[name]...)
-		if err != nil {
-			return nil, err
-		}
-		if err := l2Geth.Node.Start(); err != nil {
-			return nil, err
-		}
-
-		ethClient = l2Geth
-
 		sys.EthInstances[name] = ethClient
 	}
 
