@@ -27,7 +27,6 @@ import {
 // Contracts
 import { StorageSetter } from "src/universal/StorageSetter.sol";
 import { OPContractsManager } from "src/L1/OPContractsManager.sol";
-import { Predeploys } from "src/libraries/Predeploys.sol";
 import { Chains } from "scripts/libraries/Chains.sol";
 import { Config } from "scripts/libraries/Config.sol";
 import { BOBA } from "src/boba/BOBA.sol";

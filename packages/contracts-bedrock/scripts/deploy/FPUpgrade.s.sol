@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import { console2 as console } from "forge-std/console2.sol";
 import { stdJson } from "forge-std/StdJson.sol";
-import { Vm, VmSafe } from "forge-std/Vm.sol";
+import { Vm } from "forge-std/Vm.sol";
 
 import { Deployer } from "scripts/deploy/Deployer.sol";
 
@@ -352,7 +352,11 @@ contract Deploy is Deployer {
         string memory version = DisputeGameFactory(disputeGameFactoryProxy).version();
         console.log("DisputeGameFactory version: %s", version);
 
-        ChainAssertions.checkDisputeGameFactory({ _contracts: _proxiesUnstrict(), _expectedOwner: msg.sender, _isProxy: true });
+        ChainAssertions.checkDisputeGameFactory({
+            _contracts: _proxiesUnstrict(),
+            _expectedOwner: msg.sender,
+            _isProxy: true
+        });
     }
 
     function initializeDelayedWETH() public broadcast {
@@ -521,10 +525,7 @@ contract Deploy is Deployer {
                 _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
                 _l2ChainId: cfg.l2ChainID()
             });
-            _factory.setImplementation(
-                _params.gameType,
-                IDisputeGame(address(faultDisputeGame))
-            );
+            _factory.setImplementation(_params.gameType, IDisputeGame(address(faultDisputeGame)));
         } else {
             PermissionedDisputeGame permissionedDisputeGame = new PermissionedDisputeGame({
                 _gameType: _params.gameType,
@@ -540,10 +541,7 @@ contract Deploy is Deployer {
                 _proposer: cfg.l2OutputOracleProposer(),
                 _challenger: cfg.l2OutputOracleChallenger()
             });
-            _factory.setImplementation(
-                _params.gameType,
-                IDisputeGame(address(permissionedDisputeGame))
-            );
+            _factory.setImplementation(_params.gameType, IDisputeGame(address(permissionedDisputeGame)));
         }
 
         string memory gameTypeString;

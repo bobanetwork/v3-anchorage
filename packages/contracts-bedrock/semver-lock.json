@@ -92,11 +92,11 @@
     "sourceCodeHash": "0xca9acd19fd5f42e6a7a5b1de6359f2d841814fb54d377664c2fe9c3f9c6be34a"
   },
   "src/L2/L2StandardBridge.sol": {
-    "initCodeHash": "0x651eed10044d0b19b7e4eba864345df15e252be1401f39a552ec0d2f9c4df064",
+    "initCodeHash": "0x388e3c7c81d7275d52267a1d9f7ebb3954d8459887868e21b8cea7b9ddd5adaa",
     "sourceCodeHash": "0xb55e58b5d4912edf05026878a5f5ac8019372212ed2a77843775d595fbf51b84"
   },
   "src/L2/L2StandardBridgeInterop.sol": {
-    "initCodeHash": "0xd43d07c2ba5a73af56181c0221c28f3b495851b03cf8e35f9b009857bb9538a6",
+    "initCodeHash": "0xb34099ba059ca5339db199ba6522d7bc32f04c5a9b20edc01e4c4fe8f8258603",
     "sourceCodeHash": "0x36087332a4365ee172eed8fa35aa48e804b08279e97332058a588c2d4ae30c6b"
   },
   "src/L2/L2ToL1MessagePasser.sol": {
@@ -164,8 +164,8 @@
     "sourceCodeHash": "0x9cb0851b6e471461f2bb369bd72eef4cffe8a0d1345546608a2aa6795540211d"
   },
   "src/dispute/FaultDisputeGame.sol": {
-    "initCodeHash": "0xf97d35adc72c7bcbb5415ff1b183af0a4e3c951696d1dde213df61df50c848b9",
-    "sourceCodeHash": "0x27b4ab6f75004d01ff177b2b26e500a8ad06e906fcd36b920daa067f27f97da6"
+    "initCodeHash": "0x1085d64cb59ea62816c010564d76292d02a3f5e22e62edcc97da0c3cac7fe8d2",
+    "sourceCodeHash": "0xb3abd7e56a27739e59c6ee2840eb2366abc3e167e5d05f6adcf63832c0247b6c"
   },
   "src/legacy/DeployerWhitelist.sol": {
     "initCodeHash": "0x0b8177ed75b69eddbb9ce6537683f69a9935efed86a1d6faa8feaafbd151c1bd",
