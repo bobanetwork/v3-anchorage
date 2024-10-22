@@ -14,13 +14,18 @@ import { OptimismPortal2 } from "src/L1/OptimismPortal2.sol";
 import { DisputeGameFactory } from "src/dispute/DisputeGameFactory.sol";
 import { FaultDisputeGame } from "src/dispute/FaultDisputeGame.sol";
 import { PermissionedDisputeGame } from "src/dispute/PermissionedDisputeGame.sol";
-import { DelayedWETH } from "src/dispute/weth/DelayedWETH.sol";
+import { DelayedWETH } from "src/dispute/DelayedWETH.sol";
 import { AnchorStateRegistry } from "src/dispute/AnchorStateRegistry.sol";
 import { PreimageOracle } from "src/cannon/PreimageOracle.sol";
 import { MIPS } from "src/cannon/MIPS.sol";
 import { Chains } from "scripts/libraries/Chains.sol";
 import { Config } from "scripts/libraries/Config.sol";
 
+import { IDisputeGameFactory } from "src/dispute/interfaces/IDisputeGameFactory.sol";
+import { IDisputeGame } from "src/dispute/interfaces/IDisputeGame.sol";
+import { IPreimageOracle } from "src/cannon/interfaces/IPreimageOracle.sol";
+import { IDelayedWETH } from "src/dispute/interfaces/IDelayedWETH.sol";
+import { IAnchorStateRegistry } from "src/dispute/interfaces/IAnchorStateRegistry.sol";
 import { ISuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
 
 import { IBigStepper } from "src/dispute/interfaces/IBigStepper.sol";
@@ -100,7 +105,8 @@ contract Deploy is Deployer {
             SystemConfig: mustGetAddress("SystemConfigProxy"),
             L1ERC721Bridge: mustGetAddress("L1ERC721BridgeProxy"),
             ProtocolVersions: mustGetAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: mustGetAddress("SuperchainConfigProxy")
+            SuperchainConfig: mustGetAddress("SuperchainConfigProxy"),
+            OPContractsManager: mustGetAddress("OPContractsManagerProxy")
         });
     }
 
@@ -120,7 +126,8 @@ contract Deploy is Deployer {
             SystemConfig: getAddress("SystemConfigProxy"),
             L1ERC721Bridge: getAddress("L1ERC721BridgeProxy"),
             ProtocolVersions: getAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: getAddress("SuperchainConfigProxy")
+            SuperchainConfig: getAddress("SuperchainConfigProxy"),
+            OPContractsManager: getAddress("OPContractsManagerProxy")
         });
     }
 
@@ -270,7 +277,7 @@ contract Deploy is Deployer {
         // `DisputeGameFactory` implementation alongside dependent contracts, which are always proxies.
         Types.ContractSet memory contracts = _proxiesUnstrict();
         contracts.DisputeGameFactory = address(factory);
-        ChainAssertions.checkDisputeGameFactory({ _contracts: contracts, _expectedOwner: address(0) });
+        ChainAssertions.checkDisputeGameFactory({ _contracts: contracts, _expectedOwner: address(0), _isProxy: false });
 
         addr_ = address(factory);
     }
@@ -323,7 +330,7 @@ contract Deploy is Deployer {
     function deployAnchorStateRegistry() public broadcast returns (address addr_) {
         console.log("Deploying AnchorStateRegistry implementation");
         AnchorStateRegistry anchorStateRegistry =
-            new AnchorStateRegistry(DisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy")));
+            new AnchorStateRegistry(IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy")));
         save("AnchorStateRegistry", address(anchorStateRegistry));
         console.log("AnchorStateRegistry deployed at %s", address(anchorStateRegistry));
 
@@ -345,7 +352,7 @@ contract Deploy is Deployer {
         string memory version = DisputeGameFactory(disputeGameFactoryProxy).version();
         console.log("DisputeGameFactory version: %s", version);
 
-        ChainAssertions.checkDisputeGameFactory({ _contracts: _proxiesUnstrict(), _expectedOwner: msg.sender });
+        ChainAssertions.checkDisputeGameFactory({ _contracts: _proxiesUnstrict(), _expectedOwner: msg.sender, _isProxy: true });
     }
 
     function initializeDelayedWETH() public broadcast {
@@ -477,7 +484,7 @@ contract Deploy is Deployer {
                 weth: weth,
                 gameType: GameTypes.ALPHABET,
                 absolutePrestate: outputAbsolutePrestate,
-                faultVm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, PreimageOracle(mustGetAddress("PreimageOracle")))),
+                faultVm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, IPreimageOracle(mustGetAddress("PreimageOracle")))),
                 // The max depth for the alphabet trace is always 3. Add 1 because split depth is fully inclusive.
                 maxGameDepth: cfg.faultGameSplitDepth() + 3 + 1
             })
@@ -502,38 +509,40 @@ contract Deploy is Deployer {
 
         uint32 rawGameType = GameType.unwrap(_params.gameType);
         if (rawGameType != GameTypes.PERMISSIONED_CANNON.raw()) {
+            FaultDisputeGame faultDisputeGame = new FaultDisputeGame({
+                _gameType: _params.gameType,
+                _absolutePrestate: _params.absolutePrestate,
+                _maxGameDepth: _params.maxGameDepth,
+                _splitDepth: cfg.faultGameSplitDepth(),
+                _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
+                _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
+                _vm: _params.faultVm,
+                _weth: IDelayedWETH(payable(address(_params.weth))),
+                _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
+                _l2ChainId: cfg.l2ChainID()
+            });
             _factory.setImplementation(
                 _params.gameType,
-                new FaultDisputeGame({
-                    _gameType: _params.gameType,
-                    _absolutePrestate: _params.absolutePrestate,
-                    _maxGameDepth: _params.maxGameDepth,
-                    _splitDepth: cfg.faultGameSplitDepth(),
-                    _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
-                    _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-                    _vm: _params.faultVm,
-                    _weth: _params.weth,
-                    _anchorStateRegistry: _params.anchorStateRegistry,
-                    _l2ChainId: cfg.l2ChainID()
-                })
+                IDisputeGame(address(faultDisputeGame))
             );
         } else {
+            PermissionedDisputeGame permissionedDisputeGame = new PermissionedDisputeGame({
+                _gameType: _params.gameType,
+                _absolutePrestate: _params.absolutePrestate,
+                _maxGameDepth: _params.maxGameDepth,
+                _splitDepth: cfg.faultGameSplitDepth(),
+                _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
+                _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
+                _vm: _params.faultVm,
+                _weth: IDelayedWETH(payable(address(_params.weth))),
+                _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
+                _l2ChainId: cfg.l2ChainID(),
+                _proposer: cfg.l2OutputOracleProposer(),
+                _challenger: cfg.l2OutputOracleChallenger()
+            });
             _factory.setImplementation(
                 _params.gameType,
-                new PermissionedDisputeGame({
-                    _gameType: _params.gameType,
-                    _absolutePrestate: _params.absolutePrestate,
-                    _maxGameDepth: _params.maxGameDepth,
-                    _splitDepth: cfg.faultGameSplitDepth(),
-                    _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
-                    _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-                    _vm: _params.faultVm,
-                    _weth: _params.weth,
-                    _anchorStateRegistry: _params.anchorStateRegistry,
-                    _l2ChainId: cfg.l2ChainID(),
-                    _proposer: cfg.l2OutputOracleProposer(),
-                    _challenger: cfg.l2OutputOracleChallenger()
-                })
+                IDisputeGame(address(permissionedDisputeGame))
             );
         }
 

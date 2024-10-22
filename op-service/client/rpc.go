@@ -21,9 +21,7 @@ import (
 )
 
 var (
-	httpRegex              = regexp.MustCompile("^http(s)?://")
-	defaultRPCTimeout      = 10 * time.Second
-	defaultRPCBatchTimeout = 20 * time.Second
+	httpRegex = regexp.MustCompile("^http(s)?://")
 )
 
 type RPC interface {

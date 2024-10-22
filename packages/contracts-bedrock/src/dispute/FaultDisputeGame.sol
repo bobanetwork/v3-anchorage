@@ -93,7 +93,9 @@ contract FaultDisputeGame is Clone, ISemver {
 
     /// @notice Emitted when the game is resolved.
     /// @param status The status of the game after resolution.
-    event Resolved(GameStatus indexed status);
+    /// @param rootClaim The root claim of the DisputeGame.
+    /// @param l2BlockNumber The L2 block number at which the output root was generated.
+    event Resolved(GameStatus indexed status, Claim indexed rootClaim, uint256 indexed l2BlockNumber);
 
     /// @notice Emitted when a new claim is added to the DAG by `claimant`
     /// @param parentIndex The index within the `claimData` array of the parent claim

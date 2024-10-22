@@ -25,7 +25,6 @@ import { OptimismSuperchainERC20Beacon } from "src/L2/OptimismSuperchainERC20Bea
 import { OptimismMintableERC721Factory } from "src/universal/OptimismMintableERC721Factory.sol";
 import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
 import { StandardBridge } from "src/universal/StandardBridge.sol";
-import { FeeVault } from "src/universal/FeeVault.sol";
 import { GovernanceToken } from "src/governance/GovernanceToken.sol";
 import { LegacyMintableERC20 } from "src/legacy/LegacyMintableERC20.sol";
 
