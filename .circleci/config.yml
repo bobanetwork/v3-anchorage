@@ -158,8 +158,9 @@ commands:
 
 jobs:
   cannon-go-lint-and-test:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     parameters:
       skip_slow_tests:
         type: boolean
@@ -240,8 +241,9 @@ jobs:
           working_directory: cannon/mipsevm/tests/open_mips_tests
 
   contracts-bedrock-build:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     parameters:
       skip_pattern:
         description: Glob pattern of tests to skip
@@ -768,8 +770,8 @@ jobs:
             - "/root/.cache/go-build"
 
   go-lint:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
     steps:
       - checkout
       - run:
@@ -840,8 +842,9 @@ jobs:
           when: always
 
   go-test:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - checkout
       - attach_workspace:
@@ -900,12 +903,9 @@ jobs:
         description: Slack user or group to mention when notifying of failures
         type: string
         default: ""
-      resource_class:
-        description: Machine resource class
-        type: string
-        default: ethereum-optimism/latitude-1
-    machine: true
-    resource_class: <<parameters.resource_class>>
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - checkout
       - attach_workspace:
@@ -951,8 +951,9 @@ jobs:
                 mentions: "<<parameters.mentions>>"
 
   cannon-prestate:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - checkout
       - run:
@@ -1276,8 +1277,9 @@ jobs:
         description: Goreleaser config file
         default: .goreleaser.yaml
         type: string
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - checkout
       - run:
