@@ -1005,8 +1005,6 @@ func ConfigureL2(rollupNodeCfg *rollupNode.Config, l2Node services.EthInstance, 
 	rollupNodeCfg.L2 = &rollupNode.L2EndpointConfig{
 		L2EngineAddr:      endpoint.SelectRPC(EnvRPCPreference(), l2Node.AuthRPC()),
 		L2EngineJWTSecret: jwtSecret,
-		L2RpcTimeout:      10 * time.Second,
-		L2RpcBatchTimeout: 20 * time.Second,
 	}
 }
 

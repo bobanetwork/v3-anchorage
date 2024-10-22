@@ -21,8 +21,15 @@ import (
 )
 
 var (
-	httpRegex = regexp.MustCompile("^http(s)?://")
+	httpRegex              = regexp.MustCompile("^http(s)?://")
+	defaultRPCTimeout      = 10 * time.Second
+	defaultRPCBatchTimeout = 20 * time.Second
 )
+
+type BaseRPCTimeout struct {
+	RPCTimeout      time.Duration
+	RPCBatchTimeout time.Duration
+}
 
 type RPC interface {
 	Close()
@@ -131,9 +138,17 @@ func NewRPC(ctx context.Context, lgr log.Logger, addr string, opts ...RPCOption)
 		if err != nil {
 			return nil, err
 		}
-		wrapped = &BaseRPCClient{c: underlying, callTimeout: cfg.callTimeout, batchCallTimeout: cfg.batchCallTimeout}
-	}
+		baseRPCClient := &BaseRPCClient{c: underlying, CallTimeout: cfg.callTimeout, BatchCallTimeout: cfg.batchCallTimeout}
 
+		if cfg.callTimeout != time.Duration(0) {
+			baseRPCClient.CallTimeout = cfg.callTimeout
+		}
+		if cfg.batchCallTimeout != time.Duration(0) {
+			baseRPCClient.BatchCallTimeout = cfg.batchCallTimeout
+		}
+
+		wrapped = baseRPCClient
+	}
 	if cfg.limit != 0 {
 		wrapped = NewRateLimitingClient(wrapped, rate.Limit(cfg.limit), cfg.burst)
 	}
@@ -196,12 +211,12 @@ func IsURLAvailable(ctx context.Context, address string) bool {
 // It sets a timeout of 10s on CallContext & 20s on BatchCallContext made through it.
 type BaseRPCClient struct {
 	c                *rpc.Client
-	batchCallTimeout time.Duration
-	callTimeout      time.Duration
+	BatchCallTimeout time.Duration
+	CallTimeout      time.Duration
 }
 
 func NewBaseRPCClient(c *rpc.Client) *BaseRPCClient {
-	return &BaseRPCClient{c: c, callTimeout: 10 * time.Second, batchCallTimeout: 20 * time.Second}
+	return &BaseRPCClient{c: c, CallTimeout: 10 * time.Second, BatchCallTimeout: 20 * time.Second}
 }
 
 func (b *BaseRPCClient) Close() {
@@ -209,13 +224,13 @@ func (b *BaseRPCClient) Close() {
 }
 
 func (b *BaseRPCClient) CallContext(ctx context.Context, result any, method string, args ...any) error {
-	cCtx, cancel := context.WithTimeout(ctx, b.callTimeout)
+	cCtx, cancel := context.WithTimeout(ctx, b.CallTimeout)
 	defer cancel()
 	return b.c.CallContext(cCtx, result, method, args...)
 }
 
 func (b *BaseRPCClient) BatchCallContext(ctx context.Context, batch []rpc.BatchElem) error {
-	cCtx, cancel := context.WithTimeout(ctx, b.batchCallTimeout)
+	cCtx, cancel := context.WithTimeout(ctx, b.BatchCallTimeout)
 	defer cancel()
 	return b.c.BatchCallContext(cCtx, batch)
 }
