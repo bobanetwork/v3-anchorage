@@ -268,7 +268,12 @@ func initExternalL2(externalL2 string) error {
 		return fmt.Errorf("failed to stat externalL2Nodes path: %w", err)
 	}
 
-	file, err := os.Open(filepath.Join(externalL2, "test_parms.json"))
+	paraPath, err := filepath.Abs(filepath.Join(path, externalL2, "test_parms.json"))
+	if err != nil {
+		return fmt.Errorf("could not compute abs of externalL2Nodes test parms: %w", err)
+	}
+
+	file, err := os.Open(paraPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil

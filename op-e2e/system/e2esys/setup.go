@@ -96,6 +96,8 @@ func WithAllocType(allocType config.AllocType) SystemConfigOpt {
 }
 
 func DefaultSystemConfig(t testing.TB, opts ...SystemConfigOpt) SystemConfig {
+	config.ExternalL2TestParms.SkipIfNecessary(t)
+
 	sco := &SystemConfigOpts{
 		AllocType: config.DefaultAllocType,
 	}
