@@ -6,7 +6,7 @@ parameters:
     default: "us-docker.pkg.dev"
   ci_builder_image:
     type: string
-    default: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/ci-builder:v1.4.0
+    default: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/ci-builder:v1.5.0
   repo:
     type: string
     default: ${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images
@@ -874,7 +874,6 @@ jobs:
             done
 
             export ENABLE_ANVIL=true
-            export SEPOLIA_RPC_URL="https://ci-sepolia-l1-archive.optimism.io"
 
             gotestsum --format=testname \
               --junitfile=./tmp/test-results/results.xml \
