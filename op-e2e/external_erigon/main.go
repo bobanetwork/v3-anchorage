@@ -106,9 +106,7 @@ func (es *erigonSession) Close() {
 
 func execute(binPath string, config external.Config) (*erigonSession, error) {
 	if config.Verbosity < 3 {
-		// Note, we could manually filter the logging further, if this is
-		// really problematic.
-		return nil, fmt.Errorf("verbosity of at least 2 is required to scrape for logs")
+		config.Verbosity = 3
 	}
 	cmd := exec.Command(
 		binPath,

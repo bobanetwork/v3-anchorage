@@ -179,6 +179,7 @@ func DefaultSystemConfig(t testing.TB, opts ...SystemConfigOpt) SystemConfig {
 		GethOptions:                   map[string][]geth.GethOption{},
 		P2PTopology:                   nil, // no P2P connectivity by default
 		NonFinalizedProposals:         false,
+		ExternalL2Shim:                config.ExternalL2Shim,
 		DataAvailabilityType:          batcherFlags.CalldataType,
 		BatcherMaxPendingTransactions: 1,
 		BatcherTargetNumFrames:        1,
