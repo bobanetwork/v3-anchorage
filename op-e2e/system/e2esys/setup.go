@@ -683,9 +683,6 @@ func (cfg SystemConfig) Start(t *testing.T, startOpts ...StartOption) (*System, 
 			}
 			ethClient = l2Geth
 		} else {
-			if len(cfg.GethOptions[name]) > 0 {
-				t.Skip("External L2 nodes do not support configuration through GethOptions")
-			}
 			ethClient = (&ExternalRunner{
 				Name:     name,
 				BinPath:  cfg.ExternalL2Shim,
