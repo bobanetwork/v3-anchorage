@@ -149,14 +149,20 @@ func execute(binPath string, config external.Config) (*erigonSession, error) {
 	if err != nil {
 		return nil, fmt.Errorf("http endpoint never opened")
 	}
-	fmt.Fscanf(engineBuffer, "%d", &httpPort)
+	_, err = fmt.Fscanf(engineBuffer, "%d", &httpPort)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan http port: %w", err)
+	}
 	fmt.Printf("==================    op-erigon shim got http port %d  ==========================\n", httpPort)
 
 	gm.Eventually(sess.Err, time.Minute).Should(gbytes.Say("HTTP endpoint opened for Engine API\\s*url=127.0.0.1:"))
 	if err != nil {
 		return nil, fmt.Errorf("http engine endpoint never opened")
 	}
-	fmt.Fscanf(sess.Err, "%d", &enginePort)
+	_, err = fmt.Fscanf(sess.Err, "%d", &enginePort)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan engine port: %w", err)
+	}
 	fmt.Printf("==================    op-erigon shim got engine port %d  ==========================\n", enginePort)
 
 	// TODO(jky) this is a horrible hack, but giving Erigon just a little extra
