@@ -15,7 +15,7 @@ from web3 import Web3
 from eth_abi import abi as ethabi
 ```
 
-The last two, `Web3` and `eth_abi`, are established `PyPI` libraries. The third library, `offchain_utils`, was developed by the Boba Foundation. You can view the [library](https://github.com/bobanetwork/rundler-hc/blob/boba-develop/hybrid-compute/offchain/offchain_utils.py) on our Github.
+The last two, `Web3` and `eth_abi`, are established `PyPI` libraries. The SDK, was developed by the Boba Foundation. You can view the [library](https://github.com/bobanetwork/aa-hc-sdk/tree/main/sdks) on our Github.
 
 Note: if writing your handler in TypeScript, import the Hybrid Compute SDK and its utility functions like this:
 
