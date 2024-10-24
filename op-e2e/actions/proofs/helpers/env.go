@@ -4,10 +4,13 @@ import (
 	"context"
 	"math/rand"
 
+	e2ecfg "github.com/ethereum-optimism/optimism/op-e2e/config"
+
 	altda "github.com/ethereum-optimism/optimism/op-alt-da"
 	batcherFlags "github.com/ethereum-optimism/optimism/op-batcher/flags"
-	"github.com/ethereum-optimism/optimism/op-e2e/actions"
+	"github.com/ethereum-optimism/optimism/op-e2e/actions/helpers"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils"
+	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/fakebeacon"
 	"github.com/ethereum-optimism/optimism/op-program/host"
 	"github.com/ethereum-optimism/optimism/op-program/host/config"
 	"github.com/ethereum-optimism/optimism/op-program/host/kvstore"
@@ -25,19 +28,20 @@ import (
 // L2FaultProofEnv is a test harness for a fault provable L2 chain.
 type L2FaultProofEnv struct {
 	log       log.Logger
-	Batcher   *actions.L2Batcher
-	Sequencer *actions.L2Sequencer
-	Engine    *actions.L2Engine
+	Batcher   *helpers.L2Batcher
+	Sequencer *helpers.L2Sequencer
+	Engine    *helpers.L2Engine
 	engCl     *sources.EngineClient
-	sd        *e2eutils.SetupData
-	dp        *e2eutils.DeployParams
-	Miner     *actions.L1Miner
-	Alice     *actions.CrossLayerUser
+	Sd        *e2eutils.SetupData
+	Dp        *e2eutils.DeployParams
+	Miner     *helpers.L1Miner
+	Alice     *helpers.CrossLayerUser
+	Bob       *helpers.CrossLayerUser
 }
 
-func NewL2FaultProofEnv[c any](t actions.Testing, testCfg *TestCfg[c], tp *e2eutils.TestParams, batcherCfg *actions.BatcherCfg) *L2FaultProofEnv {
+func NewL2FaultProofEnv[c any](t helpers.Testing, testCfg *TestCfg[c], tp *e2eutils.TestParams, batcherCfg *helpers.BatcherCfg) *L2FaultProofEnv {
 	log := testlog.Logger(t, log.LvlDebug)
-	dp := NewDeployParams(t, func(dp *e2eutils.DeployParams) {
+	dp := NewDeployParams(t, tp, func(dp *e2eutils.DeployParams) {
 		genesisBlock := hexutil.Uint64(0)
 
 		// Enable cancun always
@@ -57,48 +61,53 @@ func NewL2FaultProofEnv[c any](t actions.Testing, testCfg *TestCfg[c], tp *e2eut
 			dp.DeployConfig.L2GenesisFjordTimeOffset = &genesisBlock
 		case Granite:
 			dp.DeployConfig.L2GenesisGraniteTimeOffset = &genesisBlock
+		case Holocene:
+			dp.DeployConfig.L2GenesisHoloceneTimeOffset = &genesisBlock
 		}
 	})
-	sd := e2eutils.Setup(t, dp, actions.DefaultAlloc)
+	sd := e2eutils.Setup(t, dp, helpers.DefaultAlloc)
 
 	jwtPath := e2eutils.WriteDefaultJWT(t)
-	cfg := &actions.SequencerCfg{VerifierCfg: *actions.DefaultVerifierCfg()}
+	cfg := &helpers.SequencerCfg{VerifierCfg: *helpers.DefaultVerifierCfg()}
 
-	miner := actions.NewL1Miner(t, log.New("role", "l1-miner"), sd.L1Cfg)
+	miner := helpers.NewL1Miner(t, log.New("role", "l1-miner"), sd.L1Cfg)
 
 	l1Cl, err := sources.NewL1Client(miner.RPCClient(), log, nil, sources.L1ClientDefaultConfig(sd.RollupCfg, false, sources.RPCKindStandard))
 	require.NoError(t, err)
-	engine := actions.NewL2Engine(t, log.New("role", "sequencer-engine"), sd.L2Cfg, sd.RollupCfg.Genesis.L1, jwtPath, actions.EngineWithP2P())
+	engine := helpers.NewL2Engine(t, log.New("role", "sequencer-engine"), sd.L2Cfg, sd.RollupCfg.Genesis.L1, jwtPath, helpers.EngineWithP2P())
 	l2EngineCl, err := sources.NewEngineClient(engine.RPCClient(), log, nil, sources.EngineClientDefaultConfig(sd.RollupCfg))
 	require.NoError(t, err)
 
-	sequencer := actions.NewL2Sequencer(t, log.New("role", "sequencer"), l1Cl, miner.BlobStore(), altda.Disabled, l2EngineCl, sd.RollupCfg, 0, cfg.InteropBackend)
+	sequencer := helpers.NewL2Sequencer(t, log.New("role", "sequencer"), l1Cl, miner.BlobStore(), altda.Disabled, l2EngineCl, sd.RollupCfg, 0, cfg.InteropBackend)
 	miner.ActL1SetFeeRecipient(common.Address{0xCA, 0xFE, 0xBA, 0xBE})
 	sequencer.ActL2PipelineFull(t)
 	engCl := engine.EngineClient(t, sd.RollupCfg)
 
 	// Set the batcher key to the secret key of the batcher
 	batcherCfg.BatcherKey = dp.Secrets.Batcher
-	batcher := actions.NewL2Batcher(log, sd.RollupCfg, batcherCfg, sequencer.RollupClient(), miner.EthClient(), engine.EthClient(), engCl)
+	batcher := helpers.NewL2Batcher(log, sd.RollupCfg, batcherCfg, sequencer.RollupClient(), miner.EthClient(), engine.EthClient(), engCl)
 
 	addresses := e2eutils.CollectAddresses(sd, dp)
 	l1EthCl := miner.EthClient()
 	l2EthCl := engine.EthClient()
-	l1UserEnv := &actions.BasicUserEnv[*actions.L1Bindings]{
+	l1UserEnv := &helpers.BasicUserEnv[*helpers.L1Bindings]{
 		EthCl:          l1EthCl,
 		Signer:         types.LatestSigner(sd.L1Cfg.Config),
 		AddressCorpora: addresses,
-		Bindings:       actions.NewL1Bindings(t, l1EthCl),
+		Bindings:       helpers.NewL1Bindings(t, l1EthCl, e2ecfg.AllocTypeStandard),
 	}
-	l2UserEnv := &actions.BasicUserEnv[*actions.L2Bindings]{
+	l2UserEnv := &helpers.BasicUserEnv[*helpers.L2Bindings]{
 		EthCl:          l2EthCl,
 		Signer:         types.LatestSigner(sd.L2Cfg.Config),
 		AddressCorpora: addresses,
-		Bindings:       actions.NewL2Bindings(t, l2EthCl, engine.GethClient()),
+		Bindings:       helpers.NewL2Bindings(t, l2EthCl, engine.GethClient()),
 	}
-	alice := actions.NewCrossLayerUser(log, dp.Secrets.Alice, rand.New(rand.NewSource(0xa57b)))
+	alice := helpers.NewCrossLayerUser(log, dp.Secrets.Alice, rand.New(rand.NewSource(0xa57b)), e2ecfg.AllocTypeStandard)
 	alice.L1.SetUserEnv(l1UserEnv)
 	alice.L2.SetUserEnv(l2UserEnv)
+	bob := helpers.NewCrossLayerUser(log, dp.Secrets.Bob, rand.New(rand.NewSource(0xbeef)), e2ecfg.AllocTypeStandard)
+	bob.L1.SetUserEnv(l1UserEnv)
+	bob.L2.SetUserEnv(l2UserEnv)
 
 	return &L2FaultProofEnv{
 		log:       log,
@@ -106,25 +115,26 @@ func NewL2FaultProofEnv[c any](t actions.Testing, testCfg *TestCfg[c], tp *e2eut
 		Sequencer: sequencer,
 		Engine:    engine,
 		engCl:     engCl,
-		sd:        sd,
-		dp:        dp,
+		Sd:        sd,
+		Dp:        dp,
 		Miner:     miner,
 		Alice:     alice,
+		Bob:       bob,
 	}
 }
 
 type FixtureInputParam func(f *FixtureInputs)
 
-type CheckResult func(actions.Testing, error)
+type CheckResult func(helpers.Testing, error)
 
 func ExpectNoError() CheckResult {
-	return func(t actions.Testing, err error) {
+	return func(t helpers.Testing, err error) {
 		require.NoError(t, err, "fault proof program should have succeeded")
 	}
 }
 
 func ExpectError(expectedErr error) CheckResult {
-	return func(t actions.Testing, err error) {
+	return func(t helpers.Testing, err error) {
 		require.ErrorIs(t, err, expectedErr, "fault proof program should have failed with expected error")
 	}
 }
@@ -135,7 +145,7 @@ func WithL2Claim(claim common.Hash) FixtureInputParam {
 	}
 }
 
-func (env *L2FaultProofEnv) RunFaultProofProgram(t actions.Testing, l2ClaimBlockNum uint64, checkResult CheckResult, fixtureInputParams ...FixtureInputParam) {
+func (env *L2FaultProofEnv) RunFaultProofProgram(t helpers.Testing, l2ClaimBlockNum uint64, checkResult CheckResult, fixtureInputParams ...FixtureInputParam) {
 	// Fetch the pre and post output roots for the fault proof.
 	preRoot, err := env.Sequencer.RollupClient().OutputAtBlock(t.Ctx(), l2ClaimBlockNum-1)
 	require.NoError(t, err)
@@ -148,41 +158,57 @@ func (env *L2FaultProofEnv) RunFaultProofProgram(t actions.Testing, l2ClaimBlock
 		L2Claim:       common.Hash(claimRoot.OutputRoot),
 		L2Head:        preRoot.BlockRef.Hash,
 		L2OutputRoot:  common.Hash(preRoot.OutputRoot),
-		L2ChainID:     env.sd.RollupCfg.L2ChainID.Uint64(),
+		L2ChainID:     env.Sd.RollupCfg.L2ChainID.Uint64(),
 		L1Head:        l1Head.Hash(),
 	}
 	for _, apply := range fixtureInputParams {
 		apply(fixtureInputs)
 	}
 
-	// Run the fault proof program from the state transition from L2 block 0 -> 1.
-	programCfg := NewOpProgramCfg(
-		t,
-		env,
-		fixtureInputs,
-	)
-	withInProcessPrefetcher := host.WithPrefetcher(func(ctx context.Context, logger log.Logger, kv kvstore.KV, cfg *config.Config) (host.Prefetcher, error) {
-		// Set up in-process L1 sources
-		l1Cl := env.Miner.L1Client(t, env.sd.RollupCfg)
-		l1BlobFetcher := env.Miner.BlobStore()
+	// Run the fault proof program from the state transition from L2 block l2ClaimBlockNum - 1 -> l2ClaimBlockNum.
+	workDir := t.TempDir()
+	if IsKonaConfigured() {
+		fakeBeacon := fakebeacon.NewBeacon(
+			env.log,
+			env.Miner.BlobStore(),
+			env.Sd.L1Cfg.Timestamp,
+			12,
+		)
+		require.NoError(t, fakeBeacon.Start("127.0.0.1:0"))
+		defer fakeBeacon.Close()
 
-		// Set up in-process L2 source
-		l2ClCfg := sources.L2ClientDefaultConfig(env.sd.RollupCfg, true)
-		l2RPC := env.Engine.RPCClient()
-		l2Client, err := host.NewL2Client(l2RPC, env.log, nil, &host.L2ClientConfig{L2ClientConfig: l2ClCfg, L2Head: cfg.L2Head})
-		require.NoError(t, err, "failed to create L2 client")
-		l2DebugCl := &host.L2Source{L2Client: l2Client, DebugClient: sources.NewDebugClient(l2RPC.CallContext)}
+		err = RunKonaNative(t, workDir, env, env.Miner.HTTPEndpoint(), fakeBeacon.BeaconAddr(), env.Engine.HTTPEndpoint(), *fixtureInputs)
+		checkResult(t, err)
+	} else {
+		programCfg := NewOpProgramCfg(
+			t,
+			env,
+			fixtureInputs,
+		)
+		withInProcessPrefetcher := host.WithPrefetcher(func(ctx context.Context, logger log.Logger, kv kvstore.KV, cfg *config.Config) (host.Prefetcher, error) {
+			// Set up in-process L1 sources
+			l1Cl := env.Miner.L1Client(t, env.Sd.RollupCfg)
+			l1BlobFetcher := env.Miner.BlobSource()
 
-		return prefetcher.NewPrefetcher(logger, l1Cl, l1BlobFetcher, l2DebugCl, kv), nil
-	})
-	err = host.FaultProofProgram(t.Ctx(), env.log, programCfg, withInProcessPrefetcher)
-	tryDumpTestFixture(t, err, t.Name(), env, programCfg)
+			// Set up in-process L2 source
+			l2ClCfg := sources.L2ClientDefaultConfig(env.Sd.RollupCfg, true)
+			l2RPC := env.Engine.RPCClient()
+			l2Client, err := host.NewL2Client(l2RPC, env.log, nil, &host.L2ClientConfig{L2ClientConfig: l2ClCfg, L2Head: cfg.L2Head})
+			require.NoError(t, err, "failed to create L2 client")
+			l2DebugCl := &host.L2Source{L2Client: l2Client, DebugClient: sources.NewDebugClient(l2RPC.CallContext)}
+
+			return prefetcher.NewPrefetcher(logger, l1Cl, l1BlobFetcher, l2DebugCl, kv), nil
+		})
+		err = host.FaultProofProgram(t.Ctx(), env.log, programCfg, withInProcessPrefetcher)
+		checkResult(t, err)
+	}
+	tryDumpTestFixture(t, err, t.Name(), env, *fixtureInputs, workDir)
 }
 
 type TestParam func(p *e2eutils.TestParams)
 
 func NewTestParams(params ...TestParam) *e2eutils.TestParams {
-	dfault := actions.DefaultRollupTestParams
+	dfault := helpers.DefaultRollupTestParams()
 	for _, apply := range params {
 		apply(dfault)
 	}
@@ -191,18 +217,18 @@ func NewTestParams(params ...TestParam) *e2eutils.TestParams {
 
 type DeployParam func(p *e2eutils.DeployParams)
 
-func NewDeployParams(t actions.Testing, params ...DeployParam) *e2eutils.DeployParams {
-	dfault := e2eutils.MakeDeployParams(t, NewTestParams())
+func NewDeployParams(t helpers.Testing, tp *e2eutils.TestParams, params ...DeployParam) *e2eutils.DeployParams {
+	dfault := e2eutils.MakeDeployParams(t, tp)
 	for _, apply := range params {
 		apply(dfault)
 	}
 	return dfault
 }
 
-type BatcherCfgParam func(c *actions.BatcherCfg)
+type BatcherCfgParam func(c *helpers.BatcherCfg)
 
-func NewBatcherCfg(params ...BatcherCfgParam) *actions.BatcherCfg {
-	dfault := &actions.BatcherCfg{
+func NewBatcherCfg(params ...BatcherCfgParam) *helpers.BatcherCfg {
+	dfault := &helpers.BatcherCfg{
 		MinL1TxSize:          0,
 		MaxL1TxSize:          128_000,
 		DataAvailabilityType: batcherFlags.BlobsType,
@@ -216,12 +242,12 @@ func NewBatcherCfg(params ...BatcherCfgParam) *actions.BatcherCfg {
 type OpProgramCfgParam func(p *config.Config)
 
 func NewOpProgramCfg(
-	t actions.Testing,
+	t helpers.Testing,
 	env *L2FaultProofEnv,
 	fi *FixtureInputs,
 	params ...OpProgramCfgParam,
 ) *config.Config {
-	dfault := config.NewConfig(env.sd.RollupCfg, env.sd.L2Cfg.Config, fi.L1Head, fi.L2Head, fi.L2OutputRoot, fi.L2Claim, fi.L2BlockNumber)
+	dfault := config.NewConfig(env.Sd.RollupCfg, env.Sd.L2Cfg.Config, fi.L1Head, fi.L2Head, fi.L2OutputRoot, fi.L2Claim, fi.L2BlockNumber)
 
 	if dumpFixtures {
 		dfault.DataDir = t.TempDir()

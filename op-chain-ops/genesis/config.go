@@ -95,8 +95,8 @@ type L2GenesisBlockDeployConfig struct {
 	L2GenesisBlockGasUsed       hexutil.Uint64 `json:"l2GenesisBlockGasUsed"`
 	L2GenesisBlockParentHash    common.Hash    `json:"l2GenesisBlockParentHash"`
 	L2GenesisBlockBaseFeePerGas *hexutil.Big   `json:"l2GenesisBlockBaseFeePerGas"`
-	// L2GenesisBlockExtraData is configurable extradata. Will default to []byte("BEDROCK") if left unspecified.
-	L2GenesisBlockExtraData []byte `json:"l2GenesisBlockExtraData"`
+	// Note that there is no L2 genesis ExtraData, as it must default to a valid Holocene eip-1559
+	// configuration. See constant 'HoloceneExtraData' for the specific value used.
 	// Note that there is no L2 genesis timestamp:
 	// This is instead configured based on the timestamp of "l1StartingBlockTag".
 }
@@ -343,6 +343,9 @@ type UpgradeScheduleDeployConfig struct {
 	// L2GenesisGraniteTimeOffset is the number of seconds after genesis block that Granite hard fork activates.
 	// Set it to 0 to activate at genesis. Nil to disable Granite.
 	L2GenesisGraniteTimeOffset *hexutil.Uint64 `json:"l2GenesisGraniteTimeOffset,omitempty"`
+	// L2GenesisHoloceneTimeOffset is the number of seconds after genesis block that the Holocene hard fork activates.
+	// Set it to 0 to activate at genesis. Nil to disable Holocene.
+	L2GenesisHoloceneTimeOffset *hexutil.Uint64 `json:"l2GenesisHoloceneTimeOffset,omitempty"`
 	// L2GenesisInteropTimeOffset is the number of seconds after genesis block that the Interop hard fork activates.
 	// Set it to 0 to activate at genesis. Nil to disable Interop.
 	L2GenesisInteropTimeOffset *hexutil.Uint64 `json:"l2GenesisInteropTimeOffset,omitempty"`
@@ -391,6 +394,10 @@ func (d *UpgradeScheduleDeployConfig) GraniteTime(genesisTime uint64) *uint64 {
 	return offsetToUpgradeTime(d.L2GenesisGraniteTimeOffset, genesisTime)
 }
 
+func (d *UpgradeScheduleDeployConfig) HoloceneTime(genesisTime uint64) *uint64 {
+	return offsetToUpgradeTime(d.L2GenesisHoloceneTimeOffset, genesisTime)
+}
+
 func (d *UpgradeScheduleDeployConfig) InteropTime(genesisTime uint64) *uint64 {
 	return offsetToUpgradeTime(d.L2GenesisInteropTimeOffset, genesisTime)
 }
@@ -423,6 +430,7 @@ func (d *UpgradeScheduleDeployConfig) forks() []Fork {
 		{L2GenesisTimeOffset: d.L2GenesisEcotoneTimeOffset, Name: string(L2AllocsEcotone)},
 		{L2GenesisTimeOffset: d.L2GenesisFjordTimeOffset, Name: string(L2AllocsFjord)},
 		{L2GenesisTimeOffset: d.L2GenesisGraniteTimeOffset, Name: string(L2AllocsGranite)},
+		{L2GenesisTimeOffset: d.L2GenesisHoloceneTimeOffset, Name: string(L2AllocsHolocene)},
 	}
 }
 
@@ -733,6 +741,8 @@ type L1DependenciesConfig struct {
 
 	// DAChallengeProxy represents the L1 address of the DataAvailabilityChallenge contract.
 	DAChallengeProxy common.Address `json:"daChallengeProxy"`
+
+	ProtocolVersionsProxy common.Address `json:"protocolVersionsProxy"`
 }
 
 // DependencyContext is the contextual configuration needed to verify the L1 dependencies,
@@ -887,7 +897,7 @@ func (d *DeployConfig) SetDeployments(deployments *L1Deployments) {
 
 // RollupConfig converts a DeployConfig to a rollup.Config. If Ecotone is active at genesis, the
 // Overhead value is considered a noop.
-func (d *DeployConfig) RollupConfig(l1StartBlock *types.Block, l2GenesisBlockHash common.Hash, l2GenesisBlockNumber uint64) (*rollup.Config, error) {
+func (d *DeployConfig) RollupConfig(l1StartBlock *types.Header, l2GenesisBlockHash common.Hash, l2GenesisBlockNumber uint64) (*rollup.Config, error) {
 	if d.OptimismPortalProxy == (common.Address{}) {
 		return nil, errors.New("OptimismPortalProxy cannot be address(0)")
 	}
@@ -904,17 +914,19 @@ func (d *DeployConfig) RollupConfig(l1StartBlock *types.Block, l2GenesisBlockHas
 		}
 	}
 
+	l1StartTime := l1StartBlock.Time
+
 	return &rollup.Config{
 		Genesis: rollup.Genesis{
 			L1: eth.BlockID{
 				Hash:   l1StartBlock.Hash(),
-				Number: l1StartBlock.NumberU64(),
+				Number: l1StartBlock.Number.Uint64(),
 			},
 			L2: eth.BlockID{
 				Hash:   l2GenesisBlockHash,
 				Number: l2GenesisBlockNumber,
 			},
-			L2Time: l1StartBlock.Time(),
+			L2Time: l1StartBlock.Time,
 			SystemConfig: eth.SystemConfig{
 				BatcherAddr: d.BatchSenderAddress,
 				Overhead:    eth.Bytes32(common.BigToHash(new(big.Int).SetUint64(d.GasPriceOracleOverhead))),
@@ -922,23 +934,25 @@ func (d *DeployConfig) RollupConfig(l1StartBlock *types.Block, l2GenesisBlockHas
 				GasLimit:    uint64(d.L2GenesisBlockGasLimit),
 			},
 		},
-		BlockTime:              d.L2BlockTime,
-		MaxSequencerDrift:      d.MaxSequencerDrift,
-		SeqWindowSize:          d.SequencerWindowSize,
-		ChannelTimeoutBedrock:  d.ChannelTimeoutBedrock,
-		L1ChainID:              new(big.Int).SetUint64(d.L1ChainID),
-		L2ChainID:              new(big.Int).SetUint64(d.L2ChainID),
-		BatchInboxAddress:      d.BatchInboxAddress,
-		DepositContractAddress: d.OptimismPortalProxy,
-		L1SystemConfigAddress:  d.SystemConfigProxy,
-		RegolithTime:           d.RegolithTime(l1StartBlock.Time()),
-		CanyonTime:             d.CanyonTime(l1StartBlock.Time()),
-		DeltaTime:              d.DeltaTime(l1StartBlock.Time()),
-		EcotoneTime:            d.EcotoneTime(l1StartBlock.Time()),
-		FjordTime:              d.FjordTime(l1StartBlock.Time()),
-		GraniteTime:            d.GraniteTime(l1StartBlock.Time()),
-		InteropTime:            d.InteropTime(l1StartBlock.Time()),
-		AltDAConfig:            altDA,
+		BlockTime:               d.L2BlockTime,
+		MaxSequencerDrift:       d.MaxSequencerDrift,
+		SeqWindowSize:           d.SequencerWindowSize,
+		ChannelTimeoutBedrock:   d.ChannelTimeoutBedrock,
+		L1ChainID:               new(big.Int).SetUint64(d.L1ChainID),
+		L2ChainID:               new(big.Int).SetUint64(d.L2ChainID),
+		BatchInboxAddress:       d.BatchInboxAddress,
+		DepositContractAddress:  d.OptimismPortalProxy,
+		L1SystemConfigAddress:   d.SystemConfigProxy,
+		RegolithTime:            d.RegolithTime(l1StartTime),
+		CanyonTime:              d.CanyonTime(l1StartTime),
+		DeltaTime:               d.DeltaTime(l1StartTime),
+		EcotoneTime:             d.EcotoneTime(l1StartTime),
+		FjordTime:               d.FjordTime(l1StartTime),
+		GraniteTime:             d.GraniteTime(l1StartTime),
+		HoloceneTime:            d.HoloceneTime(l1StartTime),
+		InteropTime:             d.InteropTime(l1StartTime),
+		ProtocolVersionsAddress: d.ProtocolVersionsProxy,
+		AltDAConfig:             altDA,
 	}, nil
 }
 
@@ -1033,6 +1047,10 @@ func (d *L1Deployments) Check(deployConfig *DeployConfig) error {
 		if !deployConfig.UseFaultProofs &&
 			(name == "DisputeGameFactory" ||
 				name == "DisputeGameFactoryProxy") {
+			continue
+		}
+		if deployConfig.UseFaultProofs &&
+			(name == "OptimismPortal" || name == "L2OutputOracle" || name == "L2OutputOracleProxy") {
 			continue
 		}
 		if !deployConfig.UseAltDA &&

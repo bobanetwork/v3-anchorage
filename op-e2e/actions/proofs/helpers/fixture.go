@@ -10,9 +10,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ethereum-optimism/optimism/op-e2e/actions"
+	"github.com/ethereum-optimism/optimism/op-e2e/actions/helpers"
 	"github.com/ethereum-optimism/optimism/op-program/client/claim"
-	"github.com/ethereum-optimism/optimism/op-program/host/config"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/naoina/toml"
 	"github.com/stretchr/testify/require"
@@ -45,17 +44,24 @@ type FixtureInputs struct {
 	L1Head        common.Hash `toml:"l1-head"`
 }
 
-// Dumps a `fp-tests` test fixture to disk if the `OP_E2E_DUMP_FIXTURES` environment variable is set.
+// Dumps a `fp-tests` test fixture to disk if the `OP_E2E_FPP_FIXTURE_DIR` environment variable is set.
 //
 // [fp-tests]: https://github.com/ethereum-optimism/fp-tests
-func tryDumpTestFixture(t actions.Testing, result error, name string, env *L2FaultProofEnv, programCfg *config.Config) {
+func tryDumpTestFixture(
+	t helpers.Testing,
+	result error,
+	name string,
+	env *L2FaultProofEnv,
+	inputs FixtureInputs,
+	workDir string,
+) {
 	if !dumpFixtures {
 		return
 	}
 
 	name = convertToKebabCase(name)
-	rollupCfg := env.sd.RollupCfg
-	l2Genesis := env.sd.L2Cfg
+	rollupCfg := env.Sd.RollupCfg
+	l2Genesis := env.Sd.L2Cfg
 
 	var expectedStatus uint8
 	if result == nil {
@@ -69,14 +75,7 @@ func tryDumpTestFixture(t actions.Testing, result error, name string, env *L2Fau
 	fixture := TestFixture{
 		Name:           name,
 		ExpectedStatus: expectedStatus,
-		Inputs: FixtureInputs{
-			L2BlockNumber: programCfg.L2ClaimBlockNumber,
-			L2Claim:       programCfg.L2Claim,
-			L2Head:        programCfg.L2Head,
-			L2OutputRoot:  programCfg.L2OutputRoot,
-			L2ChainID:     env.sd.RollupCfg.L2ChainID.Uint64(),
-			L1Head:        programCfg.L1Head,
-		},
+		Inputs:         inputs,
 	}
 
 	fixturePath := filepath.Join(fixtureDir, name)
@@ -100,7 +99,7 @@ func tryDumpTestFixture(t actions.Testing, result error, name string, env *L2Fau
 	require.NoError(t, os.WriteFile(rollupPath, serRollup, fs.ModePerm), "failed to write rollup")
 
 	// Copy the witness database into the fixture directory.
-	cmd := exec.Command("cp", "-r", programCfg.DataDir, filepath.Join(fixturePath, "witness-db"))
+	cmd := exec.Command("cp", "-r", workDir, filepath.Join(fixturePath, "witness-db"))
 	require.NoError(t, cmd.Run(), "Failed to copy witness DB")
 
 	// Compress the genesis file.
