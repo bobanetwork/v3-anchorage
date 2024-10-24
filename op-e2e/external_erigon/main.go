@@ -106,9 +106,7 @@ func (es *erigonSession) Close() {
 
 func execute(binPath string, config external.Config) (*erigonSession, error) {
 	if config.Verbosity < 3 {
-		// Note, we could manually filter the logging further, if this is
-		// really problematic.
-		return nil, fmt.Errorf("verbosity of at least 2 is required to scrape for logs")
+		config.Verbosity = 3
 	}
 	cmd := exec.Command(
 		binPath,
@@ -120,7 +118,7 @@ func execute(binPath string, config external.Config) (*erigonSession, error) {
 		"--http=true",
 		"--http.port", "0",
 		"--http.addr", "127.0.0.1",
-		"--http.api", "eth,debug,net,engine,erigon,web3,txpool",
+		"--http.api", "eth,debug,net,engine,erigon,web3,txpool,admin",
 		"--private.api.addr=127.0.0.1:0",
 		"--allow-insecure-unlock",
 		"--authrpc.addr=127.0.0.1",

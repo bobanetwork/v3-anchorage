@@ -96,6 +96,8 @@ func WithAllocType(allocType config.AllocType) SystemConfigOpt {
 }
 
 func DefaultSystemConfig(t testing.TB, opts ...SystemConfigOpt) SystemConfig {
+	config.ExternalL2TestParms.SkipIfNecessary(t)
+
 	sco := &SystemConfigOpts{
 		AllocType: config.DefaultAllocType,
 	}
@@ -179,6 +181,7 @@ func DefaultSystemConfig(t testing.TB, opts ...SystemConfigOpt) SystemConfig {
 		GethOptions:                   map[string][]geth.GethOption{},
 		P2PTopology:                   nil, // no P2P connectivity by default
 		NonFinalizedProposals:         false,
+		ExternalL2Shim:                config.ExternalL2Shim,
 		DataAvailabilityType:          batcherFlags.CalldataType,
 		BatcherMaxPendingTransactions: 1,
 		BatcherTargetNumFrames:        1,
@@ -680,9 +683,6 @@ func (cfg SystemConfig) Start(t *testing.T, startOpts ...StartOption) (*System, 
 			}
 			ethClient = l2Geth
 		} else {
-			if len(cfg.GethOptions[name]) > 0 {
-				t.Skip("External L2 nodes do not support configuration through GethOptions")
-			}
 			ethClient = (&ExternalRunner{
 				Name:     name,
 				BinPath:  cfg.ExternalL2Shim,
