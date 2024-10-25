@@ -69,7 +69,8 @@ require (
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
-	github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20240726164940-d2a098074a5d // indirect
+	github.com/erigontech/speedtest v0.0.2 // indirect
+	github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20240916154111-a90e302558bc // indirect
 	github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c // indirect
 	github.com/flynn/noise v1.0.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
@@ -115,7 +116,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/koron/go-ssdp v0.0.4 // indirect
 	github.com/ledgerwatch/erigon-lib v1.0.0 // indirect
-	github.com/ledgerwatch/erigon-snapshot v1.3.1-0.20240619030755-1e16b374e6cb // indirect
+	github.com/ledgerwatch/erigon-snapshot v1.3.1-0.20240805114253-42da880260bb // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/libp2p/go-cidranger v1.1.0 // indirect
 	github.com/libp2p/go-flow-metrics v0.1.0 // indirect
@@ -179,7 +180,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
-	github.com/prometheus/client_golang v1.19.0 // indirect
+	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
@@ -196,9 +197,8 @@ require (
 	github.com/rs/cors v1.11.0 // indirect
 	github.com/rs/dnscache v0.0.0-20211102005908-e0241e321417 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/shirou/gopsutil/v3 v3.24.3 // indirect
+	github.com/shirou/gopsutil/v4 v4.24.7 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
-	github.com/showwin/speedtest-go v1.7.7 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sosodev/duration v1.1.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
@@ -229,10 +229,10 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20231226003508-02704c960a9b // indirect
-	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
@@ -256,8 +256,8 @@ require (
 	zombiezen.com/go/sqlite v0.13.1 // indirect
 )
 
-replace github.com/ledgerwatch/erigon-lib => github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20240822225929-7c7d111bcc39
+replace github.com/ledgerwatch/erigon-lib => github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20241025172136-afc04920f125
 
 replace github.com/tendermint/tendermint => github.com/bnb-chain/tendermint v0.31.12
 
-replace github.com/ledgerwatch/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20240822225929-7c7d111bcc39
+replace github.com/ledgerwatch/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20241025172136-afc04920f125
