@@ -130,6 +130,7 @@ func execute(binPath string, config external.Config) (*erigonSession, error) {
 		"--networkid", strconv.FormatUint(config.ChainID, 10),
 		"--torrent.port", "0", // There doesn't seem to be an obvious way to disable torrent listening
 		"--log.console.verbosity", strconv.FormatUint(config.Verbosity, 10),
+		"--rollup.halt", "major",
 	)
 
 	fmt.Printf("==================    op-erigon starting with args %q  ==========================\n", cmd.String())
