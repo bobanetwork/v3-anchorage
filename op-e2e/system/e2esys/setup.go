@@ -918,6 +918,12 @@ func (cfg SystemConfig) Start(t *testing.T, startOpts ...StartOption) (*System, 
 		CompressionAlgo:       compressionAlgo,
 		AltDA:                 batcherAltDACLIConfig,
 	}
+
+	// Increase network timeout to stablize external tests
+	if cfg.ExternalL2Shim != "" {
+		batcherCLIConfig.TxMgrConfig.NetworkTimeout = 30 * time.Second
+	}
+
 	// Batch Submitter
 	batcher, err := bss.BatcherServiceFromCLIConfig(context.Background(), "0.0.1", batcherCLIConfig, sys.Cfg.Loggers["batcher"])
 	if err != nil {

@@ -22,7 +22,6 @@
     "TestMultipleGameTypes": "TODO, this should be investigated, is probably the debug_dbGet though",
     "TestSendRawTransactionConditionalEnabled": "TODO, this new feature should be added to Erigon",
     "TestSendRawTransactionConditionalTxForwarding": "TODO, this new feature should be added to Erigon",
-    "TestEIP1559Params": "TODO, this new feature should be added to Erigon",
-    "TestRequiredProtocolVersionChangeAndHalt": "TODO, this new feature should be added to Erigon"
+    "TestEIP1559Params": "TODO, this new feature should be added to Erigon"
   }
 }
