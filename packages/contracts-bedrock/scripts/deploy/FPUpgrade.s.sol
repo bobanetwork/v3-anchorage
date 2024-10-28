@@ -59,18 +59,18 @@ contract Deploy is Deployer {
     ////////////////////////////////////////////////////////////////
 
     /// @notice read proxyd address from the hardhat deployment files
-    function readProxyAddress(string memory _contractName) internal view returns (address _proxyAddress) {
+    function readProxyAddress(string memory _contractName) internal view returns (address proxyAddress_) {
         string memory _deploymentPath = vm.envOr("DEPLOYMENT_PATH", string(""));
         require(bytes(_deploymentPath).length > 0, "Deploy: must set DEPLOYMENT_PATH to deployment files");
         string memory _contractJson = vm.readFile(_deploymentPath);
         bytes memory _contractAddress = stdJson.parseRaw(_contractJson, string(abi.encodePacked(".", _contractName)));
-        _proxyAddress = bytesToAddress(_contractAddress);
+        proxyAddress_ = bytesToAddress(_contractAddress);
     }
 
     /// @notice Convert bytes to address
-    function bytesToAddress(bytes memory bys) private pure returns (address addr) {
+    function bytesToAddress(bytes memory _bys) private pure returns (address addr_) {
         assembly {
-            addr := mload(add(bys, 32))
+            addr_ := mload(add(_bys, 32))
         }
     }
 
@@ -562,6 +562,9 @@ contract Deploy is Deployer {
         );
     }
 
+    /// @notice Custom error for missing Cannon prestate dump
+    error CannonPrestateDumpNotFound();
+
     /// @notice Loads the mips absolute prestate from the prestate-proof for devnets otherwise
     ///         from the config.
     function loadMipsAbsolutePrestate() internal returns (Claim mipsAbsolutePrestate_) {
@@ -573,7 +576,7 @@ contract Deploy is Deployer {
             commands[1] = "-c";
             commands[2] = string.concat("[[ -f ", filePath, " ]] && echo \"present\"");
             if (vm.ffi(commands).length == 0) {
-                revert("Cannon prestate dump not found, generate it with `make cannon-prestate` in the monorepo root.");
+                revert CannonPrestateDumpNotFound();
             }
             commands[2] = string.concat("cat ", filePath, " | jq -r .pre");
             mipsAbsolutePrestate_ = Claim.wrap(abi.decode(vm.ffi(commands), (bytes32)));
