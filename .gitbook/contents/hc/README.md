@@ -23,22 +23,29 @@ Before you begin, make sure you have the following prerequisites in place:
 - Typescript or Python
 - Docker
 
-If using Typescript for your smart contract helper, install `pnpm` and install the Hybrid Compute SDK by running the following:
+You also need to install the Hybrid Compute SDK:
 
-```bash
-pnpm i @bobanetwork/aa-hc-sdk-server
-```
+{% tabs %}
 
-Note, the following examples in this tutorial are written in Python. If using Python, install `pip` and install the SDK by running this command:
-
+{% tab title="Python" %} 
 ```bash
 pip install hybrid_compute_sdk
 ```
+{% endtab %}
 
-If you intend to integrate a UI with your project, you'll also need to install the client SDK (but note that our examples in this tutorial don't include any UI integration):
+{% tab title="Typescript" %} 
+```bash
+pnpm i @bobanetwork/aa-hc-sdk-server
+```
+If you intend to integrate a UI with your project, you'll also need to install the client-specific SDK:
 
 ```bash
 pnpm i @bobanetwork/aa-hc-sdk-client
 ```
+{% endtab %}
+
+{% endtabs %}
+
+Note, the following examples in this tutorial are written in Python.
 
 Once your environment is ready, proceed through the following steps to implement your Hybrid Compute examples.
