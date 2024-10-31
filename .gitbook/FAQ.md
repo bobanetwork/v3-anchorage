@@ -51,7 +51,7 @@ If your wallet does not support this feature, you will have to connect manually.
 
 To move assets into or out of an Optimistic Ethereum network you can use the [**Boba Gateway**](https://gateway.boba.network). Detailed instructions in our [user documentation](contents/user/001\_how-to-bridge.md).
 
-You can choose any of these two methods: [the **classical bridge**, or the **light bridge**](contents/boba-basics/bridge-basics/).
+You can choose any of these two methods: the [classical bridge](contents/developer/boba-basics/bridge-basics/standard-bridge.md), or the [light bridge](contents/developer/boba-basics/bridge-basics/light-bridge.md).
 
 ## Can I cancel a withdrawal after it has been submitted?
 
@@ -63,7 +63,7 @@ Only if the centralized exchange supports Boba Network. For exchanges that do no
 
 ## Where can I find RPC endpoints and connection details?
 
-Connection details for our Mainnet and Sepolia network are [here for ETH](developer/multichain/network-eth.md) and [here for BNB](developer/multichain/network-bnb.md).
+Connection details for our Mainnet and Sepolia network are [here for ETH](contents/developer/multichain/network-eth.md) and [here for BNB](contents/developer/multichain/network-bnb.md).
 
 ## Are multicall contracts supported on Boba?
 
