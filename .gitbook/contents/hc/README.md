@@ -26,14 +26,13 @@ Before you begin, make sure you have the following prerequisites in place:
 You also need to install the Hybrid Compute SDK:
 
 {% tabs %}
-
 {% tab title="Python" %} 
 ```bash
 pip install hybrid_compute_sdk
 ```
 {% endtab %}
 
-{% tab title="Typescript" %} 
+{% tab title="Typescript" %}
 ```bash
 pnpm i @bobanetwork/aa-hc-sdk-server
 ```
@@ -43,7 +42,6 @@ If you intend to integrate a UI with your project, you'll also need to install t
 pnpm i @bobanetwork/aa-hc-sdk-client
 ```
 {% endtab %}
-
 {% endtabs %}
 
 Note, the following examples in this tutorial are written in Python.

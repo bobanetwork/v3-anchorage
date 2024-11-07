@@ -1,32 +1,33 @@
 # Set Up a Server
 
-For any smart contract, with or without an off-chain handler, the next step is to set up a server to run it. In this example, we will create a simple `JSON-RPC` server using the Hybrid Compute SDK. Create a new file and add these lines to it:
+For any smart contract, with or without an off-chain handler, the next step is to set up a server to run it. In this example, we will create a simple `JSON-RPC` server using the Hybrid Compute SDK. Add the lines to your "addsub" script:
 
+{% tabs %}
+{% tab title="Python" %} 
 ```python
-sdk = HybridComputeSDK()
-sdk.create_json_rpc_server_instance()
-
-def main():
-    print("created server")
-    sdk.add_server_action("getprice(string)", offchain_getprice)
-
-    print("Serving!")
+def server_loop():
+    # prepare the server, add your action handler start the server
+    sdk.create_json_rpc_server_instance()
+    sdk.add_server_action("addsub2(uint32,uint32)", offchain_add_sub)
     sdk.serve_forever()
+
+server_loop()
 ```
 
-Note: if working with TypeScript instead of Python, set up your server like this instead:
+{% endtab %}
 
+{% tab title="Typescript" %}
 ```typescript
-import { HybridComputeSDK } from '@bobanetwork/aa-hc-sdk-server';
+/**  use the HC SDK to create a server, add a rpc method and start the server */
+const hybridCompute = new HybridComputeSDK()
+    .createJsonRpcServerInstance()
+    .addServerAction('addsub(uint32,uint32)', action)
+    .listenAt(1234);
 
-const sdk = new HybridComputeSDK();
-
-sdk.createJsonRpcServerInstance()
-   .addServerAction('myAction', (params) => {
-     // Handle action
-   })
-   .listenAt(3000);
+console.log(`Started successfully: ${hybridCompute.isServerHealthy()}`)
 ```
+{% endtab %}
+{% endtabs %}
 
 ## Why is that?
 
