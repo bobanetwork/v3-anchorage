@@ -26,6 +26,11 @@ var (
 	defaultRPCBatchTimeout = 20 * time.Second
 )
 
+type BaseRPCTimeout struct {
+	RPCTimeout      time.Duration
+	RPCBatchTimeout time.Duration
+}
+
 type RPC interface {
 	Close()
 	CallContext(ctx context.Context, result any, method string, args ...any) error
@@ -39,11 +44,26 @@ type rpcConfig struct {
 	backoffAttempts  int
 	limit            float64
 	burst            int
-	rpcTimeout       *time.Duration
-	rpcBatchTimeout  *time.Duration
+	lazy             bool
+	callTimeout      time.Duration
+	batchCallTimeout time.Duration
 }
 
 type RPCOption func(cfg *rpcConfig) error
+
+func WithCallTimeout(d time.Duration) RPCOption {
+	return func(cfg *rpcConfig) error {
+		cfg.callTimeout = d
+		return nil
+	}
+}
+
+func WithBatchCallTimeout(d time.Duration) RPCOption {
+	return func(cfg *rpcConfig) error {
+		cfg.batchCallTimeout = d
+		return nil
+	}
+}
 
 // WithDialBackoff configures the number of attempts for the initial dial to the RPC,
 // attempts are executed with an exponential backoff strategy.
@@ -80,11 +100,13 @@ func WithRateLimit(rateLimit float64, burst int) RPCOption {
 	}
 }
 
-// WithTimeout configures the RPC to timeout after the given duration.
-func WithTimeout(timeout, batchTimeout time.Duration) RPCOption {
+// WithLazyDial makes the RPC client initialization defer the initial connection attempt,
+// and defer to later RPC requests upon subsequent dial errors.
+// Any dial-backoff option will be ignored if this option is used.
+// This is implemented by wrapping the inner RPC client with a LazyRPC.
+func WithLazyDial() RPCOption {
 	return func(cfg *rpcConfig) error {
-		cfg.rpcTimeout = &timeout
-		cfg.rpcBatchTimeout = &batchTimeout
+		cfg.lazy = true
 		return nil
 	}
 }
@@ -101,21 +123,32 @@ func NewRPC(ctx context.Context, lgr log.Logger, addr string, opts ...RPCOption)
 	if cfg.backoffAttempts < 1 { // default to at least 1 attempt, or it always fails to dial.
 		cfg.backoffAttempts = 1
 	}
-
-	underlying, err := dialRPCClientWithBackoff(ctx, lgr, addr, cfg.backoffAttempts, cfg.gethRPCOptions...)
-	if err != nil {
-		return nil, err
+	if cfg.callTimeout == 0 {
+		cfg.callTimeout = defaultRPCTimeout
+	}
+	if cfg.batchCallTimeout == 0 {
+		cfg.batchCallTimeout = defaultRPCBatchTimeout
 	}
 
-	baseRPCClient := &BaseRPCClient{c: underlying, RPCTimeout: defaultRPCTimeout, RPCBatchTimeout: defaultRPCBatchTimeout}
-	if cfg.rpcTimeout != nil {
-		baseRPCClient.RPCTimeout = *cfg.rpcTimeout
-	}
-	if cfg.rpcBatchTimeout != nil {
-		baseRPCClient.RPCBatchTimeout = *cfg.rpcBatchTimeout
-	}
-	var wrapped RPC = baseRPCClient
+	var wrapped RPC
+	if cfg.lazy {
+		wrapped = NewLazyRPC(addr, cfg.gethRPCOptions...)
+	} else {
+		underlying, err := dialRPCClientWithBackoff(ctx, lgr, addr, cfg.backoffAttempts, cfg.gethRPCOptions...)
+		if err != nil {
+			return nil, err
+		}
+		baseRPCClient := &BaseRPCClient{c: underlying, CallTimeout: cfg.callTimeout, BatchCallTimeout: cfg.batchCallTimeout}
 
+		if cfg.callTimeout != time.Duration(0) {
+			baseRPCClient.CallTimeout = cfg.callTimeout
+		}
+		if cfg.batchCallTimeout != time.Duration(0) {
+			baseRPCClient.BatchCallTimeout = cfg.batchCallTimeout
+		}
+
+		wrapped = baseRPCClient
+	}
 	if cfg.limit != 0 {
 		wrapped = NewRateLimitingClient(wrapped, rate.Limit(cfg.limit), cfg.burst)
 	}
@@ -177,18 +210,13 @@ func IsURLAvailable(ctx context.Context, address string) bool {
 // with the client.RPC interface.
 // It sets a timeout of 10s on CallContext & 20s on BatchCallContext made through it.
 type BaseRPCClient struct {
-	c               *rpc.Client
-	RPCTimeout      time.Duration
-	RPCBatchTimeout time.Duration
-}
-
-type BaseRPCTimeout struct {
-	RPCTimeout      time.Duration
-	RPCBatchTimeout time.Duration
+	c                *rpc.Client
+	BatchCallTimeout time.Duration
+	CallTimeout      time.Duration
 }
 
 func NewBaseRPCClient(c *rpc.Client) *BaseRPCClient {
-	return &BaseRPCClient{c: c, RPCTimeout: defaultRPCTimeout, RPCBatchTimeout: defaultRPCBatchTimeout}
+	return &BaseRPCClient{c: c, CallTimeout: 10 * time.Second, BatchCallTimeout: 20 * time.Second}
 }
 
 func (b *BaseRPCClient) Close() {
@@ -196,13 +224,13 @@ func (b *BaseRPCClient) Close() {
 }
 
 func (b *BaseRPCClient) CallContext(ctx context.Context, result any, method string, args ...any) error {
-	cCtx, cancel := context.WithTimeout(ctx, b.RPCTimeout)
+	cCtx, cancel := context.WithTimeout(ctx, b.CallTimeout)
 	defer cancel()
 	return b.c.CallContext(cCtx, result, method, args...)
 }
 
 func (b *BaseRPCClient) BatchCallContext(ctx context.Context, batch []rpc.BatchElem) error {
-	cCtx, cancel := context.WithTimeout(ctx, b.RPCBatchTimeout)
+	cCtx, cancel := context.WithTimeout(ctx, b.BatchCallTimeout)
 	defer cancel()
 	return b.c.BatchCallContext(cCtx, batch)
 }

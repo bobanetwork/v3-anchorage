@@ -9,7 +9,6 @@ import { Optimist } from "src/periphery/op-nft/Optimist.sol";
 import { OptimistAllowlist } from "src/periphery/op-nft/OptimistAllowlist.sol";
 import { OptimistInviter } from "src/periphery/op-nft/OptimistInviter.sol";
 import { OptimistInviterHelper } from "test/mocks/OptimistInviterHelper.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 library Multicall {
@@ -378,8 +377,7 @@ contract OptimistTest is Optimist_Initializer {
         assertEq(optimist.baseURI(), base_uri);
         assertEq(
             optimist.tokenURI(_getTokenId(bob)),
-            "https://storageapi.fleek.co/6442819a1b05-bucket/optimist-nft/attributes/0x1d96f2f6bef1202e4ce1ff6dad0c2cb002861d3e.json" //solhint-disable-line
-                // max-line-length
+            "https://storageapi.fleek.co/6442819a1b05-bucket/optimist-nft/attributes/0x1d96f2f6bef1202e4ce1ff6dad0c2cb002861d3e.json"
         );
     }
 

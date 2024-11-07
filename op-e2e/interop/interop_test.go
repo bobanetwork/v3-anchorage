@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum-optimism/optimism/op-chain-ops/interopgen"
-	op_e2e "github.com/ethereum-optimism/optimism/op-e2e"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ethereum-optimism/optimism/op-chain-ops/interopgen"
+	"github.com/ethereum-optimism/optimism/op-e2e/system/helpers"
 )
 
 // TestInteropTrivial tests a simple interop scenario
@@ -57,7 +58,7 @@ func TestInteropTrivial(t *testing.T) {
 	s2.SendL2Tx(
 		chainA,
 		"Alice",
-		func(l2Opts *op_e2e.TxOpts) {
+		func(l2Opts *helpers.TxOpts) {
 			l2Opts.ToAddr = &bobAddr
 			l2Opts.Value = big.NewInt(1000000)
 			l2Opts.GasFeeCap = big.NewInt(1_000_000_000)
@@ -82,4 +83,15 @@ func TestInteropTrivial(t *testing.T) {
 	require.NoError(t, err)
 	expectedBalance, _ = big.NewInt(0).SetString("10000000000000000000000000", 10)
 	require.Equal(t, expectedBalance, bobBalance)
+
+	s2.DeployEmitterContract(chainA, "Alice")
+	s2.DeployEmitterContract(chainB, "Alice")
+	for i := 0; i < 1; i++ {
+		s2.EmitData(chainA, "Alice", "0x1234567890abcdef")
+
+		s2.EmitData(chainB, "Alice", "0x1234567890abcdef")
+	}
+
+	time.Sleep(60 * time.Second)
+
 }

@@ -50,10 +50,10 @@ func DialRollupClientWithTimeout(ctx context.Context, timeout time.Duration, log
 			return nil, fmt.Errorf("too many rpc timeout configs provided")
 		}
 		if rpcTimeoutCfg[0].RPCTimeout != 0 {
-			baseRPCClient.RPCTimeout = rpcTimeoutCfg[0].RPCTimeout
+			baseRPCClient.CallTimeout = rpcTimeoutCfg[0].RPCTimeout
 		}
 		if rpcTimeoutCfg[0].RPCBatchTimeout != 0 {
-			baseRPCClient.RPCBatchTimeout = rpcTimeoutCfg[0].RPCBatchTimeout
+			baseRPCClient.BatchCallTimeout = rpcTimeoutCfg[0].RPCBatchTimeout
 		}
 	}
 	return sources.NewRollupClient(baseRPCClient), nil

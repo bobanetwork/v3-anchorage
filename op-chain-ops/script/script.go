@@ -206,20 +206,21 @@ func NewHost(
 		EcotoneTime:  nil,
 		FjordTime:    nil,
 		GraniteTime:  nil,
+		HoloceneTime: nil,
 		InteropTime:  nil,
 		Optimism:     nil,
 	}
 
 	// Create an in-memory database, to host our temporary script state changes
 	h.rawDB = rawdb.NewMemoryDatabase()
-	h.stateDB = state.NewDatabaseWithConfig(h.rawDB, &triedb.Config{
+	h.stateDB = state.NewDatabase(triedb.NewDatabase(h.rawDB, &triedb.Config{
 		Preimages: true, // To be able to iterate the state we need the Preimages
 		IsVerkle:  false,
 		HashDB:    hashdb.Defaults,
 		PathDB:    nil,
-	})
+	}), nil)
 	var err error
-	h.state, err = state.New(types.EmptyRootHash, h.stateDB, nil)
+	h.state, err = state.New(types.EmptyRootHash, h.stateDB)
 	if err != nil {
 		panic(fmt.Errorf("failed to create memory state db: %w", err))
 	}
@@ -386,6 +387,30 @@ func (h *Host) GetNonce(addr common.Address) uint64 {
 	return h.state.GetNonce(addr)
 }
 
+// ImportState imports a set of foundry.ForgeAllocs into the
+// host's state database. It does not erase existing state
+// when importing.
+func (h *Host) ImportState(allocs *foundry.ForgeAllocs) {
+	for addr, alloc := range allocs.Accounts {
+		h.ImportAccount(addr, alloc)
+	}
+}
+
+func (h *Host) ImportAccount(addr common.Address, account types.Account) {
+	var balance *uint256.Int
+	if account.Balance == nil {
+		balance = uint256.NewInt(0)
+	} else {
+		balance = uint256.MustFromBig(account.Balance)
+	}
+	h.state.SetBalance(addr, balance, tracing.BalanceChangeUnspecified)
+	h.state.SetNonce(addr, account.Nonce)
+	h.state.SetCode(addr, account.Code)
+	for key, value := range account.Storage {
+		h.state.SetState(addr, key, value)
+	}
+}
+
 // getPrecompile overrides any accounts during runtime, to insert special precompiles, if activated.
 func (h *Host) getPrecompile(rules params.Rules, original vm.PrecompiledContract, addr common.Address) vm.PrecompiledContract {
 	if p, ok := h.precompiles[addr]; ok {
@@ -436,8 +461,8 @@ func (h *Host) onEnter(depth int, typ byte, from common.Address, to common.Addre
 		return
 	}
 
-	// Bump nonce value, such that a broadcast Call appears like a tx
-	if parentCallFrame.LastOp == vm.CALL {
+	// Bump nonce value, such that a broadcast Call or CREATE2 appears like a tx
+	if parentCallFrame.LastOp == vm.CALL || parentCallFrame.LastOp == vm.CREATE2 {
 		sender := parentCallFrame.Ctx.Address()
 		if parentCallFrame.Prank.Sender != nil {
 			sender = *parentCallFrame.Prank.Sender
@@ -629,7 +654,7 @@ func (h *Host) StateDump() (*foundry.ForgeAllocs, error) {
 		return nil, fmt.Errorf("failed to commit state: %w", err)
 	}
 	// We need a state object around the state DB
-	st, err := state.New(root, h.stateDB, nil)
+	st, err := state.New(root, h.stateDB)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create state object for state-dumping: %w", err)
 	}

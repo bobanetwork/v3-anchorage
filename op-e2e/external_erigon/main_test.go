@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	e2e "github.com/ethereum-optimism/optimism/op-e2e"
+	e2e "github.com/ethereum-optimism/optimism/op-e2e/system/e2esys"
 	"github.com/stretchr/testify/require"
 )
 

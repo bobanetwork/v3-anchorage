@@ -35,13 +35,6 @@ contract DeployAuthSystemInput is CommonBase {
         }
     }
 
-    function loadInputFile(string memory _infile) public {
-        string memory toml = vm.readFile(_infile);
-
-        set(this.threshold.selector, toml.readUint(".safe.threshold"));
-        set(this.owners.selector, toml.readAddressArray(".safe.owners"));
-    }
-
     function threshold() public view returns (uint256) {
         require(_threshold != 0, "DeployAuthSystemInput: threshold not set");
         return _threshold;
@@ -56,14 +49,9 @@ contract DeployAuthSystemInput is CommonBase {
 contract DeployAuthSystemOutput is CommonBase {
     Safe internal _safe;
 
-    function set(bytes4 sel, address _address) public {
-        if (sel == this.safe.selector) _safe = Safe(payable(_address));
+    function set(bytes4 _sel, address _address) public {
+        if (_sel == this.safe.selector) _safe = Safe(payable(_address));
         else revert("DeployAuthSystemOutput: unknown selector");
-    }
-
-    function writeOutputFile(string memory _outfile) public {
-        string memory out = vm.serializeAddress("outfile", "safe", address(this.safe()));
-        vm.writeToml(out, _outfile);
     }
 
     function checkOutput() public view {
@@ -74,5 +62,38 @@ contract DeployAuthSystemOutput is CommonBase {
     function safe() public view returns (Safe) {
         DeployUtils.assertValidContractAddress(address(_safe));
         return _safe;
+    }
+}
+
+contract DeployAuthSystem is Script {
+    function run(DeployAuthSystemInput _dasi, DeployAuthSystemOutput _daso) public {
+        deploySafe(_dasi, _daso);
+    }
+
+    function deploySafe(DeployAuthSystemInput _dasi, DeployAuthSystemOutput _daso) public {
+        address[] memory owners = _dasi.owners();
+        uint256 threshold = _dasi.threshold();
+
+        // TODO: replace with a real deployment. The safe deployment logic is fairly complex, so for the purposes of
+        // this scaffolding PR we'll just etch the code.
+        address safe = makeAddr("safe");
+        vm.etch(safe, type(Safe).runtimeCode);
+        vm.store(safe, bytes32(uint256(3)), bytes32(uint256(owners.length)));
+        vm.store(safe, bytes32(uint256(4)), bytes32(uint256(threshold)));
+
+        _daso.set(_daso.safe.selector, safe);
+    }
+
+    function etchIOContracts() public returns (DeployAuthSystemInput dasi_, DeployAuthSystemOutput daso_) {
+        (dasi_, daso_) = getIOContracts();
+        vm.etch(address(dasi_), type(DeployAuthSystemInput).runtimeCode);
+        vm.etch(address(daso_), type(DeployAuthSystemOutput).runtimeCode);
+        vm.allowCheatcodes(address(dasi_));
+        vm.allowCheatcodes(address(daso_));
+    }
+
+    function getIOContracts() public view returns (DeployAuthSystemInput dasi_, DeployAuthSystemOutput daso_) {
+        dasi_ = DeployAuthSystemInput(DeployUtils.toIOAddress(msg.sender, "optimism.DeployAuthSystemInput"));
+        daso_ = DeployAuthSystemOutput(DeployUtils.toIOAddress(msg.sender, "optimism.DeployAuthSystemOutput"));
     }
 }
