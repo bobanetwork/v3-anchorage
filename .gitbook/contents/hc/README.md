@@ -24,6 +24,6 @@ Before you begin, make sure you have the following prerequisites in place:
 - TypeScript, React (frontend)
 - Solidity tools (e.g. Foundry, Hardhat)
 - Docker (optional)
-- You also need to get your project whitelisted (request access on [Telegram](https://t.me/bobanetwork) or via [Mail](kevin@enya.ai))
+- You also need to get your project whitelisted (request access on [Telegram](https://t.me/+mf_-jwCkqOU3NmVh) or via [Mail](kevin@enya.ai))
 
 Once your environment is ready, proceed through the following steps to implement your Hybrid Compute examples.
