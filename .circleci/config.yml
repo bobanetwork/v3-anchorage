@@ -752,8 +752,9 @@ jobs:
         description: should load in foundry artifacts
         type: boolean
         default: false
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - checkout
       - check-changed:
