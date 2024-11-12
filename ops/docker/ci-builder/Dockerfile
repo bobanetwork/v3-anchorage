@@ -145,6 +145,9 @@ FROM base-builder as rust-builder
 # Install clang & lld
 RUN apt-get update && apt-get install -y clang lld
 
+# Install parallel
+RUN apt-get install -y parallel
+
 # Copy the rust installation, alongside the installed toolchains
 COPY --from=rust-build /root/.cargo /root/.cargo
 COPY --from=rust-build /root/.rustup /root/.rustup
