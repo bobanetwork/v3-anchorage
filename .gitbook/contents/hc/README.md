@@ -32,18 +32,17 @@ pip install hybrid_compute_sdk
 ```
 {% endtab %}
 
-{% tab title="Typescript" %}
+{% tab title="Typescript" %} 
 ```bash
 pnpm i @bobanetwork/aa-hc-sdk-server
-```
-If you intend to integrate a UI with your project, you'll also need to install the client-specific SDK:
-
-```bash
-pnpm i @bobanetwork/aa-hc-sdk-client
 ```
 {% endtab %}
 {% endtabs %}
 
-Note, the following examples in this tutorial are written in Python.
+If you intend to integrate a UI with your project, you'll also need to install the client-specific SDK (written in `TypeScript`, regardless of which language you intend to use):
+
+```bash
+pnpm i @bobanetwork/aa-hc-sdk-client
+```
 
 Once your environment is ready, proceed through the following steps to implement your Hybrid Compute examples.
