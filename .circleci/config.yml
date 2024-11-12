@@ -762,6 +762,10 @@ jobs:
       - attach_workspace:
           at: "."
           if: ${{ uses_artifacts }}
+      - install_parallel:
+          command: |
+            apt-get update
+            apt-get install -y parallel
       - run:
           name: Fuzz
           command: make fuzz
