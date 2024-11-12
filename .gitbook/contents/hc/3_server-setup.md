@@ -39,6 +39,7 @@ The bundler sends us a `JSON-RPC v2` request, containing a `method` identifier. 
   "id":0,
   "method":"97e0d7ba",
   "params":{
+    "ver":"0.3",
     "sk":"f27fb73f63cd38cee89c48053fe8bb3248ddb7a98ce9f45b9176d017df47d9ce",
     "src_addr":"b43a2532e87583351b9024d6a6d0ba7acfa54446",
     "src_nonce":"0000000000000000000000000000000000000000000003eb0000000000000003",

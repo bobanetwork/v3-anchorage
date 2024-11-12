@@ -27,7 +27,7 @@ The addresses of newly deployed contracts are then returned as an array of value
 // These contracts are one example each
 ret[0] = address(new AuctionFactory(ha1Addr));
 ret[1] = address(new TestCaptcha(ha1Addr));
-ret[2] = address(new TestCounter(ha1Addr));
+ret[2] = address(new TestHybrid(ha1Addr));
 ret[3] = address(new RainfallInsurance(ha1Addr));
 ret[4] = address(new SportsBetting(ha1Addr));
 ```
@@ -128,7 +128,7 @@ To integrate additional methods into our offchain-RPC `server-loop`:
     server.register_function(offchain_checkkyc, selector("checkkyc(string)"))
 ```
 
-You can see how these methods are invoked from the `TestCounter.sol` contract. For example, "ramble" is 
+You can see how these methods are invoked from the `TestHybrid.sol` contract. For example, "ramble" is
 used in a simple word-guessing game:
 
 ```solidity

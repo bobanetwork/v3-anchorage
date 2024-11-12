@@ -46,7 +46,7 @@ Next, we'll add a `try` block. Inside of it, let's make use of some of our impor
 With this decoded information, we can add and subtract the two numbers, re-encode the information (this time to an array of two `uint256`s), and check for an overflow. The entire `try` block should look like this:
 
 ```python
-    assert(ver == "0.2")
+    assert(ver == "0.3")
     try:
         req = sdk.parse_req(sk, src_addr, src_nonce, oo_nonce, payload)
         dec = ethabi.decode(['uint32', 'uint32'], req['reqBytes'])
@@ -73,7 +73,7 @@ def offchain_add_sub(ver, sk, src_addr, src_nonce, oo_nonce, payload, *args):
     err_code = 1
     resp = Web3.to_bytes(text="unknown error")
     
-    assert(ver == "0.2")
+    assert(ver == "0.3")
     try:
         req = sdk.parse_req(sk, src_addr, src_nonce, oo_nonce, payload)
         dec = ethabi.decode(['uint32', 'uint32'], req['reqBytes'])
