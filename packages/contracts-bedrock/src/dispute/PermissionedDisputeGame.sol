@@ -30,9 +30,7 @@ contract PermissionedDisputeGame is FaultDisputeGame {
 
     /// @notice Modifier that gates access to the `challenger` and `proposer` roles.
     modifier onlyAuthorized() {
-        if (!(msg.sender == PROPOSER || msg.sender == CHALLENGER)) {
-            revert BadAuth();
-        }
+        require(msg.sender == PROPOSER || msg.sender == CHALLENGER);
         _;
     }
 

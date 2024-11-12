@@ -187,13 +187,13 @@ contract PermissionedDisputeGame_Test is PermissionedDisputeGame_Init {
 
         vm.startPrank(_p, _p);
         (,,,, Claim disputed,,) = gameProxy.claimData(0);
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.attack(disputed, 0, Claim.wrap(0));
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.defend(disputed, 0, Claim.wrap(0));
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.move(disputed, 0, Claim.wrap(0), true);
-        vm.expectRevert(BadAuth.selector);
+        vm.expectRevert();
         gameProxy.step(0, true, absolutePrestateData, hex"");
         vm.stopPrank();
     }

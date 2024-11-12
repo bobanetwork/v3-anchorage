@@ -8,7 +8,7 @@ echoerr() {
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 CONTRACTS_DIR="$SCRIPT_DIR/../.."
-DEPLOY_BUCKET="oplabs-contract-artifacts"
+DEPLOY_BUCKET="boba-contract-artifacts"
 
 cd "$CONTRACTS_DIR"
 

@@ -214,7 +214,10 @@ func (s *Service) initRollupClient(ctx context.Context, cfg *config.Config) erro
 	if cfg.RollupRpc == "" {
 		return nil
 	}
-	rollupClient, err := dial.DialRollupClientWithTimeout(ctx, dial.DefaultDialTimeout, s.logger, cfg.RollupRpc)
+	rollupClient, err := dial.DialRollupClientWithTimeout(ctx, dial.DefaultDialTimeout, s.logger, cfg.RollupRpc, client.BaseRPCTimeout{
+		RPCTimeout:      cfg.RollupRpcTimeout,
+		RPCBatchTimeout: cfg.RollupRpcBatchTimeout,
+	})
 	if err != nil {
 		return err
 	}

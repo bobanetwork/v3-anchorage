@@ -5,7 +5,11 @@ import { IInitializable } from "src/dispute/interfaces/IInitializable.sol";
 import { Timestamp, GameStatus, GameType, Claim, Hash } from "src/dispute/lib/Types.sol";
 
 interface IDisputeGame is IInitializable {
-    event Resolved(GameStatus indexed status);
+    /// @notice Emitted when the game is resolved.
+    /// @param status The status of the game after resolution.
+    /// @param rootClaim The root claim of the DisputeGame.
+    /// @param l2BlockNumber The L2 block number at which the output root was generated.
+    event Resolved(GameStatus indexed status, Claim indexed rootClaim, uint256 indexed l2BlockNumber);
 
     function createdAt() external view returns (Timestamp);
     function resolvedAt() external view returns (Timestamp);

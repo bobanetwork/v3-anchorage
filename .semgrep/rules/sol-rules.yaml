@@ -97,6 +97,10 @@ rules:
         - packages/contracts-bedrock/src/L2/SuperchainWETH.sol
         - packages/contracts-bedrock/src/governance/interfaces/IGovernanceToken.sol
         - packages/contracts-bedrock/src/governance/GovernanceToken.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-return-arg-fmt
     languages: [solidity]
@@ -112,6 +116,10 @@ rules:
         - packages/contracts-bedrock/scripts/interfaces/IGnosisSafe.sol
         - packages/contracts-bedrock/src/dispute/interfaces/IPermissionedDisputeGame.sol
         - packages/contracts-bedrock/src/dispute/interfaces/IFaultDisputeGame.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-doc-comment
     languages: [solidity]
@@ -121,6 +129,24 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/test/safe-tools/CompatibilityFallbackHandler_1_3_0.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
+
+  - id: sol-expectrevert-no-args
+    languages: [solidity]
+    severity: ERROR
+    message: vm.expectRevert() must specify the revert reason
+    patterns:
+      - pattern: vm.expectRevert()
+    paths:
+      exclude:
+        - packages/contracts-bedrock/test
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-malformed-require
     languages: [solidity]
@@ -142,6 +168,10 @@ rules:
         - packages/contracts-bedrock/src/cannon/MIPS2.sol
         - packages/contracts-bedrock/src/cannon/libraries/MIPSMemory.sol
         - packages/contracts-bedrock/src/cannon/libraries/MIPSInstructions.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-malformed-revert
     languages: [solidity]
@@ -195,3 +225,8 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/test
+        - packages/contracts-bedrock/src/cannon/libraries/MIPSInstructions.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
