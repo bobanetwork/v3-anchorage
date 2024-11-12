@@ -19,7 +19,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-dispute-mon/version"
 
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/contracts"
-	"github.com/ethereum-optimism/optimism/op-service/client"
 	"github.com/ethereum-optimism/optimism/op-service/clock"
 	"github.com/ethereum-optimism/optimism/op-service/dial"
 	"github.com/ethereum-optimism/optimism/op-service/httputil"
@@ -151,10 +150,8 @@ func (s *Service) initBonds() {
 }
 
 func (s *Service) initOutputRollupClient(ctx context.Context, cfg *config.Config) error {
-	outputRollupClient, err := dial.DialRollupClientWithTimeout(ctx, dial.DefaultDialTimeout, s.logger, cfg.RollupRpc, client.BaseRPCTimeout{
-		RPCTimeout:      cfg.RollupRpcTimeout,
-		RPCBatchTimeout: cfg.RollupRpcBatchTimeout,
-	})
+	// override the default dial timeout for the rollup client
+	outputRollupClient, err := dial.DialRollupClientWithTimeout(ctx, dial.DefaultDialTimeout, s.logger, cfg.RollupRpc)
 	if err != nil {
 		return fmt.Errorf("failed to dial rollup client: %w", err)
 	}

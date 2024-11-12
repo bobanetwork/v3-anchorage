@@ -20,9 +20,7 @@ import (
 )
 
 var (
-	httpRegex              = regexp.MustCompile("^http(s)?://")
-	defaultRPCTimeout      = 10 * time.Second
-	defaultRPCBatchTimeout = 20 * time.Second
+	httpRegex = regexp.MustCompile("^http(s)?://")
 )
 
 type BaseRPCTimeout struct {
@@ -122,7 +120,17 @@ func NewRPC(ctx context.Context, lgr log.Logger, addr string, opts ...RPCOption)
 		if err != nil {
 			return nil, err
 		}
-		wrapped = wrapClient(underlying, cfg)
+
+		baseRPCClient := &BaseRPCClient{c: underlying, CallTimeout: 10 * time.Second, BatchCallTimeout: 20 * time.Second}
+
+		if cfg.callTimeout != time.Duration(0) {
+			baseRPCClient.CallTimeout = cfg.callTimeout
+		}
+		if cfg.batchCallTimeout != time.Duration(0) {
+			baseRPCClient.BatchCallTimeout = cfg.batchCallTimeout
+		}
+
+		wrapped = baseRPCClient
 	}
 
 	return NewRPCWithClient(ctx, lgr, addr, wrapped, cfg.httpPollInterval)
@@ -138,36 +146,12 @@ func applyOptions(opts []RPCOption) rpcConfig {
 		cfg.backoffAttempts = 1
 	}
 	if cfg.callTimeout == 0 {
-		cfg.callTimeout = defaultRPCTimeout
+		cfg.callTimeout = 10 * time.Second
 	}
 	if cfg.batchCallTimeout == 0 {
-		cfg.batchCallTimeout = defaultRPCBatchTimeout
+		cfg.batchCallTimeout = 20 * time.Second
 	}
-
-	var wrapped RPC
-	if cfg.lazy {
-		wrapped = NewLazyRPC(addr, cfg.gethRPCOptions...)
-	} else {
-		underlying, err := dialRPCClientWithBackoff(ctx, lgr, addr, cfg.backoffAttempts, cfg.gethRPCOptions...)
-		if err != nil {
-			return nil, err
-		}
-		baseRPCClient := &BaseRPCClient{c: underlying, CallTimeout: cfg.callTimeout, BatchCallTimeout: cfg.batchCallTimeout}
-
-		if cfg.callTimeout != time.Duration(0) {
-			baseRPCClient.CallTimeout = cfg.callTimeout
-		}
-		if cfg.batchCallTimeout != time.Duration(0) {
-			baseRPCClient.BatchCallTimeout = cfg.batchCallTimeout
-		}
-
-		wrapped = baseRPCClient
-	}
-	if cfg.limit != 0 {
-		wrapped = NewRateLimitingClient(wrapped, rate.Limit(cfg.limit), cfg.burst)
-	}
-
-	return NewRPCWithClient(ctx, lgr, addr, wrapped, cfg.httpPollInterval)
+	return cfg
 }
 
 // NewRPCWithClient builds a new polling client with the given underlying RPC client.
@@ -239,7 +223,16 @@ func NewBaseRPCClient(c *rpc.Client, opts ...RPCOption) RPC {
 
 func wrapClient(c *rpc.Client, cfg rpcConfig) RPC {
 	var wrapped RPC
-	wrapped = &BaseRPCClient{c: c, CallTimeout: 10 * time.Second, BatchCallTimeout: 20 * time.Second}
+	baseRPCClient := &BaseRPCClient{c: c, CallTimeout: 10 * time.Second, BatchCallTimeout: 20 * time.Second}
+
+	if cfg.callTimeout != time.Duration(0) {
+		baseRPCClient.CallTimeout = cfg.callTimeout
+	}
+	if cfg.batchCallTimeout != time.Duration(0) {
+		baseRPCClient.BatchCallTimeout = cfg.batchCallTimeout
+	}
+
+	wrapped = baseRPCClient
 
 	if cfg.limit != 0 {
 		wrapped = NewRateLimitingClient(wrapped, rate.Limit(cfg.limit), cfg.burst)
