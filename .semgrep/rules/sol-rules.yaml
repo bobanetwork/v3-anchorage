@@ -134,20 +134,6 @@ rules:
         - packages/contracts-bedrock/src/boba/BOBA.sol
         - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
-  - id: sol-expectrevert-no-args
-    languages: [solidity]
-    severity: ERROR
-    message: vm.expectRevert() must specify the revert reason
-    patterns:
-      - pattern: vm.expectRevert()
-    paths:
-      exclude:
-        - packages/contracts-bedrock/test
-        - packages/contracts-bedrock/lib
-        - packages/contracts-bedrock/src/boba/WETH9.sol
-        - packages/contracts-bedrock/src/boba/BOBA.sol
-        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
-
   - id: sol-style-malformed-require
     languages: [solidity]
     severity: ERROR
