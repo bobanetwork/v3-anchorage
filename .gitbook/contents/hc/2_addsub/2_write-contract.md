@@ -10,12 +10,12 @@ pragma solidity ^0.8.12;
 
 import "../samples/HybridAccount.sol";
 
-contract TestCounter {
+contract TestHybrid {
     mapping(address => uint256) public counters;
 
-    address payable immutable hcAccount;  // NOTE - this variale is named "demoAddr" in older instances of the contract
+    address payable immutable hcAccount;
 
-    constructor(address payable _hcAccount) {   
+    constructor(address payable _hcAccount) {
         hcAccount = _hcAccount;
     }
 }
