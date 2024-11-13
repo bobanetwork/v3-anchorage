@@ -19,5 +19,9 @@
   "previous": {
     "title": "Node Software Releases",
     "permalink": "/docs/node-operators/software-release"
+  },
+  "next": {
+    "title": "FAQ",
+    "permalink": "/docs/faq"
   }
 }

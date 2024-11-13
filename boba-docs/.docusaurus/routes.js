@@ -114,15 +114,15 @@ export default [
   },
   {
     path: '/docs',
-    component: ComponentCreator('/docs', 'e65'),
+    component: ComponentCreator('/docs', '5f1'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', '692'),
+        component: ComponentCreator('/docs', '5e9'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', 'eb2'),
+            component: ComponentCreator('/docs', '217'),
             routes: [
               {
                 path: '/docs/basics/add-new-token',
@@ -181,6 +181,12 @@ export default [
               {
                 path: '/docs/basics/verify-sc',
                 component: ComponentCreator('/docs/basics/verify-sc', 'e8a'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/faq',
+                component: ComponentCreator('/docs/faq', '21f'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },

@@ -1,0 +1,23 @@
+{
+  "id": "faq",
+  "title": "FAQ",
+  "description": "Frequently asked questions",
+  "source": "@site/docs/6_faq.md",
+  "sourceDirName": ".",
+  "slug": "/faq",
+  "permalink": "/docs/faq",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/6_faq.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "description": "Frequently asked questions"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Testnet Faucets",
+    "permalink": "/docs/faucets"
+  }
+}

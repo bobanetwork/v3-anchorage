@@ -61,6 +61,11 @@
               "sidebar": "tutorialSidebar"
             },
             {
+              "id": "faq",
+              "path": "/docs/faq",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "faucets",
               "path": "/docs/faucets",
               "sidebar": "tutorialSidebar"

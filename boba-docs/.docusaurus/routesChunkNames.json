@@ -249,17 +249,17 @@
     },
     "content": "content---markdown-page-393-028"
   },
-  "/docs-e65": {
+  "/docs-5f1": {
     "__comp": "__comp---theme-docs-root-5-e-9-0b6",
     "__context": {
       "plugin": "plugin---docsaba-d7c"
     }
   },
-  "/docs-692": {
+  "/docs-5e9": {
     "__comp": "__comp---theme-doc-version-roota-7-b-5de",
     "__props": "__props---docs-005-788"
   },
-  "/docs-eb2": {
+  "/docs-217": {
     "__comp": "__comp---theme-doc-roota-94-67a"
   },
   "/docs/basics/add-new-token-02f": {
@@ -301,6 +301,10 @@
   "/docs/basics/verify-sc-e8a": {
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---docs-basics-verify-sc-846-fad"
+  },
+  "/docs/faq-21f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-faq-8-c-3-def"
   },
   "/docs/faucets-f81": {
     "__comp": "__comp---theme-doc-item-178-a40",
