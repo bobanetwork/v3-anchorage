@@ -53,6 +53,7 @@ library MIPSSyscalls {
     uint32 internal constant SYS_PRLIMIT64 = 4338;
     uint32 internal constant SYS_CLOSE = 4006;
     uint32 internal constant SYS_PREAD64 = 4200;
+    uint32 internal constant SYS_STAT = 4106;
     uint32 internal constant SYS_FSTAT = 4108;
     uint32 internal constant SYS_FSTAT64 = 4215;
     uint32 internal constant SYS_OPENAT = 4288;
@@ -71,6 +72,8 @@ library MIPSSyscalls {
     uint32 internal constant SYS_LLSEEK = 4140;
     uint32 internal constant SYS_MINCORE = 4217;
     uint32 internal constant SYS_TGKILL = 4266;
+    uint32 internal constant SYS_GETRLIMIT = 4076;
+    uint32 internal constant SYS_LSEEK = 4019;
 
     // profiling-related syscalls - ignored
     uint32 internal constant SYS_SETITIMER = 4104;

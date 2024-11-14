@@ -937,6 +937,18 @@ func TestAdditionalBondClaimants(t *testing.T) {
 	})
 }
 
+func TestSignerTLS(t *testing.T) {
+	t.Run("EnabledByDefault", func(t *testing.T) {
+		cfg := configForArgs(t, addRequiredArgs(types.TraceTypeAlphabet))
+		require.True(t, cfg.TxMgrConfig.SignerCLIConfig.TLSConfig.Enabled)
+	})
+
+	t.Run("Disabled", func(t *testing.T) {
+		cfg := configForArgs(t, addRequiredArgs(types.TraceTypeAlphabet, "--signer.tls.enabled=false"))
+		require.False(t, cfg.TxMgrConfig.SignerCLIConfig.TLSConfig.Enabled)
+	})
+}
+
 func verifyArgsInvalid(t *testing.T, messageContains string, cliArgs []string) {
 	_, _, err := dryRunWithArgs(cliArgs)
 	require.ErrorContains(t, err, messageContains)
@@ -1010,7 +1022,6 @@ func addRequiredCannonArgs(args map[string]string) {
 	args["--cannon-bin"] = cannonBin
 	args["--cannon-server"] = cannonServer
 	args["--cannon-prestate"] = cannonPreState
-	args["--l2-eth-rpc"] = l2EthRpc
 }
 
 func addRequiredAsteriscArgs(args map[string]string) {
@@ -1018,7 +1029,6 @@ func addRequiredAsteriscArgs(args map[string]string) {
 	args["--asterisc-bin"] = asteriscBin
 	args["--asterisc-server"] = asteriscServer
 	args["--asterisc-prestate"] = asteriscPreState
-	args["--l2-eth-rpc"] = l2EthRpc
 }
 
 func addRequiredAsteriscKonaArgs(args map[string]string) {
@@ -1026,7 +1036,6 @@ func addRequiredAsteriscKonaArgs(args map[string]string) {
 	args["--asterisc-bin"] = asteriscBin
 	args["--asterisc-kona-server"] = asteriscServer
 	args["--asterisc-kona-prestate"] = asteriscPreState
-	args["--l2-eth-rpc"] = l2EthRpc
 }
 
 func toArgList(req map[string]string) []string {

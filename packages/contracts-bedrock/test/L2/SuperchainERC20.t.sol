@@ -6,11 +6,11 @@ import { Test } from "forge-std/Test.sol";
 
 // Libraries
 import { Predeploys } from "src/libraries/Predeploys.sol";
-import { IERC20 } from "@openzeppelin/contracts-v5/token/ERC20/IERC20.sol";
 
 // Target contract
 import { SuperchainERC20 } from "src/L2/SuperchainERC20.sol";
-import { ICrosschainERC20 } from "src/L2/interfaces/ICrosschainERC20.sol";
+import { IERC7802, IERC165 } from "src/L2/interfaces/IERC7802.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISuperchainERC20 } from "src/L2/interfaces/ISuperchainERC20.sol";
 import { MockSuperchainERC20Implementation } from "test/mocks/SuperchainERC20Implementation.sol";
 
@@ -60,9 +60,9 @@ contract SuperchainERC20Test is Test {
         vm.expectEmit(address(superchainERC20));
         emit IERC20.Transfer(ZERO_ADDRESS, _to, _amount);
 
-        // Look for the emit of the `CrosschainMinted` event
+        // Look for the emit of the `CrosschainMint` event
         vm.expectEmit(address(superchainERC20));
-        emit ICrosschainERC20.CrosschainMinted(_to, _amount);
+        emit IERC7802.CrosschainMint(_to, _amount);
 
         // Call the `mint` function with the bridge caller
         vm.prank(SUPERCHAIN_TOKEN_BRIDGE);
@@ -86,7 +86,7 @@ contract SuperchainERC20Test is Test {
         superchainERC20.crosschainBurn(_from, _amount);
     }
 
-    /// @notice Tests the `burn` burns the amount and emits the `CrosschainBurnt` event.
+    /// @notice Tests the `burn` burns the amount and emits the `CrosschainBurn` event.
     function testFuzz_crosschainBurn_succeeds(address _from, uint256 _amount) public {
         // Ensure `_from` is not the zero address
         vm.assume(_from != ZERO_ADDRESS);
@@ -103,9 +103,9 @@ contract SuperchainERC20Test is Test {
         vm.expectEmit(address(superchainERC20));
         emit IERC20.Transfer(_from, ZERO_ADDRESS, _amount);
 
-        // Look for the emit of the `CrosschainBurnt` event
+        // Look for the emit of the `CrosschainBurn` event
         vm.expectEmit(address(superchainERC20));
-        emit ICrosschainERC20.CrosschainBurnt(_from, _amount);
+        emit IERC7802.CrosschainBurn(_from, _amount);
 
         // Call the `burn` function with the bridge caller
         vm.prank(SUPERCHAIN_TOKEN_BRIDGE);
@@ -114,5 +114,21 @@ contract SuperchainERC20Test is Test {
         // Check the total supply and balance of `_from` after the burn were updated correctly
         assertEq(superchainERC20.totalSupply(), _totalSupplyBefore - _amount);
         assertEq(superchainERC20.balanceOf(_from), _fromBalanceBefore - _amount);
+    }
+
+    /// @notice Tests that the `supportsInterface` function returns true for the `IERC7802` interface.
+    function test_supportInterface_succeeds() public view {
+        assertTrue(superchainERC20.supportsInterface(type(IERC165).interfaceId));
+        assertTrue(superchainERC20.supportsInterface(type(IERC7802).interfaceId));
+        assertTrue(superchainERC20.supportsInterface(type(IERC20).interfaceId));
+    }
+
+    /// @notice Tests that the `supportsInterface` function returns false for any other interface than the
+    /// `IERC7802` one.
+    function testFuzz_supportInterface_works(bytes4 _interfaceId) public view {
+        vm.assume(_interfaceId != type(IERC165).interfaceId);
+        vm.assume(_interfaceId != type(IERC7802).interfaceId);
+        vm.assume(_interfaceId != type(IERC20).interfaceId);
+        assertFalse(superchainERC20.supportsInterface(_interfaceId));
     }
 }

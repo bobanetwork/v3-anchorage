@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 // Testing utilities
-import { Bridge_Initializer } from "test/setup/Bridge_Initializer.sol";
+import { CommonTest } from "test/setup/CommonTest.sol";
 
 // Libraries
 import { Predeploys } from "src/libraries/Predeploys.sol";
@@ -13,10 +13,11 @@ import { ISuperchainTokenBridge } from "src/L2/interfaces/ISuperchainTokenBridge
 import { ISuperchainERC20 } from "src/L2/interfaces/ISuperchainERC20.sol";
 import { IOptimismSuperchainERC20Factory } from "src/L2/interfaces/IOptimismSuperchainERC20Factory.sol";
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
+import { IERC7802 } from "src/L2/interfaces/IERC7802.sol";
 
 /// @title SuperchainTokenBridgeTest
 /// @notice Contract for testing the SuperchainTokenBridge contract.
-contract SuperchainTokenBridgeTest is Bridge_Initializer {
+contract SuperchainTokenBridgeTest is CommonTest {
     address internal constant ZERO_ADDRESS = address(0);
     string internal constant NAME = "SuperchainERC20";
     string internal constant SYMBOL = "OSE";
@@ -60,6 +61,32 @@ contract SuperchainTokenBridgeTest is Bridge_Initializer {
         superchainTokenBridge.sendERC20(address(superchainERC20), ZERO_ADDRESS, _amount, _chainId);
     }
 
+    /// @notice Tests the `sendERC20` function reverts when the `token` does not support the IERC7802 interface.
+    function testFuzz_sendERC20_notSupportedIERC7802_reverts(
+        address _token,
+        address _sender,
+        address _to,
+        uint256 _amount,
+        uint256 _chainId
+    )
+        public
+    {
+        vm.assume(_to != ZERO_ADDRESS);
+        assumeAddressIsNot(_token, AddressType.Precompile, AddressType.ForgeAddress);
+
+        // Mock the call over the `supportsInterface` function to return false
+        vm.mockCall(
+            _token, abi.encodeCall(ISuperchainERC20.supportsInterface, (type(IERC7802).interfaceId)), abi.encode(false)
+        );
+
+        // Expect the revert with `InvalidERC7802` selector
+        vm.expectRevert(ISuperchainTokenBridge.InvalidERC7802.selector);
+
+        // Call the `sendERC20` function
+        vm.prank(_sender);
+        superchainTokenBridge.sendERC20(_token, _to, _amount, _chainId);
+    }
+
     /// @notice Tests the `sendERC20` function burns the sender tokens, sends the message, and emits the `SendERC20`
     /// event.
     function testFuzz_sendERC20_succeeds(
@@ -96,8 +123,8 @@ contract SuperchainTokenBridgeTest is Bridge_Initializer {
             abi.encodeCall(superchainTokenBridge.relayERC20, (address(superchainERC20), _sender, _to, _amount));
         _mockAndExpect(
             Predeploys.L2_TO_L2_CROSS_DOMAIN_MESSENGER,
-            abi.encodeWithSelector(
-                IL2ToL2CrossDomainMessenger.sendMessage.selector, _chainId, address(superchainTokenBridge), _message
+            abi.encodeCall(
+                IL2ToL2CrossDomainMessenger.sendMessage, (_chainId, address(superchainTokenBridge), _message)
             ),
             abi.encode(_msgHash)
         );
@@ -137,7 +164,6 @@ contract SuperchainTokenBridgeTest is Bridge_Initializer {
     /// @notice Tests the `relayERC20` function reverts when the `crossDomainMessageSender` that sent the message is not
     /// the same SuperchainTokenBridge.
     function testFuzz_relayERC20_notCrossDomainSender_reverts(
-        address _token,
         address _crossDomainMessageSender,
         uint256 _source,
         address _to,
@@ -150,7 +176,7 @@ contract SuperchainTokenBridgeTest is Bridge_Initializer {
         // Mock the call over the `crossDomainMessageContext` function setting a wrong sender
         vm.mockCall(
             Predeploys.L2_TO_L2_CROSS_DOMAIN_MESSENGER,
-            abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.crossDomainMessageContext.selector),
+            abi.encodeCall(IL2ToL2CrossDomainMessenger.crossDomainMessageContext, ()),
             abi.encode(_crossDomainMessageSender, _source)
         );
 
@@ -159,7 +185,7 @@ contract SuperchainTokenBridgeTest is Bridge_Initializer {
 
         // Call the `relayERC20` function with the sender caller
         vm.prank(Predeploys.L2_TO_L2_CROSS_DOMAIN_MESSENGER);
-        superchainTokenBridge.relayERC20(_token, _crossDomainMessageSender, _to, _amount);
+        superchainTokenBridge.relayERC20(address(superchainERC20), _crossDomainMessageSender, _to, _amount);
     }
 
     /// @notice Tests the `relayERC20` mints the proper amount and emits the `RelayERC20` event.
@@ -169,7 +195,7 @@ contract SuperchainTokenBridgeTest is Bridge_Initializer {
         // Mock the call over the `crossDomainMessageContext` function setting the same address as value
         _mockAndExpect(
             Predeploys.L2_TO_L2_CROSS_DOMAIN_MESSENGER,
-            abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.crossDomainMessageContext.selector),
+            abi.encodeCall(IL2ToL2CrossDomainMessenger.crossDomainMessageContext, ()),
             abi.encode(address(superchainTokenBridge), _source)
         );
 

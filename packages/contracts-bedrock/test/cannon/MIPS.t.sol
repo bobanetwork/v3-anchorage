@@ -1509,7 +1509,7 @@ contract MIPS_Test is CommonTest {
         assertEq(postState, outputState(expect), "unexpected post state");
     }
 
-    function test_mmap_succeeds_justWithinMemLimit() external {
+    function test_mmap_justWithinMemLimit_succeeds() external {
         uint32 insn = 0x0000000c; // syscall
         (bytes32 memRoot, bytes memory proof) = ffi.getCannonMemoryProof(0, insn);
 
@@ -1538,7 +1538,7 @@ contract MIPS_Test is CommonTest {
         assertEq(postState, outputState(expect), "unexpected post state");
     }
 
-    function test_mmap_fails() external {
+    function test_step_mmap_fails() external {
         uint32 insn = 0x0000000c; // syscall
         (bytes32 memRoot, bytes memory proof) = ffi.getCannonMemoryProof(0, insn);
 
@@ -1692,7 +1692,7 @@ contract MIPS_Test is CommonTest {
         mips.step(encodedState, proof, 0);
     }
 
-    function test_invalid_root_fails() external {
+    function test_step_invalidRoot_fails() external {
         uint32 insn = 0x0000000c; // syscall
         (IMIPS.State memory state, bytes memory proof) = constructMIPSState(0, insn, 0x4, 0);
         state.registers[2] = 4246; // exit_group syscall
@@ -1706,7 +1706,7 @@ contract MIPS_Test is CommonTest {
         mips.step(encodeState(state), proof, 0);
     }
 
-    function test_invalid_root_different_leaf_fails() external {
+    function test_step_invalidRootDifferentLeaf_fails() external {
         uint32 insn = 0x0000000c; // syscall
 
         // Initialize the state, though for the proof, use valid proofs for the instruction
@@ -1801,22 +1801,22 @@ contract MIPS_Test is CommonTest {
         uint32 val
     )
         internal
-        returns (IMIPS.State memory state, bytes memory proof)
+        returns (IMIPS.State memory state_, bytes memory proof_)
     {
-        (state.memRoot, proof) = ffi.getCannonMemoryProof(pc, insn, addr, val);
-        state.pc = pc;
-        state.nextPC = pc + 4;
+        (state_.memRoot, proof_) = ffi.getCannonMemoryProof(pc, insn, addr, val);
+        state_.pc = pc;
+        state_.nextPC = pc + 4;
     }
 
-    function encodeitype(uint8 opcode, uint8 rs, uint8 rt, uint16 imm) internal pure returns (uint32 insn) {
-        insn = uint32(opcode) << 26 | uint32(rs) << 21 | uint32(rt) << 16 | imm;
+    function encodeitype(uint8 opcode, uint8 rs, uint8 rt, uint16 imm) internal pure returns (uint32 insn_) {
+        insn_ = uint32(opcode) << 26 | uint32(rs) << 21 | uint32(rt) << 16 | imm;
     }
 
-    function encodespec(uint8 rs, uint8 rt, uint8 rd, uint16 funct) internal pure returns (uint32 insn) {
-        insn = uint32(rs) << 21 | uint32(rt) << 16 | uint32(rd) << 11 | uint32(funct);
+    function encodespec(uint8 rs, uint8 rt, uint8 rd, uint16 funct) internal pure returns (uint32 insn_) {
+        insn_ = uint32(rs) << 21 | uint32(rt) << 16 | uint32(rd) << 11 | uint32(funct);
     }
 
-    function encodespec2(uint8 rs, uint8 rt, uint8 rd, uint8 funct) internal pure returns (uint32 insn) {
-        insn = uint32(28) << 26 | uint32(rs) << 21 | uint32(rt) << 16 | uint32(rd) << 11 | uint32(funct);
+    function encodespec2(uint8 rs, uint8 rt, uint8 rd, uint8 funct) internal pure returns (uint32 insn_) {
+        insn_ = uint32(28) << 26 | uint32(rs) << 21 | uint32(rt) << 16 | uint32(rd) << 11 | uint32(funct);
     }
 }
