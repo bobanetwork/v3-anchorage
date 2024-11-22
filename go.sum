@@ -101,8 +101,8 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
 github.com/bits-and-blooms/bitset v1.13.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
-github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240926214052-4aa1ce20dfa5 h1:XvIdo6TKf6KHy0ItEBCF5LHCforqyp2UELpMp1VZlws=
-github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240926214052-4aa1ce20dfa5/go.mod h1:XaVXL9jg8BcyOeugECgIUGa9Y3DjYJj71RHmb5qon6M=
+github.com/bobanetwork/superchain-registry/superchain v0.0.0-20241121182544-13bbb7af7f91 h1:QUNryKnl1WzPPOumH9c0P5nmsvr/j+LtUx95p5h0uyU=
+github.com/bobanetwork/superchain-registry/superchain v0.0.0-20241121182544-13bbb7af7f91/go.mod h1:9feO8jcL5OZ1tvRjEfNAHz4Aggvd6373l+ZxmZZAyZs=
 github.com/boltdb/bolt v1.3.1 h1:JQmyP4ZBrce+ZQu0dY660FMfatumYDLun9hBCUVIkF4=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
