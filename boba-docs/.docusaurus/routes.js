@@ -113,170 +113,164 @@ export default [
     exact: true
   },
   {
-    path: '/docs',
-    component: ComponentCreator('/docs', '5f1'),
+    path: '/',
+    component: ComponentCreator('/', '1e9'),
     routes: [
       {
-        path: '/docs',
-        component: ComponentCreator('/docs', '5e9'),
+        path: '/',
+        component: ComponentCreator('/', '3dc'),
         routes: [
           {
-            path: '/docs',
-            component: ComponentCreator('/docs', '217'),
+            path: '/',
+            component: ComponentCreator('/', '129'),
             routes: [
               {
-                path: '/docs/basics/add-new-token',
-                component: ComponentCreator('/docs/basics/add-new-token', '02f'),
+                path: '/basics/add-new-token',
+                component: ComponentCreator('/basics/add-new-token', 'b0d'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/basic-ops',
-                component: ComponentCreator('/docs/basics/basic-ops', '503'),
+                path: '/basics/basic-ops',
+                component: ComponentCreator('/basics/basic-ops', 'a87'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/bridging/boba-token-bridge',
-                component: ComponentCreator('/docs/basics/bridging/boba-token-bridge', 'c1f'),
+                path: '/basics/bridging/boba-token-bridge',
+                component: ComponentCreator('/basics/bridging/boba-token-bridge', '72c'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/bridging/index',
-                component: ComponentCreator('/docs/basics/bridging/index', '7bb'),
+                path: '/basics/bridging/index',
+                component: ComponentCreator('/basics/bridging/index', 'c9b'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/bridging/light-bridge',
-                component: ComponentCreator('/docs/basics/bridging/light-bridge', '57d'),
+                path: '/basics/bridging/light-bridge',
+                component: ComponentCreator('/basics/bridging/light-bridge', '018'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/bridging/standard-bridge',
-                component: ComponentCreator('/docs/basics/bridging/standard-bridge', '4d4'),
+                path: '/basics/bridging/standard-bridge',
+                component: ComponentCreator('/basics/bridging/standard-bridge', '6f8'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/deploy-contract',
-                component: ComponentCreator('/docs/basics/deploy-contract', '101'),
+                path: '/basics/deploy-contract',
+                component: ComponentCreator('/basics/deploy-contract', '285'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/index',
-                component: ComponentCreator('/docs/basics/index', '45c'),
+                path: '/basics/json-rpc-api',
+                component: ComponentCreator('/basics/json-rpc-api', 'c00'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/json-rpc-api',
-                component: ComponentCreator('/docs/basics/json-rpc-api', '924'),
+                path: '/basics/verify-sc',
+                component: ComponentCreator('/basics/verify-sc', '9a8'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/basics/verify-sc',
-                component: ComponentCreator('/docs/basics/verify-sc', 'e8a'),
+                path: '/faq',
+                component: ComponentCreator('/faq', 'b33'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/faq',
-                component: ComponentCreator('/docs/faq', '21f'),
+                path: '/faucets',
+                component: ComponentCreator('/faucets', '4e4'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/faucets',
-                component: ComponentCreator('/docs/faucets', 'f81'),
+                path: '/hc/addsub/',
+                component: ComponentCreator('/hc/addsub/', 'c91'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/hc/addsub/',
-                component: ComponentCreator('/docs/hc/addsub/', '096'),
+                path: '/hc/addsub/write-contract',
+                component: ComponentCreator('/hc/addsub/write-contract', '3e7'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/hc/addsub/write-contract',
-                component: ComponentCreator('/docs/hc/addsub/write-contract', '1a7'),
+                path: '/hc/addsub/write-handler',
+                component: ComponentCreator('/hc/addsub/write-handler', 'd0b'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/hc/addsub/write-handler',
-                component: ComponentCreator('/docs/hc/addsub/write-handler', 'c9c'),
+                path: '/hc/deploy-contract',
+                component: ComponentCreator('/hc/deploy-contract', '11b'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/hc/deploy-contract',
-                component: ComponentCreator('/docs/hc/deploy-contract', '634'),
+                path: '/hc/index',
+                component: ComponentCreator('/hc/index', '4c8'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/hc/index',
-                component: ComponentCreator('/docs/hc/index', 'a1d'),
+                path: '/hc/price-fetch',
+                component: ComponentCreator('/hc/price-fetch', '672'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/hc/price-fetch',
-                component: ComponentCreator('/docs/hc/price-fetch', 'f4c'),
+                path: '/hc/server-setup',
+                component: ComponentCreator('/hc/server-setup', '300'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/hc/server-setup',
-                component: ComponentCreator('/docs/hc/server-setup', '2ca'),
+                path: '/node-operators/index',
+                component: ComponentCreator('/node-operators/index', 'c7a'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/index',
-                component: ComponentCreator('/docs/index', '2f2'),
+                path: '/node-operators/network-upgrades',
+                component: ComponentCreator('/node-operators/network-upgrades', 'a8c'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/node-operators/index',
-                component: ComponentCreator('/docs/node-operators/index', 'a81'),
+                path: '/node-operators/run-node-docker',
+                component: ComponentCreator('/node-operators/run-node-docker', 'f82'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/node-operators/network-upgrades',
-                component: ComponentCreator('/docs/node-operators/network-upgrades', '566'),
+                path: '/node-operators/run-node-source',
+                component: ComponentCreator('/node-operators/run-node-source', '425'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/node-operators/run-node-docker',
-                component: ComponentCreator('/docs/node-operators/run-node-docker', '9f1'),
+                path: '/node-operators/snapshot-downloads',
+                component: ComponentCreator('/node-operators/snapshot-downloads', '6e7'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/node-operators/run-node-source',
-                component: ComponentCreator('/docs/node-operators/run-node-source', 'ebb'),
+                path: '/node-operators/software-release',
+                component: ComponentCreator('/node-operators/software-release', '1a0'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/docs/node-operators/snapshot-downloads',
-                component: ComponentCreator('/docs/node-operators/snapshot-downloads', '708'),
-                exact: true,
-                sidebar: "tutorialSidebar"
-              },
-              {
-                path: '/docs/node-operators/software-release',
-                component: ComponentCreator('/docs/node-operators/software-release', '93c'),
+                path: '/',
+                component: ComponentCreator('/', 'c92'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               }
@@ -285,11 +279,6 @@ export default [
         ]
       }
     ]
-  },
-  {
-    path: '/',
-    component: ComponentCreator('/', '2e1'),
-    exact: true
   },
   {
     path: '*',

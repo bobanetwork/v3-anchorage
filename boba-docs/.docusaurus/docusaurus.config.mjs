@@ -41,8 +41,8 @@ export default {
       "classic",
       {
         "docs": {
-          "sidebarPath": "./sidebars.js",
-          "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/"
+          "routeBasePath": "/",
+          "sidebarPath": "./sidebars.js"
         },
         "blog": {
           "showReadingTime": true,
@@ -53,7 +53,6 @@ export default {
             ],
             "xslt": true
           },
-          "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
           "onInlineTags": "warn",
           "onInlineAuthors": "warn",
           "onUntruncatedBlogPosts": "warn"
@@ -80,12 +79,7 @@ export default {
           "label": "Docs"
         },
         {
-          "to": "/blog",
-          "label": "Blog",
-          "position": "left"
-        },
-        {
-          "href": "https://github.com/facebook/docusaurus",
+          "href": "https://github.com/bobanetwork",
           "label": "GitHub",
           "position": "right"
         }
@@ -96,41 +90,23 @@ export default {
       "style": "dark",
       "links": [
         {
-          "title": "Boba Developer Docs",
-          "items": [
-            {
-              "label": "Docs",
-              "to": "/docs/intro"
-            }
-          ]
-        },
-        {
           "title": "Community",
           "items": [
             {
-              "label": "Stack Overflow",
-              "href": "https://stackoverflow.com/questions/tagged/docusaurus"
-            },
-            {
               "label": "Discord",
-              "href": "https://discordapp.com/invite/docusaurus"
+              "href": "https://discord.com/invite/Hvu3zpFwWd"
             },
             {
-              "label": "Twitter",
-              "href": "https://twitter.com/docusaurus"
-            }
-          ]
-        },
-        {
-          "title": "More",
-          "items": [
-            {
-              "label": "Blog",
-              "to": "/blog"
+              "label": "X",
+              "href": "https://x.com/bobanetwork"
             },
             {
-              "label": "GitHub",
-              "href": "https://github.com/facebook/docusaurus"
+              "label": "Reddit",
+              "href": "https://www.reddit.com/r/bobanetwork/"
+            },
+            {
+              "label": "Github",
+              "href": "https://github.com/bobanetwork"
             }
           ]
         }

@@ -4,14 +4,14 @@ description: Frequently asked questions
 
 # FAQ
 
-<figure><img src="./assets/What is Boba Network.png" alt=""><figcaption></figcaption></figure>
+![What is Boba Network?](../assets/what-is-boba.png)
 
 
 [Boba](https://boba.network) is a compute-focused Layer 2 (L2) solution built on top of the Layer 1 blockchain, [Ethereum](https://ethereum.org/en) and [BNB Chain](https://www.bnbchain.org/en/bnb-smart-chain). Ethereum is similar to L1 blockchains like Avalanche, BNB, and Moonbeam, and acts as a base blockchain platform that executes all on-chain transactions. Boba scales and augments the core _compute_ capabilities of Ethereum/BNB Chain, reducing gas fees and improving transaction throughput - while retaining the security guarantees of its underlying network.
 
 The complexity of smart contract algorithms can make them expensive and slow to execute at speed. To solve this, Boba has designed a Hybrid Compute architecture that enables smart contracts to trigger much more complex algorithms off-chain (similar to running an app on AWS for example), and then bring the result back into the on-chain smart contract. Hence, the Boba Hybrid compute model runs both on-chain and off-chain.
 
-<figure><img src="./assets/Hybrid Compute page - Technical details chart (1).png" alt=""><figcaption></figcaption></figure>
+![HC Technical Details](../assets/hc-tech-details.png)
 
 Boba is built on the Optimistic Rollup developed by [Optimism](https://optimism.io). Boba chose to build on Optimism because it is essentially a modified version of Ethereum that makes it relatively easy to ensure Ethereum Virtual Machine (EVM) and Solidity compatibility. This minimizes the efforts required to migrate smart contracts from L1 to L2.
 
@@ -111,7 +111,7 @@ Yes, we call it Anchorage. It's already live on our Sepolia testnet and will soo
 
 ***
 
-<figure><img src=".gitbook/assets/Smart contracts.png" alt=""><figcaption></figcaption></figure>
+![Smart Contracts](../assets/smart-contracts.png)
 
 ## Why am I getting the 'contract size exceeds limit' error?
 
@@ -143,7 +143,7 @@ Technically, an L1 token can have multiple representations on L2. This mean that
 
 [And here's the relayer service Boba uses for relaying messages from L2 to L1](https://github.com/bobanetwork/boba\_legacy/tree/develop/packages/message-relayer).
 
-<figure><img src="./assets/testing and testnet.png" alt=""><figcaption></figcaption></figure>
+![Testing and Testnet](../assets/testing-and-testnet.png)
 
 ## Does Boba Network Have a testnet/How do I get Testnet Boba or Eth?
 
@@ -161,7 +161,7 @@ Please run `docker-compose logs`, as well as integration tests, and send us the 
 
 You can use [GoldSky](contents/developer/features/subgraph.md) to index events.
 
-<figure><img src="./assets/transactions.png" alt=""><figcaption></figcaption></figure>
+![Transactions](../assets/transactions.png)
 
 ## Why am I getting an error that says the gas limit is 1,000,000,000,000,000 Wei?
 
@@ -200,7 +200,7 @@ No, but you can use GoldSky.
 
 There are multiple bridges available and are listed on our ecosystem page:
 
-<figure><img src="./assets/wdfgbfsdfbfdfgn.png" alt=""><figcaption></figcaption></figure>
+![wdfgbfsdfbfdfgn](../assets/wdfgbfsdfbfdfgn.png)
 
 Find all bridges [here](https://boba.network/dapps/?filter=true\&project\_category=bridge)
 
@@ -224,7 +224,7 @@ Bridging multiple assets in one transaction involves extending the LP1 contract 
 
 LP floating fee rate refers to the change in the fee logic on LPs. LP fee consists of `userRewardFee` (fee distributed to liquidity providers), and `ownerRewardFee` (fee for the owner of the contract). Before the change, LPs had a configurable fixed value for both these fees. After the change, the `userRewardFee` is a dynamic value that depends on the pool balance, which moves between configured min/max ranges. The `ownerRewardFeeRate` continues to be a configurable fixed value.
 
-<figure><img src="./assets/hybridcompute (1).png" alt=""><figcaption></figcaption></figure>
+![Hybrid Compute](../assets/hc.png)
 
 ## What are the limits on Hybrid Compute Web2 calls?
 

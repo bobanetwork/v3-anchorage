@@ -5,10 +5,9 @@
   "source": "@site/docs/hc/4_deploy-contract.md",
   "sourceDirName": "hc",
   "slug": "/hc/deploy-contract",
-  "permalink": "/docs/hc/deploy-contract",
+  "permalink": "/hc/deploy-contract",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/hc/4_deploy-contract.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 4,
@@ -16,10 +15,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Set Up a Server",
-    "permalink": "/docs/hc/server-setup"
+    "permalink": "/hc/server-setup"
   },
   "next": {
     "title": "Overview",
-    "permalink": "/docs/node-operators/index"
+    "permalink": "/node-operators/index"
   }
 }

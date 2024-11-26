@@ -5,10 +5,9 @@
   "source": "@site/docs/hc/0_index.md",
   "sourceDirName": "hc",
   "slug": "/hc/index",
-  "permalink": "/docs/hc/index",
+  "permalink": "/hc/index",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/hc/0_index.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 0,
@@ -16,10 +15,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Contract Deployment Example",
-    "permalink": "/docs/basics/deploy-contract"
+    "permalink": "/basics/deploy-contract"
   },
   "next": {
     "title": "Price Fetch Example",
-    "permalink": "/docs/hc/price-fetch"
+    "permalink": "/hc/price-fetch"
   }
 }

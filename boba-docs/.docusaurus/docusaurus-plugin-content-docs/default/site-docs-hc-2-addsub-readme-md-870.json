@@ -5,20 +5,19 @@
   "source": "@site/docs/hc/2_addsub/README.md",
   "sourceDirName": "hc/2_addsub",
   "slug": "/hc/addsub/",
-  "permalink": "/docs/hc/addsub/",
+  "permalink": "/hc/addsub/",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/hc/2_addsub/README.md",
   "tags": [],
   "version": "current",
   "frontMatter": {},
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Price Fetch Example",
-    "permalink": "/docs/hc/price-fetch"
+    "permalink": "/hc/price-fetch"
   },
   "next": {
     "title": "Write an Off-Chain Handler",
-    "permalink": "/docs/hc/addsub/write-handler"
+    "permalink": "/hc/addsub/write-handler"
   }
 }

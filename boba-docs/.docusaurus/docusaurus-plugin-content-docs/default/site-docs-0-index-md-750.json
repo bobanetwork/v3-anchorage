@@ -1,21 +1,22 @@
 {
   "id": "index",
   "title": "Introduction",
-  "description": "Here are the boba docs yaaaaay how neat!",
+  "description": "Boba is the first scaling infrastructure that is deployed on multiple blockchains, making it the leading Web3 multichain execution layer with scaling capabilities to facilitate more functionality on EVM-compatible blockchains.",
   "source": "@site/docs/0_index.md",
   "sourceDirName": ".",
-  "slug": "/index",
-  "permalink": "/docs/index",
+  "slug": "/",
+  "permalink": "/",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/0_index.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 0,
-  "frontMatter": {},
+  "frontMatter": {
+    "slug": "/"
+  },
   "sidebar": "tutorialSidebar",
   "next": {
-    "title": "Introduction",
-    "permalink": "/docs/basics/index"
+    "title": "Basic Operations",
+    "permalink": "/basics/basic-ops"
   }
 }

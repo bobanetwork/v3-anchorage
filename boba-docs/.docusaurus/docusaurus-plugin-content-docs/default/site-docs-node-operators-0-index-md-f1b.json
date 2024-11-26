@@ -5,10 +5,9 @@
   "source": "@site/docs/node-operators/0_index.md",
   "sourceDirName": "node-operators",
   "slug": "/node-operators/index",
-  "permalink": "/docs/node-operators/index",
+  "permalink": "/node-operators/index",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/node-operators/0_index.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 0,
@@ -16,10 +15,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Deploy the Smart Contracts",
-    "permalink": "/docs/hc/deploy-contract"
+    "permalink": "/hc/deploy-contract"
   },
   "next": {
     "title": "Running a Node with Docker",
-    "permalink": "/docs/node-operators/run-node-docker"
+    "permalink": "/node-operators/run-node-docker"
   }
 }

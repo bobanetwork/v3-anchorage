@@ -5,10 +5,9 @@
   "source": "@site/docs/basics/3_bridging/1_standard-bridge.md",
   "sourceDirName": "basics/3_bridging",
   "slug": "/basics/bridging/standard-bridge",
-  "permalink": "/docs/basics/bridging/standard-bridge",
+  "permalink": "/basics/bridging/standard-bridge",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/basics/3_bridging/1_standard-bridge.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 1,
@@ -18,10 +17,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Introduction",
-    "permalink": "/docs/basics/bridging/index"
+    "permalink": "/basics/bridging/index"
   },
   "next": {
     "title": "Using the Light Bridge",
-    "permalink": "/docs/basics/bridging/light-bridge"
+    "permalink": "/basics/bridging/light-bridge"
   }
 }

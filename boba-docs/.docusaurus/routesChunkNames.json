@@ -249,128 +249,117 @@
     },
     "content": "content---markdown-page-393-028"
   },
-  "/docs-5f1": {
+  "/-1e9": {
     "__comp": "__comp---theme-docs-root-5-e-9-0b6",
     "__context": {
-      "plugin": "plugin---docsaba-d7c"
+      "plugin": "plugin---aba-d70"
     }
   },
-  "/docs-5e9": {
+  "/-3dc": {
     "__comp": "__comp---theme-doc-version-roota-7-b-5de",
-    "__props": "__props---docs-005-788"
+    "__props": "__props---22-d-307"
   },
-  "/docs-217": {
+  "/-129": {
     "__comp": "__comp---theme-doc-roota-94-67a"
   },
-  "/docs/basics/add-new-token-02f": {
+  "/basics/add-new-token-b0d": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-add-new-tokenda-9-d81"
+    "content": "content---basics-add-new-tokenda-9-3ed"
   },
-  "/docs/basics/basic-ops-503": {
+  "/basics/basic-ops-a87": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-basic-opsf-2-b-484"
+    "content": "content---basics-basic-opsf-2-b-c05"
   },
-  "/docs/basics/bridging/boba-token-bridge-c1f": {
+  "/basics/bridging/boba-token-bridge-72c": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-bridging-boba-token-bridgeec-5-925"
+    "content": "content---basics-bridging-boba-token-bridgeec-5-978"
   },
-  "/docs/basics/bridging/index-7bb": {
+  "/basics/bridging/index-c9b": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-bridging-index-5-a-9-46a"
+    "content": "content---basics-bridging-index-5-a-9-e4e"
   },
-  "/docs/basics/bridging/light-bridge-57d": {
+  "/basics/bridging/light-bridge-018": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-bridging-light-bridgeb-6-d-15b"
+    "content": "content---basics-bridging-light-bridgeb-6-d-ec6"
   },
-  "/docs/basics/bridging/standard-bridge-4d4": {
+  "/basics/bridging/standard-bridge-6f8": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-bridging-standard-bridge-03-f-f09"
+    "content": "content---basics-bridging-standard-bridge-03-f-bfe"
   },
-  "/docs/basics/deploy-contract-101": {
+  "/basics/deploy-contract-285": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-deploy-contract-618-13b"
+    "content": "content---basics-deploy-contract-618-3ef"
   },
-  "/docs/basics/index-45c": {
+  "/basics/json-rpc-api-c00": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-indexe-45-f7a"
+    "content": "content---basics-json-rpc-api-5-c-2-ff9"
   },
-  "/docs/basics/json-rpc-api-924": {
+  "/basics/verify-sc-9a8": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-json-rpc-api-5-c-2-64e"
+    "content": "content---basics-verify-sc-846-396"
   },
-  "/docs/basics/verify-sc-e8a": {
+  "/faq-b33": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-basics-verify-sc-846-fad"
+    "content": "content---faq-8-c-3-16a"
   },
-  "/docs/faq-21f": {
+  "/faucets-4e4": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-faq-8-c-3-def"
+    "content": "content---faucetsb-57-421"
   },
-  "/docs/faucets-f81": {
+  "/hc/addsub/-c91": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-faucetsb-57-9f0"
+    "content": "content---hc-addsub-870-da8"
   },
-  "/docs/hc/addsub/-096": {
+  "/hc/addsub/write-contract-3e7": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-hc-addsub-870-0be"
+    "content": "content---hc-addsub-write-contractaf-7-50c"
   },
-  "/docs/hc/addsub/write-contract-1a7": {
+  "/hc/addsub/write-handler-d0b": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-hc-addsub-write-contractaf-7-318"
+    "content": "content---hc-addsub-write-handlerabe-238"
   },
-  "/docs/hc/addsub/write-handler-c9c": {
+  "/hc/deploy-contract-11b": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-hc-addsub-write-handlerabe-e8e"
+    "content": "content---hc-deploy-contract-220-b69"
   },
-  "/docs/hc/deploy-contract-634": {
+  "/hc/index-4c8": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-hc-deploy-contract-220-c6c"
+    "content": "content---hc-indexd-4-c-493"
   },
-  "/docs/hc/index-a1d": {
+  "/hc/price-fetch-672": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-hc-indexd-4-c-a2d"
+    "content": "content---hc-price-fetch-4-fa-a19"
   },
-  "/docs/hc/price-fetch-f4c": {
+  "/hc/server-setup-300": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-hc-price-fetch-4-fa-e50"
+    "content": "content---hc-server-setupba-7-1bb"
   },
-  "/docs/hc/server-setup-2ca": {
+  "/node-operators/index-c7a": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-hc-server-setupba-7-036"
+    "content": "content---node-operators-indexf-1-b-9ba"
   },
-  "/docs/index-2f2": {
+  "/node-operators/network-upgrades-a8c": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-index-750-dba"
+    "content": "content---node-operators-network-upgradesf-1-f-eed"
   },
-  "/docs/node-operators/index-a81": {
+  "/node-operators/run-node-docker-f82": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-node-operators-indexf-1-b-44f"
+    "content": "content---node-operators-run-node-dockerfbf-f42"
   },
-  "/docs/node-operators/network-upgrades-566": {
+  "/node-operators/run-node-source-425": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-node-operators-network-upgradesf-1-f-679"
+    "content": "content---node-operators-run-node-sourceb-66-715"
   },
-  "/docs/node-operators/run-node-docker-9f1": {
+  "/node-operators/snapshot-downloads-6e7": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-node-operators-run-node-dockerfbf-621"
+    "content": "content---node-operators-snapshot-downloadse-4-e-2b8"
   },
-  "/docs/node-operators/run-node-source-ebb": {
+  "/node-operators/software-release-1a0": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-node-operators-run-node-sourceb-66-35c"
+    "content": "content---node-operators-software-release-31-d-019"
   },
-  "/docs/node-operators/snapshot-downloads-708": {
+  "/-c92": {
     "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-node-operators-snapshot-downloadse-4-e-2dd"
-  },
-  "/docs/node-operators/software-release-93c": {
-    "__comp": "__comp---theme-doc-item-178-a40",
-    "content": "content---docs-node-operators-software-release-31-d-134"
-  },
-  "/-2e1": {
-    "__comp": "__comp---site-src-pages-index-jsc-4-f-f99",
-    "__context": {
-      "plugin": "plugin---markdown-pagea-74-7b5"
-    },
-    "config": "config---5-e-9-4f3"
+    "content": "content---750-2da"
   }
 }

@@ -5,10 +5,9 @@
   "source": "@site/docs/node-operators/3_network-upgrades.md",
   "sourceDirName": "node-operators",
   "slug": "/node-operators/network-upgrades",
-  "permalink": "/docs/node-operators/network-upgrades",
+  "permalink": "/node-operators/network-upgrades",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/node-operators/3_network-upgrades.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 3,
@@ -16,10 +15,10 @@
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Running a Node from Source",
-    "permalink": "/docs/node-operators/run-node-source"
+    "permalink": "/node-operators/run-node-source"
   },
   "next": {
     "title": "Node Snapshots",
-    "permalink": "/docs/node-operators/snapshot-downloads"
+    "permalink": "/node-operators/snapshot-downloads"
   }
 }
