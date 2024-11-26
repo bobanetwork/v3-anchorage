@@ -35,7 +35,7 @@ packages/contracts-bedrock/deployments/hardhat-local
 !.envrc.example
 *.log
 
-.devnet
+.devnet*
 
 # Ignore local fuzzing results
 **/testdata/fuzz/

@@ -1,30 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-// Testing utilities
-import { Bridge_Initializer } from "test/setup/Bridge_Initializer.sol";
-import { Reverter, ConfigurableCaller } from "test/mocks/Callers.sol";
+// Testing
+import { CommonTest } from "test/setup/CommonTest.sol";
+import { Reverter } from "test/mocks/Callers.sol";
 import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
 
 // Libraries
 import { Hashing } from "src/libraries/Hashing.sol";
 import { Encoding } from "src/libraries/Encoding.sol";
 import { Types } from "src/libraries/Types.sol";
-import { Constants } from "src/libraries/Constants.sol";
-
-// Target contract dependencies
-import { L2CrossDomainMessenger } from "src/L2/L2CrossDomainMessenger.sol";
-import { L2ToL1MessagePasser } from "src/L2/L2ToL1MessagePasser.sol";
 import { AddressAliasHelper } from "src/vendor/AddressAliasHelper.sol";
 
-contract L2CrossDomainMessenger_Test is Bridge_Initializer {
+// Interfaces
+import { IL2CrossDomainMessenger } from "src/L2/interfaces/IL2CrossDomainMessenger.sol";
+import { IL2ToL1MessagePasser } from "src/L2/interfaces/IL2ToL1MessagePasser.sol";
+
+contract L2CrossDomainMessenger_Test is CommonTest {
     /// @dev Receiver address for testing
     address recipient = address(0xabbaacdc);
 
     /// @dev Tests that the implementation is initialized correctly.
     function test_constructor_succeeds() external view {
-        L2CrossDomainMessenger impl =
-            L2CrossDomainMessenger(EIP1967Helper.getImplementation(deploy.mustGetAddress("L2CrossDomainMessenger")));
+        IL2CrossDomainMessenger impl =
+            IL2CrossDomainMessenger(EIP1967Helper.getImplementation(deploy.mustGetAddress("L2CrossDomainMessenger")));
         assertEq(address(impl.OTHER_MESSENGER()), address(0));
         assertEq(address(impl.otherMessenger()), address(0));
         assertEq(address(impl.l1CrossDomainMessenger()), address(0));
@@ -49,11 +48,9 @@ contract L2CrossDomainMessenger_Test is Bridge_Initializer {
             Encoding.encodeCrossDomainMessage(l2CrossDomainMessenger.messageNonce(), alice, recipient, 0, 100, hex"ff");
         vm.expectCall(
             address(l2ToL1MessagePasser),
-            abi.encodeWithSelector(
-                L2ToL1MessagePasser.initiateWithdrawal.selector,
-                address(l1CrossDomainMessenger),
-                l2CrossDomainMessenger.baseGas(hex"ff", 100),
-                xDomainCallData
+            abi.encodeCall(
+                IL2ToL1MessagePasser.initiateWithdrawal,
+                (address(l1CrossDomainMessenger), l2CrossDomainMessenger.baseGas(hex"ff", 100), xDomainCallData)
             )
         );
 
@@ -229,19 +226,17 @@ contract L2CrossDomainMessenger_Test is Bridge_Initializer {
     }
 
     /// @dev Tests that sendMessage succeeds with a custom gas token when the call value is zero.
-    function test_sendMessage_customGasToken_noValue_succeeds() external {
+    function test_sendMessage_customGasTokenButNoValue_succeeds() external {
         // Mock the gasPayingToken function to return a custom gas token
-        vm.mockCall(address(l1Block), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(1), uint8(2)));
+        vm.mockCall(address(l1Block), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(1), uint8(2)));
 
         bytes memory xDomainCallData =
             Encoding.encodeCrossDomainMessage(l2CrossDomainMessenger.messageNonce(), alice, recipient, 0, 100, hex"ff");
         vm.expectCall(
             address(l2ToL1MessagePasser),
-            abi.encodeWithSelector(
-                L2ToL1MessagePasser.initiateWithdrawal.selector,
-                address(l1CrossDomainMessenger),
-                l2CrossDomainMessenger.baseGas(hex"ff", 100),
-                xDomainCallData
+            abi.encodeCall(
+                IL2ToL1MessagePasser.initiateWithdrawal,
+                (address(l1CrossDomainMessenger), l2CrossDomainMessenger.baseGas(hex"ff", 100), xDomainCallData)
             )
         );
 
@@ -271,18 +266,18 @@ contract L2CrossDomainMessenger_Test is Bridge_Initializer {
     }
 
     /// @dev Tests that the sendMessage reverts when call value is non-zero with custom gas token.
-    function test_sendMessage_customGasToken_withValue_reverts() external {
+    function test_sendMessage_customGasTokenWithValue_reverts() external {
         // Mock the gasPayingToken function to return a custom gas token
-        vm.mockCall(address(l1Block), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(1), uint8(2)));
+        vm.mockCall(address(l1Block), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(1), uint8(2)));
 
         vm.expectRevert("CrossDomainMessenger: cannot send value with custom gas token");
         l2CrossDomainMessenger.sendMessage{ value: 1 }(recipient, hex"ff", uint32(100));
     }
 
     /// @dev Tests that the relayMessage succeeds with a custom gas token when the call value is zero.
-    function test_relayMessage_customGasToken_noValue_succeeds() external {
+    function test_relayMessage_customGasTokenAndNoValue_succeeds() external {
         // Mock the gasPayingToken function to return a custom gas token
-        vm.mockCall(address(l1Block), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(1), uint8(2)));
+        vm.mockCall(address(l1Block), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(1), uint8(2)));
 
         address target = address(0xabcd);
         address sender = address(l1CrossDomainMessenger);
@@ -316,9 +311,9 @@ contract L2CrossDomainMessenger_Test is Bridge_Initializer {
 
     /// @dev Tests that the relayMessage reverts when call value is non-zero with custom gas token.
     ///       The L1CrossDomainMessenger `sendMessage` function cannot send value with a custom gas token.
-    function test_relayMessage_customGasToken_withValue_reverts() external virtual {
+    function test_relayMessage_customGasTokenWithValue_reverts() external virtual {
         // Mock the gasPayingToken function to return a custom gas token
-        vm.mockCall(address(l1Block), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(1), uint8(2)));
+        vm.mockCall(address(l1Block), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(1), uint8(2)));
         vm.expectRevert("CrossDomainMessenger: value must be zero unless message is from a system address");
 
         l2CrossDomainMessenger.relayMessage{ value: 1 }(

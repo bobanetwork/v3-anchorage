@@ -4,10 +4,9 @@ pragma solidity 0.8.25;
 import { Predeploys } from "src/libraries/Predeploys.sol";
 import { TransientContext, TransientReentrancyAware } from "src/libraries/TransientContext.sol";
 import { ISemver } from "src/universal/interfaces/ISemver.sol";
-import { ICrossL2Inbox } from "src/L2/interfaces/ICrossL2Inbox.sol";
 import { SafeCall } from "src/libraries/SafeCall.sol";
 import { IDependencySet } from "src/L2/interfaces/IDependencySet.sol";
-import { IL1BlockIsthmus } from "src/L2/interfaces/IL1BlockIsthmus.sol";
+import { IL1BlockInterop } from "src/L2/interfaces/IL1BlockInterop.sol";
 
 /// @notice Thrown when the caller is not DEPOSITOR_ACCOUNT when calling `setInteropStart()`
 error NotDepositor();
@@ -30,12 +29,21 @@ error TargetCallFailed();
 /// @notice Thrown when trying to execute a cross chain message on a deposit transaction.
 error NoExecutingDeposits();
 
+/// @notice The struct for a pointer to a message payload in a remote (or local) chain.
+struct Identifier {
+    address origin;
+    uint256 blockNumber;
+    uint256 logIndex;
+    uint256 timestamp;
+    uint256 chainId;
+}
+
 /// @custom:proxied true
 /// @custom:predeploy 0x4200000000000000000000000000000000000022
 /// @title CrossL2Inbox
 /// @notice The CrossL2Inbox is responsible for executing a cross chain message on the destination
 ///         chain. It is permissionless to execute a cross chain message on behalf of any user.
-contract CrossL2Inbox is ICrossL2Inbox, ISemver, TransientReentrancyAware {
+contract CrossL2Inbox is ISemver, TransientReentrancyAware {
     /// @notice Storage slot that the interop start timestamp is stored at.
     ///         Equal to bytes32(uint256(keccak256("crossl2inbox.interopstart")) - 1)
     bytes32 internal constant INTEROP_START_SLOT = 0x5c769ee0ee8887661922049dc52480bb60322d765161507707dd9b190af5c149;
@@ -65,8 +73,8 @@ contract CrossL2Inbox is ICrossL2Inbox, ISemver, TransientReentrancyAware {
     address internal constant DEPOSITOR_ACCOUNT = 0xDeaDDEaDDeAdDeAdDEAdDEaddeAddEAdDEAd0001;
 
     /// @notice Semantic version.
-    /// @custom:semver 1.0.0-beta.6
-    string public constant version = "1.0.0-beta.6";
+    /// @custom:semver 1.0.0-beta.9
+    string public constant version = "1.0.0-beta.9";
 
     /// @notice Emitted when a cross chain message is being executed.
     /// @param msgHash Hash of message payload being executed.
@@ -140,7 +148,7 @@ contract CrossL2Inbox is ICrossL2Inbox, ISemver, TransientReentrancyAware {
         reentrantAware
     {
         // We need to know if this is being called on a depositTx
-        if (IL1BlockIsthmus(Predeploys.L1_BLOCK_ATTRIBUTES).isDeposit()) revert NoExecutingDeposits();
+        if (IL1BlockInterop(Predeploys.L1_BLOCK_ATTRIBUTES).isDeposit()) revert NoExecutingDeposits();
 
         // Check the Identifier.
         _checkIdentifier(_id);
@@ -164,6 +172,9 @@ contract CrossL2Inbox is ICrossL2Inbox, ISemver, TransientReentrancyAware {
     /// @param _id      Identifier of the message.
     /// @param _msgHash Hash of the message payload to call target with.
     function validateMessage(Identifier calldata _id, bytes32 _msgHash) external {
+        // We need to know if this is being called on a depositTx
+        if (IL1BlockInterop(Predeploys.L1_BLOCK_ATTRIBUTES).isDeposit()) revert NoExecutingDeposits();
+
         // Check the Identifier.
         _checkIdentifier(_id);
 

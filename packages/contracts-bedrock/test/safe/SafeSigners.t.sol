@@ -75,6 +75,7 @@ contract SafeSigners_Test is Test, SafeTestTools {
                 contractSigs++;
                 address addr = SafeTestLib.decodeSmartContractWalletAsAddress(pks[i]);
                 r = bytes32(uint256(uint160(addr)));
+                // nosemgrep: sol-style-use-abi-encodecall
                 vm.mockCall(
                     addr, abi.encodeWithSignature("isValidSignature(bytes,bytes)"), abi.encode(EIP1271_MAGIC_VALUE)
                 );
@@ -98,7 +99,7 @@ contract SafeSigners_Test is Test, SafeTestTools {
 
         // Recover the signatures using the _getNSigners() method.
         address[] memory gotSigners =
-            SafeSigners.getNSigners({ dataHash: digest, signatures: signatures, requiredSignatures: numSigs });
+            SafeSigners.getNSigners({ _dataHash: digest, _signatures: signatures, _requiredSignatures: numSigs });
 
         // Compare the list of recovered signers to the expected signers.
         assertEq(gotSigners.length, numSigs);

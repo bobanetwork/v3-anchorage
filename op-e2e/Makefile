@@ -1,9 +1,11 @@
+num_cores := $(shell nproc)
+
 # Generally, JUNIT_FILE is set in CI but may be specified to an arbitrary file location to emulate CI locally
 # If JUNIT_FILE is set, JSON_LOG_FILE should also be set
 ifdef JUNIT_FILE
 	go_test = OP_TESTLOG_DISABLE_COLOR=true OP_E2E_DISABLE_PARALLEL=false gotestsum --format=testname --junitfile=$(JUNIT_FILE) --jsonfile=$(JSON_LOG_FILE) -- -failfast
   # Note: -parallel must be set to match the number of cores in the resource class
-	go_test_flags = -timeout=60m -parallel=8
+	go_test_flags = -timeout=60m -parallel=$(num_cores)
 else
 	go_test = go test
 	go_test_flags = -v
@@ -12,20 +14,20 @@ endif
 test: pre-test test-ws
 .PHONY: test
 
-test-external-%: pre-test
-	make -C ./external_$*/
-	$(go_test) $(go_test_flags) --externalL2 ./external_$*/
+test-external-erigon: pre-test
+	make -C ./external_erigon/
+	$(go_test) $(go_test_flags) ./system/... ./e2eutils/... ./opgeth/... ./interop/... --externalL2 external_erigon
 
 test-ws: pre-test
-	$(go_test) $(go_test_flags) . ./e2eutils/...
+	$(go_test) $(go_test_flags) ./system/... ./e2eutils/... ./opgeth/... ./interop/...
 .PHONY: test-ws
 
 test-actions: pre-test
-	$(go_test) $(go_test_flags) ./actions
+	$(go_test) $(go_test_flags) ./actions/...
 .PHONY: test-actions
 
 test-http: pre-test
-	OP_E2E_USE_HTTP=true $(go_test) $(go_test_flags) . ./e2eutils/...
+	OP_E2E_USE_HTTP=true $(go_test) $(go_test_flags) ./system/... ./e2eutils/... ./opgeth/... ./interop/...
 .PHONY: test-http
 
 test-cannon: pre-test
@@ -35,10 +37,6 @@ test-cannon: pre-test
 test-fault-proofs: pre-test
 	$(go_test) $(go_test_flags) ./faultproofs
 .PHONY: test-faultproofs
-
-test-devnet: pre-test
-	$(go_test) $(go_test_flags) ./devnet
-.PHONY: test-devnet
 
 cannon-prestates:
 	make -C .. cannon-prestate
@@ -71,7 +69,8 @@ clean:
 .PHONY: clean
 
 fuzz:
-	go test -run NOTAREALTEST -tags cgo_test -v -fuzztime 10s -fuzz FuzzFjordCostFunction ./
-	go test -run NOTAREALTEST -tags cgo_test -v -fuzztime 10s -fuzz FuzzFastLzGethSolidity ./
-	go test -run NOTAREALTEST -tags cgo_test -v -fuzztime 10s -fuzz FuzzFastLzCgo ./
-
+	printf "%s\n" \
+		"go test -run NOTAREALTEST -tags cgo_test -v -fuzztime 10s -fuzz FuzzFjordCostFunction ./opgeth" \
+		"go test -run NOTAREALTEST -tags cgo_test -v -fuzztime 10s -fuzz FuzzFastLzGethSolidity ./opgeth" \
+		"go test -run NOTAREALTEST -tags cgo_test -v -fuzztime 10s -fuzz FuzzFastLzCgo ./opgeth" \
+	| parallel -j 8 {}

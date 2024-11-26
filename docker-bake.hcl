@@ -69,6 +69,9 @@ variable "OP_CONDUCTOR_VERSION" {
   default = "${GIT_VERSION}"
 }
 
+variable "OP_DEPLOYER_VERSION" {
+  default = "${GIT_VERSION}"
+}
 
 target "op-node" {
   dockerfile = "ops/docker/op-stack-go/Dockerfile"
@@ -203,9 +206,8 @@ target "proofs-tools" {
   dockerfile = "./ops/docker/proofs-tools/Dockerfile"
   context = "."
   args = {
-    CHALLENGER_VERSION="v1.1.0"
-    KONA_VERSION="kona-client-v0.1.0-alpha.3"
-    ASTERISC_VERSION="v1.0.2"
+    CHALLENGER_VERSION="b46bffed42db3442d7484f089278d59f51503049"
+    KONA_VERSION="kona-client-v0.1.0-alpha.7"
   }
   target="proofs-tools"
   platforms = split(",", PLATFORMS)
@@ -235,4 +237,17 @@ target "contracts-bedrock" {
   # See comment in Dockerfile.packages for why we only build for linux/amd64.
   platforms = ["linux/amd64"]
   tags = [for tag in split(",", IMAGE_TAGS) : "${REGISTRY}/${REPOSITORY}/contracts-bedrock:${tag}"]
+}
+
+target "op-deployer" {
+  dockerfile = "ops/docker/op-stack-go/Dockerfile"
+  context = "."
+  args = {
+    GIT_COMMIT = "${GIT_COMMIT}"
+    GIT_DATE = "${GIT_DATE}"
+    OP_DEPLOYER_VERSION = "${OP_DEPLOYER_VERSION}"
+  }
+  target = "op-deployer-target"
+  platforms = split(",", PLATFORMS)
+  tags = [for tag in split(",", IMAGE_TAGS) : "${REGISTRY}/${REPOSITORY}/op-deployer:${tag}"]
 }

@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-// Testing utilities
+// Testing
 import { CommonTest } from "test/setup/CommonTest.sol";
+
+// Contracts
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 // Libraries
 import { Constants } from "src/libraries/Constants.sol";
-import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
 import { Predeploys } from "src/libraries/Predeploys.sol";
-
-// Target contract dependencies
-import { IResourceMetering } from "src/L1/interfaces/IResourceMetering.sol";
-import { Proxy } from "src/universal/Proxy.sol";
-import { L1Block } from "src/L2/L1Block.sol";
 import { GasPayingToken } from "src/libraries/GasPayingToken.sol";
 
-// Target contract
+// Interfaces
+import { IResourceMetering } from "src/L1/interfaces/IResourceMetering.sol";
 import { ISystemConfig } from "src/L1/interfaces/ISystemConfig.sol";
+import { IL1Block } from "src/L2/interfaces/IL1Block.sol";
 
 contract SystemConfig_Init is CommonTest {
     event ConfigUpdate(uint256 indexed version, ISystemConfig.UpdateType indexed updateType, bytes data);
@@ -313,6 +311,7 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
     function setUp() public override {
         token = new ERC20("Silly", "SIL");
         super.enableCustomGasToken(address(token));
+
         super.setUp();
     }
 
@@ -376,9 +375,9 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
         vm.assume(bytes(_name).length <= 32);
         vm.assume(bytes(_symbol).length <= 32);
 
-        vm.mockCall(_token, abi.encodeWithSelector(token.decimals.selector), abi.encode(18));
-        vm.mockCall(_token, abi.encodeWithSelector(token.name.selector), abi.encode(_name));
-        vm.mockCall(_token, abi.encodeWithSelector(token.symbol.selector), abi.encode(_symbol));
+        vm.mockCall(_token, abi.encodeCall(token.decimals, ()), abi.encode(18));
+        vm.mockCall(_token, abi.encodeCall(token.name, ()), abi.encode(_name));
+        vm.mockCall(_token, abi.encodeCall(token.symbol, ()), abi.encode(_symbol));
 
         cleanStorageAndInit(_token);
 
@@ -397,7 +396,7 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
     }
 
     /// @dev Tests that initialization sets the correct values and getters work when token address passed is 0.
-    function test_initialize_customGasToken_zeroTokenAddress_succeeds() external {
+    function test_initialize_customGasTokenWithZeroTokenAddress_succeeds() external {
         cleanStorageAndInit(address(0));
 
         (address addr, uint8 decimals) = systemConfig.gasPayingToken();
@@ -409,7 +408,7 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
     }
 
     /// @dev Tests that initialization sets the correct values and getters work when token address is Constants.ETHER
-    function test_initialize_customGasToken_etherTokenAddress_succeeds() external {
+    function test_initialize_customGasTokenWithEtherTokenAddress_succeeds() external {
         cleanStorageAndInit(Constants.ETHER);
 
         (address addr, uint8 decimals) = systemConfig.gasPayingToken();
@@ -421,30 +420,30 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
     }
 
     /// @dev Tests that initialization fails if decimals are not 18.
-    function test_initialize_customGasToken_wrongDecimals_fails() external {
-        vm.mockCall(address(token), abi.encodeWithSelector(token.decimals.selector), abi.encode(8));
+    function test_initialize_customGasTokenWrongDecimals_fails() external {
+        vm.mockCall(address(token), abi.encodeCall(token.decimals, ()), abi.encode(8));
         vm.expectRevert("SystemConfig: bad decimals of gas paying token");
 
         cleanStorageAndInit(address(token));
     }
 
     /// @dev Tests that initialization fails if name is too long.
-    function test_initialize_customGasToken_nameTooLong_fails() external {
+    function test_initialize_customGasTokenNameTooLong_fails() external {
         string memory name = new string(32);
         name = string.concat(name, "a");
 
-        vm.mockCall(address(token), abi.encodeWithSelector(token.name.selector), abi.encode(name));
+        vm.mockCall(address(token), abi.encodeCall(token.name, ()), abi.encode(name));
         vm.expectRevert("GasPayingToken: string cannot be greater than 32 bytes");
 
         cleanStorageAndInit(address(token));
     }
 
     /// @dev Tests that initialization fails if symbol is too long.
-    function test_initialize_customGasToken_symbolTooLong_fails() external {
+    function test_initialize_customGasTokenSymbolTooLong_fails() external {
         string memory symbol = new string(33);
         symbol = string.concat(symbol, "a");
 
-        vm.mockCall(address(token), abi.encodeWithSelector(token.symbol.selector), abi.encode(symbol));
+        vm.mockCall(address(token), abi.encodeCall(token.symbol, ()), abi.encode(symbol));
         vm.expectRevert("GasPayingToken: string cannot be greater than 32 bytes");
 
         cleanStorageAndInit(address(token));
@@ -467,7 +466,7 @@ contract SystemConfig_Init_CustomGasToken is SystemConfig_Init {
                 uint256(0), // value
                 uint64(200_000), // gasLimit
                 false, // isCreation,
-                abi.encodeCall(L1Block.setGasPayingToken, (address(token), 18, bytes32("Silly"), bytes32("SIL")))
+                abi.encodeCall(IL1Block.setGasPayingToken, (address(token), 18, bytes32("Silly"), bytes32("SIL")))
             )
         );
 
@@ -527,6 +526,27 @@ contract SystemConfig_Setters_TestFail is SystemConfig_Init {
         vm.expectRevert("SystemConfig: gas limit too high");
         systemConfig.setGasLimit(maximumGasLimit + 1);
     }
+
+    /// @dev Tests that `setEIP1559Params` reverts if the caller is not the owner.
+    function test_setEIP1559Params_notOwner_reverts(uint32 _denominator, uint32 _elasticity) external {
+        vm.expectRevert("Ownable: caller is not the owner");
+        systemConfig.setEIP1559Params({ _denominator: _denominator, _elasticity: _elasticity });
+    }
+
+    /// @dev Tests that `setEIP1559Params` reverts if the denominator is zero.
+    function test_setEIP1559Params_zeroDenominator_reverts(uint32 _elasticity) external {
+        vm.prank(systemConfig.owner());
+        vm.expectRevert("SystemConfig: denominator must be >= 1");
+        systemConfig.setEIP1559Params({ _denominator: 0, _elasticity: _elasticity });
+    }
+
+    /// @dev Tests that `setEIP1559Params` reverts if the elasticity is zero.
+    function test_setEIP1559Params_zeroElasticity_reverts(uint32 _denominator) external {
+        vm.assume(_denominator >= 1);
+        vm.prank(systemConfig.owner());
+        vm.expectRevert("SystemConfig: elasticity must be >= 1");
+        systemConfig.setEIP1559Params({ _denominator: _denominator, _elasticity: 0 });
+    }
 }
 
 contract SystemConfig_Setters_Test is SystemConfig_Init {
@@ -545,7 +565,7 @@ contract SystemConfig_Setters_Test is SystemConfig_Init {
         // always zero out most significant byte
         newScalar = (newScalar << 16) >> 16;
         vm.expectEmit(address(systemConfig));
-        emit ConfigUpdate(0, ISystemConfig.UpdateType.GAS_CONFIG, abi.encode(newOverhead, newScalar));
+        emit ConfigUpdate(0, ISystemConfig.UpdateType.FEE_SCALARS, abi.encode(newOverhead, newScalar));
 
         vm.prank(systemConfig.owner());
         systemConfig.setGasConfig(newOverhead, newScalar);
@@ -558,7 +578,7 @@ contract SystemConfig_Setters_Test is SystemConfig_Init {
             ffi.encodeScalarEcotone({ _basefeeScalar: _basefeeScalar, _blobbasefeeScalar: _blobbasefeeScalar });
 
         vm.expectEmit(address(systemConfig));
-        emit ConfigUpdate(0, ISystemConfig.UpdateType.GAS_CONFIG, abi.encode(systemConfig.overhead(), encoded));
+        emit ConfigUpdate(0, ISystemConfig.UpdateType.FEE_SCALARS, abi.encode(systemConfig.overhead(), encoded));
 
         vm.prank(systemConfig.owner());
         systemConfig.setGasConfigEcotone({ _basefeeScalar: _basefeeScalar, _blobbasefeeScalar: _blobbasefeeScalar });
@@ -593,5 +613,21 @@ contract SystemConfig_Setters_Test is SystemConfig_Init {
         vm.prank(systemConfig.owner());
         systemConfig.setUnsafeBlockSigner(newUnsafeSigner);
         assertEq(systemConfig.unsafeBlockSigner(), newUnsafeSigner);
+    }
+
+    /// @dev Tests that `setEIP1559Params` updates the EIP1559 parameters successfully.
+    function testFuzz_setEIP1559Params_succeeds(uint32 _denominator, uint32 _elasticity) external {
+        vm.assume(_denominator > 1);
+        vm.assume(_elasticity > 1);
+
+        vm.expectEmit(address(systemConfig));
+        emit ConfigUpdate(
+            0, ISystemConfig.UpdateType.EIP_1559_PARAMS, abi.encode(uint256(_denominator) << 32 | uint64(_elasticity))
+        );
+
+        vm.prank(systemConfig.owner());
+        systemConfig.setEIP1559Params(_denominator, _elasticity);
+        assertEq(systemConfig.eip1559Denominator(), _denominator);
+        assertEq(systemConfig.eip1559Elasticity(), _elasticity);
     }
 }

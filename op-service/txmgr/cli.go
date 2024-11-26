@@ -486,6 +486,10 @@ type Config struct {
 	Signer opcrypto.SignerFn
 	From   common.Address
 
+	// GasPriceEstimatorFn is used to estimate the gas price for a transaction.
+	// If nil, DefaultGasPriceEstimatorFn is used.
+	GasPriceEstimatorFn GasPriceEstimatorFn
+
 	// Kms structure for signing transactions
 	KmsManager KmsManager
 }

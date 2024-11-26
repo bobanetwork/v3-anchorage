@@ -10,6 +10,7 @@ You can:
 - Report issues in this repository. Great bug reports are detailed and give clear instructions for how a developer can reproduce the problem. Write good bug reports and developers will love you.
   - **IMPORTANT**: If you believe your report impacts the security of this repository, refer to the canonical [Security Policy](https://github.com/ethereum-optimism/.github/blob/master/SECURITY.md) document.
 - Fix issues that are tagged as [`D-good-first-issue`](https://github.com/ethereum-optimism/optimism/labels/D-good-first-issue) or [`S-confirmed`](https://github.com/ethereum-optimism/optimism/labels/S-confirmed).
+- Larger projects are listed on [this project board](https://github.com/orgs/ethereum-optimism/projects/31/views/9). Please talk to us if you're considering working on one of these, they may not be fully specified so it will reduce risk to discuss the approach and ensure that it's still relevant.
 - Help improve the [Optimism Developer Docs](https://github.com/ethereum-optimism/docs) by reporting issues, fixing typos, or adding missing sections.
 - Get involved in the protocol design process by joining discussions within the [OP Stack Specs](https://github.com/ethereum-optimism/specs/discussions) repository.
 
@@ -156,7 +157,6 @@ Also, all labels can be seen by visiting the [labels page][labels]
 
 When altering label names or deleting labels there are a few things you must be aware of.
 
-- This may affect the mergify bot's use of labels. See the [mergify config](.github/mergify.yml).
 - If the https://github.com/ethereum-optimism/optimism/labels/S-stale label is altered, the [close-stale](.github/workflows/close-stale.yml) workflow should be updated.
 - If the https://github.com/ethereum-optimism/optimism/labels/M-dependabot label is altered, the [dependabot config](.github/dependabot.yml) file should be adjusted.
 - Saved label filters for project boards will not automatically update. These should be updated if label names change.

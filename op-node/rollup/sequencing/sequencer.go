@@ -55,8 +55,7 @@ type AsyncGossiper interface {
 // This event is used to prioritize sequencer work over derivation work,
 // by emitting it before e.g. a derivation-pipeline step.
 // A future sequencer in an async world may manage its own execution.
-type SequencerActionEvent struct {
-}
+type SequencerActionEvent struct{}
 
 func (ev SequencerActionEvent) String() string {
 	return "sequencer-action"
@@ -129,7 +128,8 @@ func NewSequencer(driverCtx context.Context, log log.Logger, rollupCfg *rollup.C
 	listener SequencerStateListener,
 	conductor conductor.SequencerConductor,
 	asyncGossip AsyncGossiper,
-	metrics Metrics) *Sequencer {
+	metrics Metrics,
+) *Sequencer {
 	return &Sequencer{
 		ctx:              driverCtx,
 		log:              log,
@@ -270,7 +270,8 @@ func (d *Sequencer) onBuildSealed(x engine.BuildSealedEvent) {
 	defer cancel()
 	if err := d.conductor.CommitUnsafePayload(ctx, x.Envelope); err != nil {
 		d.emitter.Emit(rollup.EngineTemporaryErrorEvent{
-			Err: fmt.Errorf("failed to commit unsafe payload to conductor: %w", err)})
+			Err: fmt.Errorf("failed to commit unsafe payload to conductor: %w", err),
+		})
 		return
 	}
 
@@ -280,10 +281,10 @@ func (d *Sequencer) onBuildSealed(x engine.BuildSealedEvent) {
 	d.asyncGossip.Gossip(x.Envelope)
 	// Now after having gossiped the block, try to put it in our own canonical chain
 	d.emitter.Emit(engine.PayloadProcessEvent{
-		IsLastInSpan: x.IsLastInSpan,
-		DerivedFrom:  x.DerivedFrom,
-		Envelope:     x.Envelope,
-		Ref:          x.Ref,
+		Concluding:  x.Concluding,
+		DerivedFrom: x.DerivedFrom,
+		Envelope:    x.Envelope,
+		Ref:         x.Ref,
 	})
 	d.latest.Ref = x.Ref
 	d.latestSealed = x.Ref
@@ -333,7 +334,7 @@ func (d *Sequencer) onPayloadSuccess(x engine.PayloadSuccessEvent) {
 	d.asyncGossip.Clear()
 }
 
-func (d *Sequencer) onSequencerAction(x SequencerActionEvent) {
+func (d *Sequencer) onSequencerAction(SequencerActionEvent) {
 	d.log.Debug("Sequencer action")
 	payload := d.asyncGossip.Get()
 	if payload != nil {
@@ -355,10 +356,10 @@ func (d *Sequencer) onSequencerAction(x SequencerActionEvent) {
 		// meaning that we have seen BuildSealedEvent already.
 		// We can retry processing to make it canonical.
 		d.emitter.Emit(engine.PayloadProcessEvent{
-			IsLastInSpan: false,
-			DerivedFrom:  eth.L1BlockRef{},
-			Envelope:     payload,
-			Ref:          ref,
+			Concluding:  false,
+			DerivedFrom: eth.L1BlockRef{},
+			Envelope:    payload,
+			Ref:         ref,
 		})
 		d.latest.Ref = ref
 	} else {
@@ -370,7 +371,7 @@ func (d *Sequencer) onSequencerAction(x SequencerActionEvent) {
 			d.emitter.Emit(engine.BuildSealEvent{
 				Info:         d.latest.Info,
 				BuildStarted: d.latest.Started,
-				IsLastInSpan: false,
+				Concluding:   false,
 				DerivedFrom:  eth.L1BlockRef{},
 			})
 		} else if d.latest == (BuildingState{}) {
@@ -382,8 +383,7 @@ func (d *Sequencer) onSequencerAction(x SequencerActionEvent) {
 
 func (d *Sequencer) onEngineTemporaryError(x rollup.EngineTemporaryErrorEvent) {
 	if d.latest == (BuildingState{}) {
-		d.log.Debug("Engine reported temporary error, but sequencer is not using engine", "err", x.Err)
-		return
+		d.log.Debug("Engine reported temporary error while building state is empty", "err", x.Err)
 	}
 	d.log.Error("Engine failed temporarily, backing off sequencer", "err", x.Err)
 	if errors.Is(x.Err, engine.ErrEngineSyncing) { // if it is syncing we can back off by more
@@ -416,7 +416,7 @@ func (d *Sequencer) onReset(x rollup.ResetEvent) {
 	d.nextActionOK = false
 }
 
-func (d *Sequencer) onEngineResetConfirmedEvent(x engine.EngineResetConfirmedEvent) {
+func (d *Sequencer) onEngineResetConfirmedEvent(engine.EngineResetConfirmedEvent) {
 	d.nextActionOK = d.active.Load()
 	// Before sequencing we can wait a block,
 	// assuming the execution-engine just churned through some work for the reset.
@@ -552,10 +552,10 @@ func (d *Sequencer) startBuildingBlock() {
 
 	// Start a payload building process.
 	withParent := &derive.AttributesWithParent{
-		Attributes:   attrs,
-		Parent:       l2Head,
-		IsLastInSpan: false,
-		DerivedFrom:  eth.L1BlockRef{}, // zero, not going to be pending-safe / safe
+		Attributes:  attrs,
+		Parent:      l2Head,
+		Concluding:  false,
+		DerivedFrom: eth.L1BlockRef{}, // zero, not going to be pending-safe / safe
 	}
 
 	// Don't try to start building a block again, until we have heard back from this attempt
@@ -617,8 +617,6 @@ func (d *Sequencer) Init(ctx context.Context, active bool) error {
 	d.emitter.Emit(engine.ForkchoiceRequestEvent{})
 
 	if active {
-		// TODO(#11121): should the conductor be checked on startup?
-		// The conductor was previously not being checked in this case, but that may be a bug.
 		return d.forceStart()
 	} else {
 		if err := d.listener.SequencerStopped(); err != nil {
@@ -710,6 +708,10 @@ func (d *Sequencer) SetMaxSafeLag(ctx context.Context, v uint64) error {
 
 func (d *Sequencer) OverrideLeader(ctx context.Context) error {
 	return d.conductor.OverrideLeader(ctx)
+}
+
+func (d *Sequencer) ConductorEnabled(ctx context.Context) bool {
+	return d.conductor.Enabled(ctx)
 }
 
 func (d *Sequencer) Close() {

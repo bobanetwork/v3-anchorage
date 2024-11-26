@@ -1,6 +1,9 @@
 package rollup
 
 import (
+	"fmt"
+	"math/big"
+
 	"github.com/ethereum-optimism/optimism/op-node/params"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum/go-ethereum/log"
@@ -39,19 +42,47 @@ const (
 	Granite  ForkName = "granite"
 	Holocene ForkName = "holocene"
 	Interop  ForkName = "interop"
-	None     ForkName = "none"
+	// ADD NEW FORKS TO AllForks BELOW!
+	None ForkName = "none"
 )
 
-var nextFork = map[ForkName]ForkName{
-	Bedrock:  Regolith,
-	Regolith: Canyon,
-	Canyon:   Delta,
-	Delta:    Ecotone,
-	Ecotone:  Fjord,
-	Fjord:    Granite,
-	Granite:  Holocene,
-	Holocene: Interop,
-	Interop:  None,
+var AllForks = []ForkName{
+	Bedrock,
+	Regolith,
+	Canyon,
+	Delta,
+	Ecotone,
+	Fjord,
+	Granite,
+	Holocene,
+	Interop,
+	// ADD NEW FORKS HERE!
+}
+
+func ForksFrom(fork ForkName) []ForkName {
+	for i, f := range AllForks {
+		if f == fork {
+			return AllForks[i:]
+		}
+	}
+	panic(fmt.Sprintf("invalid fork: %s", fork))
+}
+
+var nextFork = func() map[ForkName]ForkName {
+	m := make(map[ForkName]ForkName, len(AllForks))
+	for i, f := range AllForks {
+		if i == len(AllForks)-1 {
+			m[f] = None
+			break
+		}
+		m[f] = AllForks[i+1]
+	}
+	return m
+}()
+
+func IsValidFork(fork ForkName) bool {
+	_, ok := nextFork[fork]
+	return ok
 }
 
 type ChainSpec struct {
@@ -63,9 +94,24 @@ func NewChainSpec(config *Config) *ChainSpec {
 	return &ChainSpec{config: config}
 }
 
+// L2ChainID returns the chain ID of the L2 chain.
+func (s *ChainSpec) L2ChainID() *big.Int {
+	return s.config.L2ChainID
+}
+
+// L2GenesisTime returns the genesis time of the L2 chain.
+func (s *ChainSpec) L2GenesisTime() uint64 {
+	return s.config.Genesis.L2Time
+}
+
 // IsCanyon returns true if t >= canyon_time
 func (s *ChainSpec) IsCanyon(t uint64) bool {
 	return s.config.IsCanyon(t)
+}
+
+// IsHolocene returns true if t >= holocene_time
+func (s *ChainSpec) IsHolocene(t uint64) bool {
+	return s.config.IsHolocene(t)
 }
 
 // MaxChannelBankSize returns the maximum number of bytes the can allocated inside the channel bank

@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-// Testing utilities
+// Testing
 import { Test } from "forge-std/Test.sol";
+
+// Contracts
+import { ResourceMetering } from "src/L1/ResourceMetering.sol";
 
 // Libraries
 import { Constants } from "src/libraries/Constants.sol";
 
-// Target contract dependencies
-import { Proxy } from "src/universal/Proxy.sol";
-
-// Target contract
-import { ResourceMetering } from "src/L1/ResourceMetering.sol";
+// Interfaces
 import { IResourceMetering } from "src/L1/interfaces/IResourceMetering.sol";
 
 contract MeterUser is ResourceMetering {
@@ -375,8 +374,8 @@ contract ArtifactResourceMetering_Test is Test {
                                 // Call the metering code and catch the various
                                 // types of errors.
                                 uint256 gasConsumed = 0;
-                                try meter.use{ gas: 30_000_000 }(requestedGas) returns (uint256 _gasConsumed) {
-                                    gasConsumed = _gasConsumed;
+                                try meter.use{ gas: 30_000_000 }(requestedGas) returns (uint256 gasConsumed_) {
+                                    gasConsumed = gasConsumed_;
                                 } catch (bytes memory err) {
                                     bytes32 hash = keccak256(err);
                                     if (hash == cannotBuyMoreGas) {
