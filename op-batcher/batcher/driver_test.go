@@ -49,7 +49,8 @@ func setup(t *testing.T) (*BatchSubmitter, *mockL2EndpointProvider) {
 	return NewBatchSubmitter(DriverSetup{
 		Log:              testlog.Logger(t, log.LevelDebug),
 		Metr:             metrics.NoopMetrics,
-		RollupConfig:     &cfg,
+		RollupConfig:     cfg,
+		ChannelConfig:    defaultTestChannelConfig(),
 		EndpointProvider: ep,
 	}), ep
 }
@@ -85,7 +86,6 @@ func TestBatchSubmitter_SafeL1Origin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.failsToFetchSyncStatus {
 				ep.rollupClient.ExpectSyncStatus(&eth.SyncStatus{}, errors.New("failed to fetch sync status"))
-
 			} else {
 				ep.rollupClient.ExpectSyncStatus(&eth.SyncStatus{
 					SafeL2: eth.L2BlockRef{
@@ -106,7 +106,6 @@ func TestBatchSubmitter_SafeL1Origin(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestBatchSubmitter_SafeL1Origin_FailsToResolveRollupClient(t *testing.T) {

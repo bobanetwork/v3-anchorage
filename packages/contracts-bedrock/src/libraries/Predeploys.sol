@@ -105,6 +105,9 @@ library Predeploys {
     /// @notice Arbitrary address of the OptimismSuperchainERC20 implementation contract.
     address internal constant OPTIMISM_SUPERCHAIN_ERC20 = 0xB9415c6cA93bdC545D4c5177512FCC22EFa38F28;
 
+    /// @notice Address of the SuperchainTokenBridge predeploy.
+    address internal constant SUPERCHAIN_TOKEN_BRIDGE = 0x4200000000000000000000000000000000000028;
+
     /// @notice Address of the L2Boba predeploy.
     address internal constant L2_BOBA = 0xa18bF3994C0Cc6E3b63ac420308E5383f53120D7;
 
@@ -139,6 +142,7 @@ library Predeploys {
         if (_addr == ETH_LIQUIDITY) return "ETHLiquidity";
         if (_addr == OPTIMISM_SUPERCHAIN_ERC20_FACTORY) return "OptimismSuperchainERC20Factory";
         if (_addr == OPTIMISM_SUPERCHAIN_ERC20_BEACON) return "OptimismSuperchainERC20Beacon";
+        if (_addr == SUPERCHAIN_TOKEN_BRIDGE) return "SuperchainTokenBridge";
         revert("Predeploys: unnamed predeploy");
     }
 
@@ -158,7 +162,8 @@ library Predeploys {
             || (_useInterop && _addr == CROSS_L2_INBOX) || (_useInterop && _addr == L2_TO_L2_CROSS_DOMAIN_MESSENGER)
             || (_useInterop && _addr == SUPERCHAIN_WETH) || (_useInterop && _addr == ETH_LIQUIDITY)
             || (_useInterop && _addr == OPTIMISM_SUPERCHAIN_ERC20_FACTORY)
-            || (_useInterop && _addr == OPTIMISM_SUPERCHAIN_ERC20_BEACON);
+            || (_useInterop && _addr == OPTIMISM_SUPERCHAIN_ERC20_BEACON)
+            || (_useInterop && _addr == SUPERCHAIN_TOKEN_BRIDGE);
     }
 
     function isPredeployNamespace(address _addr) internal pure returns (bool) {

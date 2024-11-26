@@ -19,7 +19,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-dispute-mon/version"
 
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/contracts"
-	"github.com/ethereum-optimism/optimism/op-service/client"
 	"github.com/ethereum-optimism/optimism/op-service/clock"
 	"github.com/ethereum-optimism/optimism/op-service/dial"
 	"github.com/ethereum-optimism/optimism/op-service/httputil"
@@ -127,6 +126,7 @@ func (s *Service) initGameCallerCreator() {
 func (s *Service) initExtractor(cfg *config.Config) {
 	s.extractor = extract.NewExtractor(
 		s.logger,
+		s.cl,
 		s.game.CreateContract,
 		s.factoryContract.GetGamesAtOrAfter,
 		cfg.IgnoredGames,
@@ -150,10 +150,8 @@ func (s *Service) initBonds() {
 }
 
 func (s *Service) initOutputRollupClient(ctx context.Context, cfg *config.Config) error {
-	outputRollupClient, err := dial.DialRollupClientWithTimeout(ctx, dial.DefaultDialTimeout, s.logger, cfg.RollupRpc, client.BaseRPCTimeout{
-		RPCTimeout:      cfg.RollupRpcTimeout,
-		RPCBatchTimeout: cfg.RollupRpcBatchTimeout,
-	})
+	// override the default dial timeout for the rollup client
+	outputRollupClient, err := dial.DialRollupClientWithTimeout(ctx, dial.DefaultDialTimeout, s.logger, cfg.RollupRpc)
 	if err != nil {
 		return fmt.Errorf("failed to dial rollup client: %w", err)
 	}
@@ -221,23 +219,17 @@ func (s *Service) initMonitor(ctx context.Context, cfg *config.Config) {
 		return block.Hash(), nil
 	}
 	l2ChallengesMonitor := NewL2ChallengesMonitor(s.logger, s.metrics)
-	s.monitor = newGameMonitor(
-		ctx,
-		s.logger,
-		s.cl,
-		s.metrics,
-		cfg.MonitorInterval,
-		cfg.GameWindow,
+	updateTimeMonitor := NewUpdateTimeMonitor(s.cl, s.metrics)
+	s.monitor = newGameMonitor(ctx, s.logger, s.cl, s.metrics, cfg.MonitorInterval, cfg.GameWindow, blockHashFetcher,
+		s.l1Client.BlockNumber,
+		s.extractor.Extract,
 		s.forecast.Forecast,
 		s.bonds.CheckBonds,
 		s.resolutions.CheckResolutions,
 		s.claims.CheckClaims,
 		s.withdrawals.CheckWithdrawals,
 		l2ChallengesMonitor.CheckL2Challenges,
-		s.extractor.Extract,
-		s.l1Client.BlockNumber,
-		blockHashFetcher,
-	)
+		updateTimeMonitor.CheckUpdateTimes)
 }
 
 func (s *Service) Start(ctx context.Context) error {

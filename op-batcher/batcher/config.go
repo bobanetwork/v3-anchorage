@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-batcher/compressor"
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
+	"github.com/ethereum-optimism/optimism/op-service/eth"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 	opmetrics "github.com/ethereum-optimism/optimism/op-service/metrics"
 	"github.com/ethereum-optimism/optimism/op-service/oppprof"
@@ -95,6 +96,19 @@ type CLIConfig struct {
 	// ActiveSequencerCheckDuration is the duration between checks to determine the active sequencer endpoint.
 	ActiveSequencerCheckDuration time.Duration
 
+	// ThrottleInterval is the interval between notifying the block builder of the latest DA throttling state, or 0 to
+	// disable notifications entirely (only recommended for testing).
+	ThrottleInterval time.Duration
+	// ThrottleThreshold is the number of pending bytes beyond which the batcher will start throttling future bytes
+	// written to DA.
+	ThrottleThreshold uint64
+	// ThrottleTxSize is the DA size of a transaction to start throttling when we are over the throttling threshold.
+	ThrottleTxSize uint64
+	// ThrottleBlockSize is the total per-block DA limit to start imposing on block building when we are over the throttling threshold.
+	ThrottleBlockSize uint64
+	// ThrottleAlwaysBlockSize is the total per-block DA limit to always imposing on block building.
+	ThrottleAlwaysBlockSize uint64
+
 	// TestUseMaxTxSizeForBlobs allows to set the blob size with MaxL1TxSize.
 	// Should only be used for testing purposes.
 	TestUseMaxTxSizeForBlobs bool
@@ -135,17 +149,18 @@ func (c *CLIConfig) Check() error {
 	if !derive.ValidCompressionAlgo(c.CompressionAlgo) {
 		return fmt.Errorf("invalid compression algo %v", c.CompressionAlgo)
 	}
-	if c.BatchType > 1 {
+	if c.BatchType > derive.SpanBatchType {
 		return fmt.Errorf("unknown batch type: %v", c.BatchType)
 	}
 	if c.CheckRecentTxsDepth > 128 {
 		return fmt.Errorf("CheckRecentTxsDepth cannot be set higher than 128: %v", c.CheckRecentTxsDepth)
 	}
-	if c.DataAvailabilityType == flags.BlobsType && c.TargetNumFrames > 6 {
-		return errors.New("too many frames for blob transactions, max 6")
-	}
 	if !flags.ValidDataAvailabilityType(c.DataAvailabilityType) {
 		return fmt.Errorf("unknown data availability type: %q", c.DataAvailabilityType)
+	}
+	// we want to enforce it for both blobs and auto
+	if c.DataAvailabilityType != flags.CalldataType && c.TargetNumFrames > eth.MaxBlobsPerBlobTx {
+		return fmt.Errorf("too many frames for blob transactions, max %d", eth.MaxBlobsPerBlobTx)
 	}
 	if err := c.MetricsConfig.Check(); err != nil {
 		return err
@@ -193,5 +208,10 @@ func NewConfig(ctx *cli.Context) *CLIConfig {
 		PprofConfig:                  oppprof.ReadCLIConfig(ctx),
 		RPC:                          oprpc.ReadCLIConfig(ctx),
 		AltDA:                        altda.ReadCLIConfig(ctx),
+		ThrottleThreshold:            ctx.Uint64(flags.ThrottleThresholdFlag.Name),
+		ThrottleInterval:             ctx.Duration(flags.ThrottleIntervalFlag.Name),
+		ThrottleTxSize:               ctx.Uint64(flags.ThrottleTxSizeFlag.Name),
+		ThrottleBlockSize:            ctx.Uint64(flags.ThrottleBlockSizeFlag.Name),
+		ThrottleAlwaysBlockSize:      ctx.Uint64(flags.ThrottleAlwaysBlockSizeFlag.Name),
 	}
 }
