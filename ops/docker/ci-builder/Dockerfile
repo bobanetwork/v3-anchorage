@@ -20,7 +20,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh && \
 RUN source $HOME/.profile && rustup update nightly
 
 RUN source $HOME/.profile && cargo install just
-RUN source $HOME/.profile && cargo install svm-rs
+RUN source $HOME/.profile && cargo install svm-rs --version 0.5.7
 
 # Only diff from upstream docker image is this clone instead
 # of COPY. We select a specific commit to use.
@@ -144,6 +144,9 @@ FROM base-builder as rust-builder
 
 # Install clang & lld
 RUN apt-get update && apt-get install -y clang lld
+
+# Install parallel
+RUN apt-get install -y parallel
 
 # Copy the rust installation, alongside the installed toolchains
 COPY --from=rust-build /root/.cargo /root/.cargo

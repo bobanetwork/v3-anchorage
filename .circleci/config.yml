@@ -6,7 +6,7 @@ parameters:
     default: "us-docker.pkg.dev"
   ci_builder_image:
     type: string
-    default: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/ci-builder:v1.5.0
+    default: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/ci-builder:v1.5.1
   repo:
     type: string
     default: ${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images
@@ -169,9 +169,9 @@ jobs:
         description: Whether to notify on failure
         type: boolean
         default: false
-      mips64:
-        type: boolean
-        default: false
+      mips_word_size:
+        type: integer
+        default: 32
     steps:
       - checkout
       - check-changed:
@@ -194,28 +194,34 @@ jobs:
           working_directory: cannon
       - when:
           condition:
-            not: <<parameters.mips64>>
+            equal: [32, <<parameters.mips_word_size>>]
           steps:
             - run:
                 name: Cannon Go 32-bit tests
                 command: |
                   export SKIP_SLOW_TESTS=<<parameters.skip_slow_tests>>
-                  gotestsum --format=testname --junitfile=../tmp/test-results/cannon.xml --jsonfile=../tmp/testlogs/log.json \
-                  -- -parallel=$(nproc) -coverpkg=github.com/ethereum-optimism/optimism/cannon/... -coverprofile=coverage.out ./...
+                  gotestsum --format=testname --junitfile=../tmp/test-results/cannon-32.xml --jsonfile=../tmp/testlogs/log-32.json \
+                  -- -parallel=$(nproc) -coverpkg=github.com/ethereum-optimism/optimism/cannon/... -coverprofile=coverage-32.out ./...
+                working_directory: cannon
+            - run:
+                name: Upload Cannon coverage
+                command: codecov --verbose --clean --flags cannon-go-tests-32 -f ./coverage-32.out
                 working_directory: cannon
       - when:
-          condition: <<parameters.mips64>>
+          condition:
+            equal: [64, <<parameters.mips_word_size>>]
           steps:
             - run:
                 name: Cannon Go 64-bit tests
                 command: |
                   export SKIP_SLOW_TESTS=<<parameters.skip_slow_tests>>
-                  gotestsum --format=testname --junitfile=../tmp/test-results/cannon.xml --jsonfile=../tmp/testlogs/log.json \
-                  -- --tags=cannon64 -parallel=$(nproc) -coverpkg=github.com/ethereum-optimism/optimism/cannon/... -coverprofile=coverage.out ./...
+                  gotestsum --format=testname --junitfile=../tmp/test-results/cannon-64.xml --jsonfile=../tmp/testlogs/log-64.json \
+                  -- --tags=cannon64 -parallel=$(nproc) -coverpkg=github.com/ethereum-optimism/optimism/cannon/... -coverprofile=coverage-64.out ./...
                 working_directory: cannon
-      - run:
-          name: upload Cannon coverage
-          command: codecov --verbose --clean --flags cannon-go-tests
+            - run:
+                name: Upload Cannon coverage
+                command: codecov --verbose --clean --flags cannon-go-tests-64 -f ./coverage-64.out
+                working_directory: cannon
       - store_test_results:
           path: ./tmp/test-results
       - store_artifacts:
@@ -676,13 +682,15 @@ jobs:
           name: print forge version
           command: forge --version
       - run-contracts-check:
+          command: check-kontrol-summaries-unchanged
+      - run-contracts-check:
+          command: semgrep-test-validity-check
+      - run-contracts-check:
           command: semgrep
       - run-contracts-check:
           command: semver-lock
       - run-contracts-check:
           command: semver-diff-check-no-build
-      - run-contracts-check:
-          command: semver-natspec-check-no-build
       - run-contracts-check:
           command: validate-deploy-configs
       - run-contracts-check:
@@ -697,6 +705,8 @@ jobs:
           command: size-check
       - run-contracts-check:
           command: unused-imports-check-no-build
+      - run-contracts-check:
+          command: lint-forge-tests-check-no-build
 
   contracts-bedrock-validate-spacers:
     docker:
@@ -744,6 +754,7 @@ jobs:
         default: false
     docker:
       - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - checkout
       - check-changed:
@@ -751,23 +762,15 @@ jobs:
       - attach_workspace:
           at: "."
           if: ${{ uses_artifacts }}
-      - restore_cache:
-          name: Restore Go modules cache
-          key: gomod-{{ checksum "go.sum" }}
-      - restore_cache:
-          name: Restore Go build cache
-          keys:
-            - golang-build-cache-fuzz-golang-{{ checksum "go.sum" }}
-            - golang-build-cache-fuzz-golang-
+      - run:
+          name: Install parallel
+          command: |
+            apt-get update
+            apt-get install -y parallel
       - run:
           name: Fuzz
           command: make fuzz
           working_directory: "<<parameters.package_name>>"
-      - save_cache:
-          name: Save Go build cache
-          key: golang-build-cache-fuzz-golang-{{ checksum "go.sum" }}
-          paths:
-            - "/root/.cache/go-build"
 
   go-lint:
     docker:
@@ -811,7 +814,7 @@ jobs:
           command: |
             echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
             sudo apt update
-            sudo apt install kurtosis-cli=1.3.0
+            sudo apt install kurtosis-cli=1.4.0
             kurtosis engine start
       - checkout
       - when:
@@ -866,7 +869,6 @@ jobs:
               op-service
               op-supervisor
               op-deployer
-              packages/contracts-bedrock/scripts/checks/semver-natspec
             )
             formatted_packages=""
             for package in "${packages[@]}"; do
@@ -906,6 +908,14 @@ jobs:
         description: Slack user or group to mention when notifying of failures
         type: string
         default: ""
+      resource_class:
+        description: Machine resource class
+        type: string
+        default: ethereum-optimism/latitude-1
+      skip_slow_tests:
+        description: Indicates that slow tests should be skipped
+        type: boolean
+        default: false
     docker:
       - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
@@ -936,6 +946,7 @@ jobs:
             # need to explicitly set it here to prevent Cannon from running when we don't
             # want it to.
             export OP_E2E_CANNON_ENABLED="false"
+            export OP_E2E_SKIP_SLOW_TEST=<<parameters.skip_slow_tests>>
             # Note: We don't use circle CI test splits because we need to split by test name, not by package. There is an additional
             # constraint that gotestsum does not currently (nor likely will) accept files from different packages when building.
             JUNIT_FILE=../tmp/test-results/<<parameters.module>>_<<parameters.target>>.xml JSON_LOG_FILE=../tmp/testlogs/test.log make <<parameters.target>>
@@ -1002,45 +1013,11 @@ jobs:
   preimage-reproducibility:
     docker:
       - image: <<pipeline.parameters.ci_builder_image>>
-    parameters:
-      version:
-        type: string
     steps:
       - checkout
       - setup_remote_docker
       - run:
-          name: Set expected prestate hash
-          command: |
-            find_prestate_hash() {
-              jq -r --arg version "<<parameters.version>>" '.[] | select(.version == $version) | .hash' "$1"
-            }
-
-            prestate_hash=$(find_prestate_hash "op-program/prestates/releases.json")
-            if [ -z "$prestate_hash" ]; then
-              echo "Unknown prestate version <<parameters.version>>"
-              exit 1
-            fi
-            echo "export EXPECTED_PRESTATE_HASH=$prestate_hash" >> $BASH_ENV
-      - run:
-          name: Switch to tag
-          command: |
-            git fetch
-            git checkout "op-program/v<<parameters.version>>"
-            git submodule update --init --recursive
-      - run:
-          name: Build prestate
-          command: make reproducible-prestate
-      - run:
-          name: Verify prestate
-          command: |
-            ACTUAL=$(jq -r .pre ./op-program/bin/prestate-proof.json)
-            echo "Expected: ${EXPECTED_PRESTATE_HASH}"
-            echo "Actual:   ${ACTUAL}"
-            if [[ "${EXPECTED_PRESTATE_HASH}" != "${ACTUAL}" ]]
-            then
-              echo "Prestate did not match expected"
-              exit 1
-            fi
+          make -C op-program verify-reproducibility
       - notify-failures-on-develop:
           mentions: "@proofs-team"
 
@@ -1070,7 +1047,7 @@ jobs:
           paths:
             - "/root/.cache/go-build"
       - notify-failures-on-develop:
-          mentions: "@proofs-squad"
+          mentions: "@proofs-team"
 
   semgrep-scan:
     parameters:
@@ -1285,7 +1262,24 @@ jobs:
       - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
+      - setup_remote_docker
+      - gcp-cli/install
+      - gcp-oidc-authenticate:
+          gcp_cred_config_file_path: /root/gcp_cred_config.json
+          oidc_token_file_path: /root/oidc_token.json
       - checkout
+      - run:
+          name: Install goreleaser pro
+          command: |
+            mkdir -p /tmp/goreleaser
+            cd /tmp/goreleaser
+            curl -L -o goreleaser.tgz https://github.com/goreleaser/goreleaser-pro/releases/download/v2.4.3-pro/goreleaser-pro_Linux_x86_64.tar.gz
+            tar -xzvf goreleaser.tgz
+            mv goreleaser /usr/local/bin/goreleaser
+      - run:
+          name: Configure Docker
+          command: |
+            gcloud auth configure-docker us-docker.pkg.dev
       - run:
           name: Run goreleaser
           command: |
@@ -1334,15 +1328,15 @@ workflows:
       - contracts-bedrock-validate-spacers:
           requires:
             - contracts-bedrock-build
-      - semgrep-scan
       - semgrep-scan:
           name: semgrep-scan-local
-          scan_command: semgrep scan --timeout=100 --config=./.semgrep --error .
+          scan_command: semgrep scan --timeout=100 --config .semgrep/rules/ --error .
+      - semgrep-scan:
+          name: semgrep-test
+          scan_command: semgrep scan --test --config .semgrep/rules/ .semgrep/tests/
       - go-lint
       - fuzz-golang:
           name: fuzz-golang-<<matrix.package_name>>
-          requires:
-            - go-mod-download
           on_changes: <<matrix.package_name>>
           matrix:
             parameters:
@@ -1356,13 +1350,13 @@ workflows:
           package_name: cannon
           on_changes: cannon,packages/contracts-bedrock/src/cannon
           uses_artifacts: true
-          requires: ["go-mod-download", "contracts-bedrock-build"]
+          requires: ["contracts-bedrock-build"]
       - fuzz-golang:
           name: op-e2e-fuzz
           package_name: op-e2e
           on_changes: op-e2e,packages/contracts-bedrock/src
           uses_artifacts: true
-          requires: ["go-mod-download", "contracts-bedrock-build"]
+          requires: ["contracts-bedrock-build"]
       - go-test:
           name: go-test-all
           requires:
@@ -1389,6 +1383,7 @@ workflows:
           name: op-e2e-fault-proof-tests
           module: op-e2e
           target: test-fault-proofs
+          skip_slow_tests: true
           requires:
             - contracts-bedrock-build
             - cannon-prestate
@@ -1405,7 +1400,8 @@ workflows:
             - go-mod-download
             - go-lint
             - cannon-build-test-vectors
-            - cannon-go-lint-and-test
+            - cannon-go-lint-and-test-32-bit
+            - cannon-go-lint-and-test-64-bit
             - check-generated-mocks-op-node
             - check-generated-mocks-op-service
             - go-mod-download
@@ -1443,10 +1439,14 @@ workflows:
       - check-generated-mocks-op-node
       - check-generated-mocks-op-service
       - cannon-go-lint-and-test:
+          name: cannon-go-lint-and-test-<<matrix.mips_word_size>>-bit
           requires:
             - contracts-bedrock-build
           skip_slow_tests: true
           notify: true
+          matrix:
+            parameters:
+              mips_word_size: [ 32, 64 ]
       - cannon-build-test-vectors
       - todo-issues:
           name: todo-issues-check
@@ -1616,6 +1616,7 @@ workflows:
           target: test-cannon
           notify: true
           mentions: "@proofs-team"
+          resource_class: ethereum-optimism/latitude-fps-1
           requires:
             - contracts-bedrock-build
             - cannon-prestate
@@ -1645,10 +1646,14 @@ workflows:
       - contracts-bedrock-build:
           skip_pattern: test
       - cannon-go-lint-and-test:
+          name: cannon-go-lint-and-test-<<matrix.mips_word_size>>-bit
           requires:
             - contracts-bedrock-build
           context:
             - slack
+          matrix:
+            parameters:
+              mips_word_size: [ 32, 64 ]
 
   scheduled-docker-publish:
     when:
@@ -1711,19 +1716,5 @@ workflows:
         - equal: [ true, << pipeline.parameters.reproducibility_dispatch >> ]
     jobs:
       - preimage-reproducibility:
-          matrix:
-            parameters:
-              version:
-                - "0.1.0"
-                - "0.2.0"
-                - "0.3.0"
-                - "1.0.0"
-                - "1.1.0"
-                - "1.2.0"
-                - "1.3.0-rc.1"
-                - "1.3.0-rc.2"
-                - "1.3.0-rc.3"
-                - "1.3.1-rc.1"
-                - "1.3.1-rc.2"
           context:
             slack

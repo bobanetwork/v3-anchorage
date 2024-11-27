@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ethereum-optimism/optimism/cannon/mipsevm/arch"
@@ -18,8 +17,6 @@ import (
 )
 
 func TestEVM_MT64_LL(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	memVal := Word(0x11223344_55667788)
 	memValNeg := Word(0xF1223344_F5667788)
 	cases := []struct {
@@ -56,7 +53,7 @@ func TestEVM_MT64_LL(t *testing.T) {
 				step := state.GetStep()
 
 				// Set up state
-				state.GetMemory().SetUint32(state.GetPC(), insn)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), insn)
 				state.GetMemory().SetWord(effAddr, c.memVal)
 				state.GetRegistersRef()[baseReg] = c.base
 				if withExistingReservation {
@@ -84,15 +81,13 @@ func TestEVM_MT64_LL(t *testing.T) {
 
 				// Check expectations
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
 }
 
 func TestEVM_MT64_SC(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	llVariations := []struct {
 		name                string
 		llReservationStatus multithreaded.LLReservationStatus
@@ -158,7 +153,7 @@ func TestEVM_MT64_SC(t *testing.T) {
 
 				// Setup state
 				state.GetCurrentThread().ThreadId = c.threadId
-				state.GetMemory().SetUint32(state.GetPC(), insn)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), insn)
 				state.GetRegistersRef()[baseReg] = c.base
 				state.GetRegistersRef()[rtReg] = c.value
 				state.LLReservationStatus = v.llReservationStatus
@@ -187,15 +182,13 @@ func TestEVM_MT64_SC(t *testing.T) {
 
 				// Check expectations
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
 }
 
 func TestEVM_MT64_LLD(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	memVal := Word(0x11223344_55667788)
 	memValNeg := Word(0xF1223344_F5667788)
 	cases := []struct {
@@ -232,7 +225,7 @@ func TestEVM_MT64_LLD(t *testing.T) {
 				step := state.GetStep()
 
 				// Set up state
-				state.GetMemory().SetUint32(state.GetPC(), insn)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), insn)
 				state.GetMemory().SetWord(effAddr, c.memVal)
 				state.GetRegistersRef()[baseReg] = c.base
 				if withExistingReservation {
@@ -260,15 +253,13 @@ func TestEVM_MT64_LLD(t *testing.T) {
 
 				// Check expectations
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
 }
 
 func TestEVM_MT64_SCD(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	value := Word(0x11223344_55667788)
 	llVariations := []struct {
 		name                string
@@ -335,7 +326,7 @@ func TestEVM_MT64_SCD(t *testing.T) {
 
 				// Setup state
 				state.GetCurrentThread().ThreadId = c.threadId
-				state.GetMemory().SetUint32(state.GetPC(), insn)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), insn)
 				state.GetRegistersRef()[baseReg] = c.base
 				state.GetRegistersRef()[rtReg] = value
 				state.LLReservationStatus = v.llReservationStatus
@@ -364,7 +355,7 @@ func TestEVM_MT64_SCD(t *testing.T) {
 
 				// Check expectations
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}

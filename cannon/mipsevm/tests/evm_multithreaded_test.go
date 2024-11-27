@@ -8,7 +8,6 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -26,8 +25,6 @@ import (
 type Word = arch.Word
 
 func TestEVM_MT_LL(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	// Set up some test values that will be reused
 	posValue := uint64(0xAAAA_BBBB_1122_3344)
 	posValueRet := uint64(0x1122_3344)
@@ -63,7 +60,7 @@ func TestEVM_MT_LL(t *testing.T) {
 
 				// Set up state
 				testutil.SetMemoryUint64(t, state.GetMemory(), Word(c.expectedAddr), c.memValue)
-				state.GetMemory().SetUint32(state.GetPC(), insn)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), insn)
 				state.GetRegistersRef()[baseReg] = Word(c.base)
 				if withExistingReservation {
 					state.LLReservationStatus = multithreaded.LLStatusActive32bit
@@ -90,15 +87,13 @@ func TestEVM_MT_LL(t *testing.T) {
 
 				// Check expectations
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
 }
 
 func TestEVM_MT_SC(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	// Set up some test values that will be reused
 	memValue := uint64(0x1122_3344_5566_7788)
 
@@ -160,7 +155,7 @@ func TestEVM_MT_SC(t *testing.T) {
 				// Setup state
 				testutil.SetMemoryUint64(t, state.GetMemory(), Word(c.expectedAddr), memValue)
 				state.GetCurrentThread().ThreadId = c.threadId
-				state.GetMemory().SetUint32(state.GetPC(), insn)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), insn)
 				state.GetRegistersRef()[baseReg] = c.base
 				state.GetRegistersRef()[rtReg] = Word(c.storeValue)
 				state.LLReservationStatus = v.llReservationStatus
@@ -189,15 +184,13 @@ func TestEVM_MT_SC(t *testing.T) {
 
 				// Check expectations
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
 }
 
 func TestEVM_MT_SysRead_Preimage(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	preimageValue := make([]byte, 0, 8)
 	preimageValue = binary.BigEndian.AppendUint32(preimageValue, 0x12_34_56_78)
 	preimageValue = binary.BigEndian.AppendUint32(preimageValue, 0x98_76_54_32)
@@ -224,8 +217,8 @@ func TestEVM_MT_SysRead_Preimage(t *testing.T) {
 		count          Word
 		writeLen       Word
 		preimageOffset Word
-		prestateMem    uint32
-		postateMem     uint32
+		prestateMem    Word
+		postateMem     Word
 		shouldPanic    bool
 	}{
 		{name: "Aligned addr, write 1 byte", addr: 0x00_00_FF_00, count: 1, writeLen: 1, preimageOffset: 8, prestateMem: 0xFF_FF_FF_FF, postateMem: 0x12_FF_FF_FF},
@@ -249,6 +242,7 @@ func TestEVM_MT_SysRead_Preimage(t *testing.T) {
 		for _, v := range llVariations {
 			tName := fmt.Sprintf("%v (%v)", c.name, v.name)
 			t.Run(tName, func(t *testing.T) {
+				testutil.TemporarilySkip64BitTests(t)
 				effAddr := arch.AddressMask & c.addr
 				preimageKey := preimage.Keccak256Key(crypto.Keccak256Hash(preimageValue)).PreimageKey()
 				oracle := testutil.StaticOracle(t, preimageValue)
@@ -269,11 +263,11 @@ func TestEVM_MT_SysRead_Preimage(t *testing.T) {
 				state.GetRegistersRef()[4] = exec.FdPreimageRead
 				state.GetRegistersRef()[5] = c.addr
 				state.GetRegistersRef()[6] = c.count
-				state.GetMemory().SetUint32(state.GetPC(), syscallInsn)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), syscallInsn)
 				state.LLReservationStatus = v.llReservationStatus
 				state.LLAddress = llAddress
 				state.LLOwnerThread = llOwnerThread
-				state.GetMemory().SetUint32(effAddr, c.prestateMem)
+				state.GetMemory().SetWord(effAddr, c.prestateMem)
 
 				// Setup expectations
 				expected := mttestutil.NewExpectedMTState(state)
@@ -281,7 +275,7 @@ func TestEVM_MT_SysRead_Preimage(t *testing.T) {
 				expected.ActiveThread().Registers[2] = c.writeLen
 				expected.ActiveThread().Registers[7] = 0 // no error
 				expected.PreimageOffset += c.writeLen
-				expected.ExpectMemoryWriteUint32(t, effAddr, c.postateMem)
+				expected.ExpectMemoryWordWrite(effAddr, c.postateMem)
 				if v.shouldClearReservation {
 					expected.LLReservationStatus = multithreaded.LLStatusNone
 					expected.LLAddress = 0
@@ -290,14 +284,14 @@ func TestEVM_MT_SysRead_Preimage(t *testing.T) {
 
 				if c.shouldPanic {
 					require.Panics(t, func() { _, _ = goVm.Step(true) })
-					testutil.AssertPreimageOracleReverts(t, preimageKey, preimageValue, c.preimageOffset, contracts, tracer)
+					testutil.AssertPreimageOracleReverts(t, preimageKey, preimageValue, c.preimageOffset, contracts)
 				} else {
 					stepWitness, err := goVm.Step(true)
 					require.NoError(t, err)
 
 					// Check expectations
 					expected.Validate(t, state)
-					testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+					testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 				}
 			})
 		}
@@ -305,8 +299,6 @@ func TestEVM_MT_SysRead_Preimage(t *testing.T) {
 }
 
 func TestEVM_MT_StoreOpsClearMemReservation(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	llVariations := []struct {
 		name                   string
 		llReservationStatus    multithreaded.LLReservationStatus
@@ -334,8 +326,8 @@ func TestEVM_MT_StoreOpsClearMemReservation(t *testing.T) {
 		offset  int
 		base    Word
 		effAddr Word
-		preMem  uint32
-		postMem uint32
+		preMem  Word
+		postMem Word
 	}{
 		{name: "Store byte", opcode: 0b10_1000, base: 0xFF_00_00_04, offset: 0xFF_00_00_08, effAddr: 0xFF_00_00_0C, preMem: 0xFF_FF_FF_FF, postMem: 0x78_FF_FF_FF},
 		{name: "Store halfword", opcode: 0b10_1001, base: 0xFF_00_00_04, offset: 0xFF_00_00_08, effAddr: 0xFF_00_00_0C, preMem: 0xFF_FF_FF_FF, postMem: 0x56_78_FF_FF},
@@ -347,6 +339,7 @@ func TestEVM_MT_StoreOpsClearMemReservation(t *testing.T) {
 		for _, v := range llVariations {
 			tName := fmt.Sprintf("%v (%v)", c.name, v.name)
 			t.Run(tName, func(t *testing.T) {
+				testutil.TemporarilySkip64BitTests(t)
 				insn := uint32((c.opcode << 26) | (baseReg & 0x1F << 21) | (rtReg & 0x1F << 16) | (0xFFFF & c.offset))
 				goVm, state, contracts := setup(t, i, nil, testutil.WithPCAndNextPC(0x08))
 				step := state.GetStep()
@@ -361,8 +354,8 @@ func TestEVM_MT_StoreOpsClearMemReservation(t *testing.T) {
 				// Setup state
 				state.GetRegistersRef()[rtReg] = rt
 				state.GetRegistersRef()[baseReg] = c.base
-				state.GetMemory().SetUint32(state.GetPC(), insn)
-				state.GetMemory().SetUint32(c.effAddr, c.preMem)
+				testutil.StoreInstruction(state.GetMemory(), state.GetPC(), insn)
+				state.GetMemory().SetWord(c.effAddr, c.preMem)
 				state.LLReservationStatus = v.llReservationStatus
 				state.LLAddress = llAddress
 				state.LLOwnerThread = llOwnerThread
@@ -370,7 +363,7 @@ func TestEVM_MT_StoreOpsClearMemReservation(t *testing.T) {
 				// Setup expectations
 				expected := mttestutil.NewExpectedMTState(state)
 				expected.ExpectStep()
-				expected.ExpectMemoryWriteUint32(t, c.effAddr, c.postMem)
+				expected.ExpectMemoryWordWrite(c.effAddr, c.postMem)
 				if v.shouldClearReservation {
 					expected.LLReservationStatus = multithreaded.LLStatusNone
 					expected.LLAddress = 0
@@ -382,7 +375,7 @@ func TestEVM_MT_StoreOpsClearMemReservation(t *testing.T) {
 
 				// Check expectations
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
@@ -390,7 +383,6 @@ func TestEVM_MT_StoreOpsClearMemReservation(t *testing.T) {
 
 func TestEVM_SysClone_FlagHandling(t *testing.T) {
 	contracts := testutil.TestContractsSetup(t, testutil.MipsMultithreaded)
-	var tracer *tracing.Hooks
 
 	cases := []struct {
 		name  string
@@ -411,45 +403,37 @@ func TestEVM_SysClone_FlagHandling(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			state := multithreaded.CreateEmptyState()
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = arch.SysClone // Set syscall number
 			state.GetRegistersRef()[4] = c.flags       // Set first argument
 			curStep := state.Step
 
 			var err error
 			var stepWitness *mipsevm.StepWitness
-			us := multithreaded.NewInstrumentedState(state, nil, os.Stdout, os.Stderr, nil, nil)
+			goVm := multithreaded.NewInstrumentedState(state, nil, os.Stdout, os.Stderr, nil, nil)
 			if !c.valid {
 				// The VM should exit
-				stepWitness, err = us.Step(true)
+				stepWitness, err = goVm.Step(true)
 				require.NoError(t, err)
 				require.Equal(t, curStep+1, state.GetStep())
-				require.Equal(t, true, us.GetState().GetExited())
-				require.Equal(t, uint8(mipsevm.VMStatusPanic), us.GetState().GetExitCode())
+				require.Equal(t, true, goVm.GetState().GetExited())
+				require.Equal(t, uint8(mipsevm.VMStatusPanic), goVm.GetState().GetExitCode())
 				require.Equal(t, 1, state.ThreadCount())
 			} else {
-				stepWitness, err = us.Step(true)
+				stepWitness, err = goVm.Step(true)
 				require.NoError(t, err)
 				require.Equal(t, curStep+1, state.GetStep())
-				require.Equal(t, false, us.GetState().GetExited())
-				require.Equal(t, uint8(0), us.GetState().GetExitCode())
+				require.Equal(t, false, goVm.GetState().GetExited())
+				require.Equal(t, uint8(0), goVm.GetState().GetExitCode())
 				require.Equal(t, 2, state.ThreadCount())
 			}
 
-			evm := testutil.NewMIPSEVM(contracts)
-			evm.SetTracer(tracer)
-			testutil.LogStepFailureAtCleanup(t, evm)
-
-			evmPost := evm.Step(t, stepWitness, curStep, multithreaded.GetStateHashFn())
-			goPost, _ := us.GetState().EncodeWitness()
-			require.Equal(t, hexutil.Bytes(goPost).String(), hexutil.Bytes(evmPost).String(),
-				"mipsevm produced different state than EVM")
+			testutil.ValidateEVM(t, stepWitness, curStep, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_SysClone_Successful(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name          string
 		traverseRight bool
@@ -464,7 +448,7 @@ func TestEVM_SysClone_Successful(t *testing.T) {
 
 			goVm, state, contracts := setup(t, i, nil)
 			mttestutil.InitializeSingleThread(i*333, state, c.traverseRight)
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = arch.SysClone        // the syscall number
 			state.GetRegistersRef()[4] = exec.ValidCloneFlags // a0 - first argument, clone flags
 			state.GetRegistersRef()[5] = stackPtr             // a1 - the stack pointer
@@ -506,13 +490,12 @@ func TestEVM_SysClone_Successful(t *testing.T) {
 			activeStack, inactiveStack := mttestutil.GetThreadStacks(state)
 			require.Equal(t, 2, len(activeStack))
 			require.Equal(t, 0, len(inactiveStack))
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_SysGetTID(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name     string
 		threadId Word
@@ -527,7 +510,7 @@ func TestEVM_SysGetTID(t *testing.T) {
 			mttestutil.InitializeSingleThread(i*789, state, false)
 
 			state.GetCurrentThread().ThreadId = c.threadId
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = arch.SysGetTID // Set syscall number
 			step := state.Step
 
@@ -545,13 +528,12 @@ func TestEVM_SysGetTID(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_SysExit(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name               string
 		threadCount        int
@@ -570,7 +552,7 @@ func TestEVM_SysExit(t *testing.T) {
 			goVm, state, contracts := setup(t, i*133, nil)
 			mttestutil.SetupThreads(int64(i*1111), state, i%2 == 0, c.threadCount, 0)
 
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = arch.SysExit   // Set syscall number
 			state.GetRegistersRef()[4] = Word(exitCode) // The first argument (exit code)
 			step := state.Step
@@ -594,13 +576,12 @@ func TestEVM_SysExit(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_PopExitedThread(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name                         string
 		traverseRight                bool
@@ -646,13 +627,12 @@ func TestEVM_PopExitedThread(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_SysFutex_WaitPrivate(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name             string
 		addressParam     Word
@@ -675,10 +655,11 @@ func TestEVM_SysFutex_WaitPrivate(t *testing.T) {
 
 	for i, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			testutil.TemporarilySkip64BitTests(t)
 			goVm, state, contracts := setup(t, i*1234, nil)
 			step := state.GetStep()
 
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.Memory.SetWord(c.effAddr, c.actualValue)
 			state.GetRegistersRef()[2] = arch.SysFutex // Set syscall number
 			state.GetRegistersRef()[4] = c.addressParam
@@ -713,13 +694,12 @@ func TestEVM_SysFutex_WaitPrivate(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_SysFutex_WakePrivate(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name                string
 		addressParam        Word
@@ -745,11 +725,12 @@ func TestEVM_SysFutex_WakePrivate(t *testing.T) {
 
 	for i, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			testutil.TemporarilySkip64BitTests(t)
 			goVm, state, contracts := setup(t, i*1122, nil)
 			mttestutil.SetupThreads(int64(i*2244), state, c.traverseRight, c.activeThreadCount, c.inactiveThreadCount)
 			step := state.Step
 
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = arch.SysFutex // Set syscall number
 			state.GetRegistersRef()[4] = c.addressParam
 			state.GetRegistersRef()[5] = exec.FutexWakePrivate
@@ -776,14 +757,12 @@ func TestEVM_SysFutex_WakePrivate(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_SysFutex_UnsupportedOp(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	// From: https://github.com/torvalds/linux/blob/5be63fc19fcaa4c236b307420483578a56986a37/include/uapi/linux/futex.h
 	const FUTEX_PRIVATE_FLAG = 128
 	const FUTEX_WAIT = 0
@@ -834,7 +813,7 @@ func TestEVM_SysFutex_UnsupportedOp(t *testing.T) {
 			goVm, state, contracts := setup(t, int(op), nil)
 			step := state.GetStep()
 
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = arch.SysFutex // Set syscall number
 			state.GetRegistersRef()[5] = op
 
@@ -855,7 +834,7 @@ func TestEVM_SysFutex_UnsupportedOp(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
@@ -869,7 +848,6 @@ func TestEVM_SysNanosleep(t *testing.T) {
 }
 
 func runPreemptSyscall(t *testing.T, syscallName string, syscallNum uint32) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name            string
 		traverseRight   bool
@@ -889,7 +867,7 @@ func runPreemptSyscall(t *testing.T, syscallName string, syscallNum uint32) {
 				goVm, state, contracts := setup(t, i*789, nil)
 				mttestutil.SetupThreads(int64(i*3259), state, traverseRight, c.activeThreads, c.inactiveThreads)
 
-				state.Memory.SetUint32(state.GetPC(), syscallInsn)
+				testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 				state.GetRegistersRef()[2] = Word(syscallNum) // Set syscall number
 				step := state.Step
 
@@ -908,18 +886,16 @@ func runPreemptSyscall(t *testing.T, syscallName string, syscallNum uint32) {
 
 				// Validate post-state
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
 }
 
 func TestEVM_SysOpen(t *testing.T) {
-	var tracer *tracing.Hooks
-
 	goVm, state, contracts := setup(t, 5512, nil)
 
-	state.Memory.SetUint32(state.GetPC(), syscallInsn)
+	testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 	state.GetRegistersRef()[2] = arch.SysOpen // Set syscall number
 	step := state.Step
 
@@ -937,14 +913,13 @@ func TestEVM_SysOpen(t *testing.T) {
 
 	// Validate post-state
 	expected.Validate(t, state)
-	testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+	testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 }
 
 func TestEVM_SysGetPID(t *testing.T) {
-	var tracer *tracing.Hooks
 	goVm, state, contracts := setup(t, 1929, nil)
 
-	state.Memory.SetUint32(state.GetPC(), syscallInsn)
+	testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 	state.GetRegistersRef()[2] = arch.SysGetpid // Set syscall number
 	step := state.Step
 
@@ -962,7 +937,7 @@ func TestEVM_SysGetPID(t *testing.T) {
 
 	// Validate post-state
 	expected.Validate(t, state)
-	testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+	testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 }
 
 func TestEVM_SysClockGettimeMonotonic(t *testing.T) {
@@ -974,8 +949,6 @@ func TestEVM_SysClockGettimeRealtime(t *testing.T) {
 }
 
 func testEVM_SysClockGettime(t *testing.T, clkid Word) {
-	var tracer *tracing.Hooks
-
 	llVariations := []struct {
 		name                   string
 		llReservationStatus    multithreaded.LLReservationStatus
@@ -1011,7 +984,7 @@ func testEVM_SysClockGettime(t *testing.T, clkid Word) {
 				goVm, state, contracts := setup(t, 2101, nil)
 				mttestutil.InitializeSingleThread(2101+i, state, i%2 == 1)
 				effAddr := c.timespecAddr & arch.AddressMask
-				effAddr2 := effAddr + 4
+				effAddr2 := effAddr + arch.WordSizeBytes
 				step := state.Step
 
 				// Define LL-related params
@@ -1029,7 +1002,7 @@ func testEVM_SysClockGettime(t *testing.T, clkid Word) {
 					llOwnerThread = state.GetCurrentThread().ThreadId + 1
 				}
 
-				state.Memory.SetUint32(state.GetPC(), syscallInsn)
+				testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 				state.GetRegistersRef()[2] = arch.SysClockGetTime // Set syscall number
 				state.GetRegistersRef()[4] = clkid                // a0
 				state.GetRegistersRef()[5] = c.timespecAddr       // a1
@@ -1062,18 +1035,17 @@ func testEVM_SysClockGettime(t *testing.T, clkid Word) {
 
 				// Validate post-state
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 		}
 	}
 }
 
 func TestEVM_SysClockGettimeNonMonotonic(t *testing.T) {
-	var tracer *tracing.Hooks
 	goVm, state, contracts := setup(t, 2101, nil)
 
 	timespecAddr := Word(0x1000)
-	state.Memory.SetUint32(state.GetPC(), syscallInsn)
+	testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 	state.GetRegistersRef()[2] = arch.SysClockGetTime // Set syscall number
 	state.GetRegistersRef()[4] = 0xDEAD               // a0 - invalid clockid
 	state.GetRegistersRef()[5] = timespecAddr         // a1
@@ -1091,7 +1063,7 @@ func TestEVM_SysClockGettimeNonMonotonic(t *testing.T) {
 
 	// Validate post-state
 	expected.Validate(t, state)
-	testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+	testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 }
 
 var NoopSyscalls = map[string]uint32{
@@ -1103,6 +1075,7 @@ var NoopSyscalls = map[string]uint32{
 	"SysPrlimit64":     4338,
 	"SysClose":         4006,
 	"SysPread64":       4200,
+	"SysStat":          4106,
 	"SysFstat":         4108,
 	"SysFstat64":       4215,
 	"SysOpenAt":        4288,
@@ -1121,6 +1094,8 @@ var NoopSyscalls = map[string]uint32{
 	"SysLlseek":        4140,
 	"SysMinCore":       4217,
 	"SysTgkill":        4266,
+	"SysGetRLimit":     4076,
+	"SysLseek":         4019,
 	"SysMunmap":        4091,
 	"SysSetITimer":     4104,
 	"SysTimerCreate":   4257,
@@ -1129,12 +1104,12 @@ var NoopSyscalls = map[string]uint32{
 }
 
 func TestEVM_NoopSyscall(t *testing.T) {
-	var tracer *tracing.Hooks
 	for noopName, noopVal := range NoopSyscalls {
 		t.Run(noopName, func(t *testing.T) {
+			testutil.TemporarilySkip64BitTests(t)
 			goVm, state, contracts := setup(t, int(noopVal), nil)
 
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = Word(noopVal) // Set syscall number
 			step := state.Step
 
@@ -1152,7 +1127,7 @@ func TestEVM_NoopSyscall(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 
 	}
@@ -1178,17 +1153,18 @@ func TestEVM_UnsupportedSyscall(t *testing.T) {
 		i := i
 		syscallNum := syscallNum
 		t.Run(testName, func(t *testing.T) {
+			testutil.TemporarilySkip64BitTests(t)
 			t.Parallel()
 			goVm, state, contracts := setup(t, i*3434, nil)
 			// Setup basic getThreadId syscall instruction
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = Word(syscallNum)
 			proofData := multiThreadedProofGenerator(t, state)
 			// Set up post-state expectations
 			require.Panics(t, func() { _, _ = goVm.Step(true) })
 
 			errorMessage := "MIPS2: unimplemented syscall"
-			testutil.AssertEVMReverts(t, state, contracts, tracer, proofData, errorMessage)
+			testutil.AssertEVMReverts(t, state, contracts, tracer, proofData, testutil.CreateErrorStringMatcher(errorMessage))
 		})
 	}
 }
@@ -1219,15 +1195,14 @@ func TestEVM_EmptyThreadStacks(t *testing.T) {
 
 				require.PanicsWithValue(t, "Active thread stack is empty", func() { _, _ = goVm.Step(false) })
 
-				errorMessage := "MIPS2: active thread stack is empty"
-				testutil.AssertEVMReverts(t, state, contracts, tracer, proofCase.Proof, errorMessage)
+				errorMessage := "active thread stack is empty"
+				testutil.AssertEVMReverts(t, state, contracts, tracer, proofCase.Proof, testutil.CreateErrorStringMatcher(errorMessage))
 			})
 		}
 	}
 }
 
 func TestEVM_NormalTraversalStep_HandleWaitingThread(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name            string
 		step            uint64
@@ -1304,7 +1279,7 @@ func TestEVM_NormalTraversalStep_HandleWaitingThread(t *testing.T) {
 
 				// Validate post-state
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, c.step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, c.step, goVm, multithreaded.GetStateHashFn(), contracts)
 			})
 
 		}
@@ -1312,7 +1287,6 @@ func TestEVM_NormalTraversalStep_HandleWaitingThread(t *testing.T) {
 }
 
 func TestEVM_NormalTraversal_Full(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name        string
 		threadCount int
@@ -1354,7 +1328,7 @@ func TestEVM_NormalTraversal_Full(t *testing.T) {
 
 					// Validate post-state
 					expected.Validate(t, state)
-					testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+					testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 				}
 
 				// We should be back to the original state with only a few modifications
@@ -1369,7 +1343,6 @@ func TestEVM_NormalTraversal_Full(t *testing.T) {
 func TestEVM_WakeupTraversalStep(t *testing.T) {
 	addr := Word(0x1234)
 	wakeupVal := Word(0x999)
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name              string
 		wakeupAddr        Word
@@ -1437,13 +1410,12 @@ func TestEVM_WakeupTraversalStep(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }
 
 func TestEVM_WakeupTraversal_Full(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name        string
 		threadCount int
@@ -1483,7 +1455,7 @@ func TestEVM_WakeupTraversal_Full(t *testing.T) {
 
 				// Validate post-state
 				expected.Validate(t, state)
-				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+				testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 			}
 
 			// We should be back to the original state with only a few modifications
@@ -1495,8 +1467,80 @@ func TestEVM_WakeupTraversal_Full(t *testing.T) {
 	}
 }
 
+func TestEVM_WakeupTraversal_WithExitedThreads(t *testing.T) {
+	addr := Word(0x1234)
+	wakeupVal := Word(0x999)
+	cases := []struct {
+		name                  string
+		wakeupAddr            Word
+		futexAddr             Word
+		targetVal             Word
+		traverseRight         bool
+		activeStackSize       int
+		otherStackSize        int
+		exitedThreadIdx       []int
+		shouldClearWakeup     bool
+		shouldPreempt         bool
+		activeThreadFutexAddr Word
+		activeThreadFutexVal  Word
+	}{
+		{name: "Wakeable thread exists among exited threads", wakeupAddr: addr, futexAddr: addr, targetVal: wakeupVal + 1, traverseRight: false, activeStackSize: 3, otherStackSize: 1, exitedThreadIdx: []int{2}, shouldClearWakeup: false, shouldPreempt: true, activeThreadFutexAddr: addr + 8, activeThreadFutexVal: wakeupVal + 2},
+		{name: "All threads exited", wakeupAddr: addr, futexAddr: addr, targetVal: wakeupVal, traverseRight: false, activeStackSize: 3, otherStackSize: 0, exitedThreadIdx: []int{1, 2}, shouldClearWakeup: false, shouldPreempt: true, activeThreadFutexAddr: addr + 16, activeThreadFutexVal: wakeupVal + 3},
+		{name: "Exited threads, no matching futex", wakeupAddr: addr, futexAddr: addr + 4, targetVal: wakeupVal, traverseRight: false, activeStackSize: 2, otherStackSize: 1, exitedThreadIdx: []int{}, shouldClearWakeup: false, shouldPreempt: true, activeThreadFutexAddr: addr + 24, activeThreadFutexVal: wakeupVal + 4},
+		{name: "Matching addr, not wakeable, with exited threads", wakeupAddr: addr, futexAddr: addr, targetVal: wakeupVal, traverseRight: true, activeStackSize: 3, otherStackSize: 0, exitedThreadIdx: []int{1}, shouldClearWakeup: false, shouldPreempt: true, activeThreadFutexAddr: addr + 32, activeThreadFutexVal: wakeupVal + 5},
+		{name: "Non-waiting threads with exited threads", wakeupAddr: addr, futexAddr: exec.FutexEmptyAddr, targetVal: 0, traverseRight: false, activeStackSize: 2, otherStackSize: 1, exitedThreadIdx: []int{}, shouldClearWakeup: false, shouldPreempt: true, activeThreadFutexAddr: addr + 40, activeThreadFutexVal: wakeupVal + 6},
+	}
+
+	for i, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			goVm, state, contracts := setup(t, i*1000, nil)
+			mttestutil.SetupThreads(int64(i*5000), state, c.traverseRight, c.activeStackSize, c.otherStackSize)
+			step := state.Step
+
+			state.Wakeup = c.wakeupAddr
+			state.GetMemory().SetWord(c.wakeupAddr&arch.AddressMask, wakeupVal)
+
+			threads := mttestutil.GetAllThreads(state)
+			for idx, thread := range threads {
+				if slices.Contains(c.exitedThreadIdx, idx) {
+					thread.Exited = true
+				} else {
+					thread.FutexAddr = c.futexAddr
+					thread.FutexVal = c.targetVal
+					thread.FutexTimeoutStep = exec.FutexNoTimeout
+				}
+			}
+
+			activeThread := state.GetCurrentThread()
+			activeThread.Exited = true
+
+			activeThread.FutexAddr = c.activeThreadFutexAddr
+			activeThread.FutexVal = c.activeThreadFutexVal
+			activeThread.FutexTimeoutStep = exec.FutexNoTimeout
+
+			expected := mttestutil.NewExpectedMTState(state)
+			expected.Step += 1
+
+			if c.shouldClearWakeup {
+				expected.Wakeup = exec.FutexEmptyAddr
+			}
+			if c.shouldPreempt {
+				// Just preempt the current thread
+				expected.ExpectPreemption(state)
+			}
+
+			// State transition
+			var err error
+			var stepWitness *mipsevm.StepWitness
+			stepWitness, err = goVm.Step(true)
+			require.NoError(t, err)
+			expected.Validate(t, state)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
+		})
+	}
+}
+
 func TestEVM_SchedQuantumThreshold(t *testing.T) {
-	var tracer *tracing.Hooks
 	cases := []struct {
 		name                        string
 		stepsSinceLastContextSwitch uint64
@@ -1511,7 +1555,7 @@ func TestEVM_SchedQuantumThreshold(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			goVm, state, contracts := setup(t, i*789, nil)
 			// Setup basic getThreadId syscall instruction
-			state.Memory.SetUint32(state.GetPC(), syscallInsn)
+			testutil.StoreInstruction(state.Memory, state.GetPC(), syscallInsn)
 			state.GetRegistersRef()[2] = arch.SysGetTID // Set syscall number
 			state.StepsSinceLastContextSwitch = c.stepsSinceLastContextSwitch
 			step := state.Step
@@ -1536,7 +1580,7 @@ func TestEVM_SchedQuantumThreshold(t *testing.T) {
 
 			// Validate post-state
 			expected.Validate(t, state)
-			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts, tracer)
+			testutil.ValidateEVM(t, stepWitness, step, goVm, multithreaded.GetStateHashFn(), contracts)
 		})
 	}
 }

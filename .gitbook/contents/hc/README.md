@@ -26,4 +26,26 @@ Before you begin, make sure you have the following prerequisites in place:
 - Docker (optional)
 - Whitelist your project; request access on [Telegram](https://t.me/+mf_-jwCkqOU3NmVh)
 
+You also need to install the Hybrid Compute SDK:
+
+{% tabs %}
+{% tab title="Python" %} 
+```bash
+pip install hybrid_compute_sdk
+```
+{% endtab %}
+
+{% tab title="Typescript" %} 
+```bash
+pnpm i @bobanetwork/aa-hc-sdk-server
+```
+{% endtab %}
+{% endtabs %}
+
+If you intend to integrate a UI with your project, you'll also need to install the client-specific SDK (written in `TypeScript`, regardless of which language you intend to use):
+
+```bash
+pnpm i @bobanetwork/aa-hc-sdk-client
+```
+
 Once your environment is ready, proceed through the following steps to implement your Hybrid Compute examples.

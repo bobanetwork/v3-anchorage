@@ -169,10 +169,12 @@ func (c *OpConductor) initConsensus(ctx context.Context) error {
 		return nil
 	}
 
-	serverAddr := fmt.Sprintf("%s:%d", c.cfg.ConsensusAddr, c.cfg.ConsensusPort)
 	raftConsensusConfig := &consensus.RaftConsensusConfig{
-		ServerID:          c.cfg.RaftServerID,
-		ServerAddr:        serverAddr,
+		ServerID: c.cfg.RaftServerID,
+		// AdvertisedAddr may be empty: the server will then default to what it binds to.
+		AdvertisedAddr:    raft.ServerAddress(c.cfg.ConsensusAdvertisedAddr),
+		ListenAddr:        c.cfg.ConsensusAddr,
+		ListenPort:        c.cfg.ConsensusPort,
 		StorageDir:        c.cfg.RaftStorageDir,
 		Bootstrap:         c.cfg.RaftBootstrap,
 		RollupCfg:         &c.cfg.RollupCfg,
@@ -246,6 +248,11 @@ func (oc *OpConductor) initRPCServer(ctx context.Context) error {
 		server.AddAPI(rpc.API{
 			Namespace: conductorrpc.ExecutionRPCNamespace,
 			Service:   executionProxy,
+		})
+		execMinerProxy := conductorrpc.NewExecutionMinerProxyBackend(oc.log, oc, execClient)
+		server.AddAPI(rpc.API{
+			Namespace: conductorrpc.ExecutionMinerRPCNamespace,
+			Service:   execMinerProxy,
 		})
 
 		nodeClient, err := dial.DialRollupClientWithTimeout(ctx, 1*time.Minute, oc.log, oc.cfg.NodeRPC)
@@ -467,6 +474,12 @@ func (oc *OpConductor) Paused() bool {
 	return oc.paused.Load()
 }
 
+// ConsensusEndpoint returns the raft consensus server address to connect to.
+func (oc *OpConductor) ConsensusEndpoint() string {
+	return oc.cons.Addr()
+}
+
+// HTTPEndpoint returns the HTTP RPC endpoint
 func (oc *OpConductor) HTTPEndpoint() string {
 	if oc.rpcServer == nil {
 		return ""
@@ -608,7 +621,8 @@ func (oc *OpConductor) handleHealthUpdate(hcerr error) {
 		oc.queueAction()
 	}
 
-	if oc.healthy.Swap(healthy) != healthy {
+	if old := oc.healthy.Swap(healthy); old != healthy {
+		oc.log.Info("Health state changed", "old", old, "new", healthy)
 		// queue an action if health status changed.
 		oc.queueAction()
 	}

@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer/opcm"
+	"github.com/ethereum-optimism/optimism/op-chain-ops/genesis"
+
+	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer/artifacts"
+
+	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer/standard"
 
 	"github.com/ethereum-optimism/optimism/op-service/ioutil"
 	"github.com/ethereum-optimism/optimism/op-service/jsonutil"
@@ -38,9 +42,11 @@ type Intent struct {
 
 	FundDevAccounts bool `json:"fundDevAccounts" toml:"fundDevAccounts"`
 
-	L1ContractsLocator *opcm.ArtifactsLocator `json:"l1ContractsLocator" toml:"l1ContractsLocator"`
+	UseInterop bool `json:"useInterop" toml:"useInterop"`
 
-	L2ContractsLocator *opcm.ArtifactsLocator `json:"l2ContractsLocator" toml:"l2ContractsLocator"`
+	L1ContractsLocator *artifacts.Locator `json:"l1ContractsLocator" toml:"l1ContractsLocator"`
+
+	L2ContractsLocator *artifacts.Locator `json:"l2ContractsLocator" toml:"l2ContractsLocator"`
 
 	Chains []*ChainIntent `json:"chains" toml:"chains"`
 
@@ -61,11 +67,11 @@ func (c *Intent) Check() error {
 	}
 
 	if c.L1ContractsLocator == nil {
-		c.L1ContractsLocator = opcm.DefaultL1ContractsLocator
+		c.L1ContractsLocator = artifacts.DefaultL1ContractsLocator
 	}
 
 	if c.L2ContractsLocator == nil {
-		c.L2ContractsLocator = opcm.DefaultL2ContractsLocator
+		c.L2ContractsLocator = artifacts.DefaultL2ContractsLocator
 	}
 
 	var err error
@@ -102,7 +108,7 @@ func (c *Intent) WriteToFile(path string) error {
 }
 
 func (c *Intent) checkL1Prod() error {
-	versions, err := opcm.StandardL1VersionsFor(c.L1ChainID)
+	versions, err := standard.L1VersionsFor(c.L1ChainID)
 	if err != nil {
 		return err
 	}
@@ -131,7 +137,7 @@ func (c *Intent) checkL1Dev() error {
 }
 
 func (c *Intent) checkL2Prod() error {
-	_, err := opcm.StandardArtifactsURLForTag(c.L2ContractsLocator.Tag)
+	_, err := standard.ArtifactsURLForTag(c.L2ContractsLocator.Tag)
 	return err
 }
 
@@ -159,6 +165,8 @@ type ChainIntent struct {
 	Roles ChainRoles `json:"roles" toml:"roles"`
 
 	DeployOverrides map[string]any `json:"deployOverrides" toml:"deployOverrides"`
+
+	DangerousAltDAConfig genesis.AltDADeployConfig `json:"dangerousAltDAConfig,omitempty" toml:"dangerousAltDAConfig,omitempty"`
 }
 
 type ChainRoles struct {
@@ -201,6 +209,10 @@ func (c *ChainIntent) Check() error {
 
 	if c.Roles.Batcher == emptyAddress {
 		return fmt.Errorf("batcher must be set")
+	}
+
+	if c.DangerousAltDAConfig.UseAltDA {
+		return c.DangerousAltDAConfig.Check(nil)
 	}
 
 	return nil

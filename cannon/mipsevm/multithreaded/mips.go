@@ -168,9 +168,9 @@ func (m *InstrumentedState) handleSyscall() error {
 			m.memoryTracker.TrackMemAccess(effAddr)
 			m.state.Memory.SetWord(effAddr, secs)
 			m.handleMemoryUpdate(effAddr)
-			m.memoryTracker.TrackMemAccess2(effAddr + 4)
-			m.state.Memory.SetWord(effAddr+4, nsecs)
-			m.handleMemoryUpdate(effAddr + 4)
+			m.memoryTracker.TrackMemAccess2(effAddr + arch.WordSizeBytes)
+			m.state.Memory.SetWord(effAddr+arch.WordSizeBytes, nsecs)
+			m.handleMemoryUpdate(effAddr + arch.WordSizeBytes)
 		default:
 			v0 = exec.SysErrorSignal
 			v1 = exec.MipsEINVAL
@@ -187,6 +187,7 @@ func (m *InstrumentedState) handleSyscall() error {
 	case arch.SysPrlimit64:
 	case arch.SysClose:
 	case arch.SysPread64:
+	case arch.SysStat:
 	case arch.SysFstat:
 	case arch.SysOpenAt:
 	case arch.SysReadlink:
@@ -206,6 +207,8 @@ func (m *InstrumentedState) handleSyscall() error {
 	case arch.SysTimerCreate:
 	case arch.SysTimerSetTime:
 	case arch.SysTimerDelete:
+	case arch.SysGetRLimit:
+	case arch.SysLseek:
 	default:
 		// These syscalls have the same values on 64-bit. So we use if-stmts here to avoid "duplicate case" compiler error for the cannon64 build
 		if arch.IsMips32 && syscallNum == arch.SysFstat64 || syscallNum == arch.SysStat64 || syscallNum == arch.SysLlseek {
@@ -221,6 +224,23 @@ func (m *InstrumentedState) handleSyscall() error {
 }
 
 func (m *InstrumentedState) mipsStep() error {
+	err := m.doMipsStep()
+	if err != nil {
+		return err
+	}
+
+	m.assertPostStateChecks()
+	return err
+}
+
+func (m *InstrumentedState) assertPostStateChecks() {
+	activeStack := m.state.getActiveThreadStack()
+	if len(activeStack) == 0 {
+		panic("post-state active thread stack is empty")
+	}
+}
+
+func (m *InstrumentedState) doMipsStep() error {
 	if m.state.Exited {
 		return nil
 	}
@@ -313,19 +333,19 @@ func (m *InstrumentedState) mipsStep() error {
 	}
 
 	// Exec the rest of the step logic
-	memUpdated, memAddr, err := exec.ExecMipsCoreStepLogic(m.state.getCpuRef(), m.state.GetRegistersRef(), m.state.Memory, insn, opcode, fun, m.memoryTracker, m.stackTracker)
+	memUpdated, effMemAddr, err := exec.ExecMipsCoreStepLogic(m.state.getCpuRef(), m.state.GetRegistersRef(), m.state.Memory, insn, opcode, fun, m.memoryTracker, m.stackTracker)
 	if err != nil {
 		return err
 	}
 	if memUpdated {
-		m.handleMemoryUpdate(memAddr)
+		m.handleMemoryUpdate(effMemAddr)
 	}
 
 	return nil
 }
 
-func (m *InstrumentedState) handleMemoryUpdate(memAddr Word) {
-	if memAddr == (arch.AddressMask & m.state.LLAddress) {
+func (m *InstrumentedState) handleMemoryUpdate(effMemAddr Word) {
+	if effMemAddr == (arch.AddressMask & m.state.LLAddress) {
 		// Reserved address was modified, clear the reservation
 		m.clearLLMemoryReservation()
 	}

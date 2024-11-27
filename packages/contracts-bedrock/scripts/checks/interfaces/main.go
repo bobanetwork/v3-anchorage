@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,9 +27,8 @@ var excludeContracts = []string{
 	"IEAS", "ISchemaResolver", "ISchemaRegistry",
 
 	// TODO: Interfaces that need to be fixed
-	"IInitializable", "ILegacyMintableERC20", "IOptimismMintableERC20",
-	"IOptimismMintableERC721", "KontrolCheatsBase", "IWETH", "IDelayedWETH", "ISuperchainWETH",
-	"IL2ToL2CrossDomainMessenger", "ICrossL2Inbox", "ISystemConfigInterop", "IResolvedDelegateProxy",
+	"IInitializable", "IOptimismMintableERC20", "ILegacyMintableERC20",
+	"KontrolCheatsBase", "ISystemConfigInterop", "IResolvedDelegateProxy",
 }
 
 type ContractDefinition struct {
@@ -302,6 +302,7 @@ func compareABIs(abi1, abi2 json.RawMessage) (bool, error) {
 	// Compare using go-cmp
 	diff := cmp.Diff(data1, data2)
 	if diff != "" {
+		log.Printf("ABI diff: %s", diff)
 		return false, nil
 	}
 	return true, nil

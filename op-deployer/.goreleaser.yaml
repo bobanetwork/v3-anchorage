@@ -1,9 +1,4 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
-
-# The lines below are called `modelines`. See `:help modeline`
-# Feel free to remove those if you don't want/need to use them.
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
 
 version: 2
@@ -49,6 +44,20 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
+
+dockers:
+  - id: default
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile.default
+    image_templates:
+      - "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-deployer:{{ .Tag }}"
+  - id: minimal
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile.minimal
+    image_templates:
+      - "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-deployer:{{ .Tag }}-minimal"
 
 changelog:
   sort: asc
