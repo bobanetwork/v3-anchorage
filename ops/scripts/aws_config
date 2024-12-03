@@ -1,0 +1,2 @@
+[profile OCID]
+credential_process = /opt/aws/credentials.sh
