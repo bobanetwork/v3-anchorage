@@ -1,2 +1,2 @@
-[profile OCID]
+[profile BobaGCP]
 credential_process = /opt/aws/credentials.sh
