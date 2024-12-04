@@ -10,7 +10,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'Boba Developer Docs',
   tagline: 'For boba developers',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/boba_B.ico',
 
   // Set the production url of your site here
   url: 'https://your-docusaurus-site.example.com',
@@ -83,7 +83,7 @@ const config = {
         title: 'Boba Developer Docs',
         logo: {
           alt: 'My Site Logo',
-          src: 'img/logo.svg',
+          src: 'img/boba_B.png',
         },
         items: [
           {

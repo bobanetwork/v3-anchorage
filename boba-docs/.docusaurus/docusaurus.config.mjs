@@ -6,7 +6,7 @@
 export default {
   "title": "Boba Developer Docs",
   "tagline": "For boba developers",
-  "favicon": "img/favicon.ico",
+  "favicon": "img/boba_B.ico",
   "url": "https://your-docusaurus-site.example.com",
   "baseUrl": "/",
   "organizationName": "facebook",
@@ -69,7 +69,7 @@ export default {
       "title": "Boba Developer Docs",
       "logo": {
         "alt": "My Site Logo",
-        "src": "img/logo.svg"
+        "src": "img/boba_B.png"
       },
       "items": [
         {
