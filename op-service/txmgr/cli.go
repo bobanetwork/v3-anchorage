@@ -41,6 +41,7 @@ const (
 	ReceiptQueryIntervalFlagName      = "txmgr.receipt-query-interval"
 	// Kms
 	KmsProductionName = "kms.production"
+	KmsProfileName    = "kms.profile"
 	KmsKeyIDName      = "kms.key.id"
 	KmsEndpointName   = "kms.endpoint"
 	KmsRegionName     = "kms.region"
@@ -205,6 +206,11 @@ func CLIFlagsWithDefaults(envPrefix string, defaults DefaultFlagValues) []cli.Fl
 			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_PRODUCTION"),
 		},
 		&cli.StringFlag{
+			Name:    KmsProfileName,
+			Usage:   "The profile to use when initializing the KMS. If not set, the default profile will be used.",
+			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_PROFILE"),
+		},
+		&cli.StringFlag{
 			Name:    KmsKeyIDName,
 			Usage:   "KMS Key ID.",
 			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_KEY_ID"),
@@ -242,6 +248,7 @@ type CLIConfig struct {
 	TxSendTimeout             time.Duration
 	TxNotInMempoolTimeout     time.Duration
 	KmsProduction             bool
+	KmsProfile                string
 	KmsKeyID                  string
 	KmsEndpoint               string
 	KmsRegion                 string
@@ -329,6 +336,7 @@ func ReadCLIConfig(ctx *cli.Context) CLIConfig {
 		TxSendTimeout:             ctx.Duration(TxSendTimeoutFlagName),
 		TxNotInMempoolTimeout:     ctx.Duration(TxNotInMempoolTimeoutFlagName),
 		KmsProduction:             ctx.Bool(KmsProductionName),
+		KmsProfile:                ctx.String(KmsProfileName),
 		KmsKeyID:                  ctx.String(KmsKeyIDName),
 		KmsEndpoint:               ctx.String(KmsEndpointName),
 		KmsRegion:                 ctx.String(KmsRegionName),
