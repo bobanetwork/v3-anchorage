@@ -182,6 +182,7 @@ var bobaSepoliaCfg = rollup.Config{
 	EcotoneTime:             u64Ptr(1709078400),
 	FjordTime:               u64Ptr(1722297600),
 	GraniteTime:             u64Ptr(1726470000),
+	HoloceneTime:            u64Ptr(1736150400),
 	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
 }
 
@@ -254,6 +255,7 @@ var bobaBnbTestnetCfg = rollup.Config{
 	EcotoneTime:             u64Ptr(1718920168),
 	FjordTime:               u64Ptr(1722297600),
 	GraniteTime:             u64Ptr(1726470000),
+	HoloceneTime:            u64Ptr(1736150400),
 	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
 }
 
