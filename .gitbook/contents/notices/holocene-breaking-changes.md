@@ -12,11 +12,7 @@ Node operators are required to upgrade to Fjord before the activation date to av
 * op-erigon [v1.2.10](https://github.com/bobanetwork/op-erigon/releases/tag/v1.2.10)
 * op-geth [v1.101411.3](https://github.com/bobanetwork/op-geth/releases/tag/v1.101411.3)
 
->[!IMPORTANT]
->
->For `op-geth`, we have provided a new image built by Boba Team. The manually override is not needed anymore.
->
->Please use the new image `us-docker.pkg.dev/boba-392114/bobanetwork-tools-artifacts/images/op-geth:v1.101411.3`
+For `op-geth`, we have provided a new image built by Boba Team. The manually override is not needed anymore. Please use the new image `us-docker.pkg.dev/boba-392114/bobanetwork-tools-artifacts/images/op-geth:v1.101411.3`
 
 ### Verify Your Configuration
 
