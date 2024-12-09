@@ -4,7 +4,7 @@ The Holocene upgrade for Boba Sepolia and Boba BNB Testnet will be optimisticall
 
 ## For Node Operators
 
-Node operators are required to upgrade to Fjord before the activation date to avoid chain divergence. For Boba Testnets, the `op-node` release [v1.6.14](https://github.com/bobanetwork/boba/releases/tag/v1.6.14), the `op-erigon` release [v1.2.10](https://github.com/bobanetwork/op-erigon/releases/tag/v1.2.10) and the `op-geth` release [v1.101411.3](https://github.com/bobanetwork/op-geth/releases/tag/v1.101411.3) contain these changes
+Node operators are required to upgrade to Holocene before the activation date to avoid chain divergence. For Boba Testnets, the `op-node` release [v1.6.14](https://github.com/bobanetwork/boba/releases/tag/v1.6.14), the `op-erigon` release [v1.2.10](https://github.com/bobanetwork/op-erigon/releases/tag/v1.2.10) and the `op-geth` release [v1.101411.3](https://github.com/bobanetwork/op-geth/releases/tag/v1.101411.3) contain these changes
 
 ### Update to the Lastest Release
 
