@@ -114,16 +114,94 @@ export default [
   },
   {
     path: '/',
-    component: ComponentCreator('/', '1e9'),
+    component: ComponentCreator('/', 'a80'),
     routes: [
       {
         path: '/',
-        component: ComponentCreator('/', '3dc'),
+        component: ComponentCreator('/', '194'),
         routes: [
           {
             path: '/',
-            component: ComponentCreator('/', '129'),
+            component: ComponentCreator('/', '373'),
             routes: [
+              {
+                path: '/account-abstraction/biconomy',
+                component: ComponentCreator('/account-abstraction/biconomy', '4b0'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/account-abstraction/bundler-api',
+                component: ComponentCreator('/account-abstraction/bundler-api', '81b'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/account-abstraction/bundler-config',
+                component: ComponentCreator('/account-abstraction/bundler-config', 'be2'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/account-abstraction/bundler-sdk',
+                component: ComponentCreator('/account-abstraction/bundler-sdk', '870'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/account-abstraction/index',
+                component: ComponentCreator('/account-abstraction/index', '7df'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/account-abstraction/paymasters',
+                component: ComponentCreator('/account-abstraction/paymasters', 'ffc'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/',
+                component: ComponentCreator('/addresses/', '287'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/aa-contract-addresses',
+                component: ComponentCreator('/addresses/aa-contract-addresses', 'ef0'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/contract/network-bnb',
+                component: ComponentCreator('/addresses/contract/network-bnb', '38d'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/contract/network-eth',
+                component: ComponentCreator('/addresses/contract/network-eth', '4f1'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/custom-fee-token',
+                component: ComponentCreator('/addresses/custom-fee-token', '7e5'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/index',
+                component: ComponentCreator('/addresses/index', '621'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/token-addresses',
+                component: ComponentCreator('/addresses/token-addresses', 'e32'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
               {
                 path: '/basics/add-new-token',
                 component: ComponentCreator('/basics/add-new-token', 'b0d'),
@@ -180,13 +258,13 @@ export default [
               },
               {
                 path: '/faq',
-                component: ComponentCreator('/faq', 'b33'),
+                component: ComponentCreator('/faq', '885'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
                 path: '/faucets',
-                component: ComponentCreator('/faucets', '4e4'),
+                component: ComponentCreator('/faucets', '815'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
@@ -265,6 +343,12 @@ export default [
               {
                 path: '/node-operators/software-release',
                 component: ComponentCreator('/node-operators/software-release', '1a0'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/subgraph',
+                component: ComponentCreator('/subgraph', 'bb7'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },

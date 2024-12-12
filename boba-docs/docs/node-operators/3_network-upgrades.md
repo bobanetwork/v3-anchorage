@@ -11,4 +11,4 @@ This section has information on how to upgrade your Mainnet and Testnet nodes fo
 
 ## More Information
 
-* To check for the latest node software, see the [Software Releases](./software-release.md).
+* To check for the latest node software, see the [Software Releases](software-release).

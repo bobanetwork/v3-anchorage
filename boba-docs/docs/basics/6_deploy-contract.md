@@ -65,7 +65,7 @@ yarn test:integration
 You should see a set of passing tests for your contract. You can check a production-grade project here: [LightBridge](https://github.com/bobanetwork/light-bridge).
 
 ```bash
-$ hardhat test test/contract.spec.ts --show-stack-traces
+hardhat test test/contract.spec.ts --show-stack-traces
 Using network 'boba_sepolia'.
 
 Compiling your contracts...
@@ -134,9 +134,9 @@ hardhat deploy ./contracts/YourContract.sol --network boba_sepolia
 After a few seconds your contract should be deployed. Now you'll see this in your terminal:
 
 ```bash
-$ yarn deploy
+yarn deploy
 yarn run v1.22.15
-$ hardhat deploy --network boba_sepolia
+hardhat deploy --network boba_sepolia
 
 Compiling your contracts...
 ===========================

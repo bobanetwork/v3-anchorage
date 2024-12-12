@@ -11,6 +11,71 @@
           "mainDocId": "index",
           "docs": [
             {
+              "id": "account-abstraction/biconomy",
+              "path": "/account-abstraction/biconomy",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "account-abstraction/bundler-api",
+              "path": "/account-abstraction/bundler-api",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "account-abstraction/bundler-config",
+              "path": "/account-abstraction/bundler-config",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "account-abstraction/bundler-sdk",
+              "path": "/account-abstraction/bundler-sdk",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "account-abstraction/index",
+              "path": "/account-abstraction/index",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "account-abstraction/paymasters",
+              "path": "/account-abstraction/paymasters",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/aa-contract-addresses",
+              "path": "/addresses/aa-contract-addresses",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/contract/network-bnb",
+              "path": "/addresses/contract/network-bnb",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/contract/network-eth",
+              "path": "/addresses/contract/network-eth",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/custom-fee-token",
+              "path": "/addresses/custom-fee-token",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/index",
+              "path": "/addresses/index",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/README",
+              "path": "/addresses/",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/token-addresses",
+              "path": "/addresses/token-addresses",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "basics/add-new-token",
               "path": "/basics/add-new-token",
               "sidebar": "tutorialSidebar"
@@ -133,6 +198,11 @@
             {
               "id": "node-operators/software-release",
               "path": "/node-operators/software-release",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "subgraph",
+              "path": "/subgraph",
               "sidebar": "tutorialSidebar"
             }
           ],

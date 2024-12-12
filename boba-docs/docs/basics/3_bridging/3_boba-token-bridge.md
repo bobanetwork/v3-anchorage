@@ -12,7 +12,7 @@ Here we'll go over the basics of using this bridge to move BOBA tokens between L
 
 ## Bridge Boba Tokens from Ethereum
 
-For normal users, bridging can be accomplished simply via the [Light Bridge](contents/developer/boba-basics/bridge-basics/light-bridge.md).
+For normal users, bridging can be accomplished simply via the [Light Bridge](light-bridge).
 
 For developers, you can interact with [`EthBridge` (opens new window)](https://github.com/bobanetwork/boba\_legacy/blob/develop/packages/boba/contracts/contracts/lzTokenBridge/EthBridge.sol) to deposit BOBA tokens from Ethereum to Alt L1s.
 
@@ -83,7 +83,7 @@ Example code can be found here: [bridgeFromEthereumToAltL.js](https://github.com
 
 ## Bridge Boba Tokens from Alt L1s
 
-For normal users, bridging can be accomplished simply via the [Light Bridge](contents/developer/boba-basics/bridge-basics/light-bridge.md).
+For normal users, bridging can be accomplished simply via the [Light Bridge](light-bridge).
 
 For developers, you can interact with [`AltL1Bridge` (opens new window)](https://github.com/bobanetwork/boba\_legacy/blob/develop/packages/boba/contracts/contracts/lzTokenBridge/AltL1Bridge.sol) to deposit BOBA tokens from Alt L1 to Ethereum.
 

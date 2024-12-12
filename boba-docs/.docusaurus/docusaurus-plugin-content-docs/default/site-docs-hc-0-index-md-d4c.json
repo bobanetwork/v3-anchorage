@@ -14,8 +14,8 @@
   "frontMatter": {},
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "Contract Deployment Example",
-    "permalink": "/basics/deploy-contract"
+    "title": "Biconomy Integration with Boba",
+    "permalink": "/account-abstraction/biconomy"
   },
   "next": {
     "title": "Price Fetch Example",

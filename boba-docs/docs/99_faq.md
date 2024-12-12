@@ -48,9 +48,9 @@ If your wallet does not support this feature, you will have to connect manually.
 
 ### How do I move assets into or out of Boba Network?
 
-To move assets into or out of an Optimistic Ethereum network you can use the [**Boba Gateway**](https://gateway.boba.network). Detailed instructions in our [user documentation](contents/user/001\_how-to-bridge.md).
+To move assets into or out of an Optimistic Ethereum network you can use the [**Boba Gateway**](https://gateway.boba.network).
 
-You can choose any of these two methods: [the **classical bridge**, or the **light bridge**](contents/boba-basics/bridge-basics/).
+You can choose any of these two methods: [the **classical bridge**, or the **light bridge**](basics/3_bridging/light-bridge).
 
 ### Can I cancel a withdrawal after it has been submitted?
 
@@ -132,7 +132,7 @@ Boba network is a permission-less network and hence we cannot influence app crea
 
 Unfortunately no, not at the moment.
 
-### Could you please explain the difference between the two mappings [mentioned in the token list](contents/developer/exchange-integration.md)?
+### Could you please explain the difference between the two mappings [mentioned in the token list](basics/bridging/index)?
 
 Technically, an L1 token can have multiple representations on L2. This mean that an L1 token can be wrapped in distinct tokens: L2\_token\_A, or L2\_token\_B, both being valid and point to the same L1 token. But in order to standardize, the token list specifies only a single L2 token address for every corresponding L1 token.
 
@@ -146,9 +146,9 @@ Technically, an L1 token can have multiple representations on L2. This mean that
 
 ## Testing and Testnet
 
-### Does Boba Network Have a testnet/How do I get Testnet Boba or Eth?
+### Does Boba Network have a testnet? How do I get Testnet Boba or Eth?
 
-Yes! Please refer to [Boba Faucets](contents/developer/faucets.md).
+Yes! Please refer to [Boba Faucets](faucets).
 
 For more information on Boba’s testnet and fountain, [check out our documentation](contents/developer/multichain/network-eth.md).
 

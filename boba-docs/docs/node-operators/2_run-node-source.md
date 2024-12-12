@@ -83,7 +83,7 @@ make erigon
 
 You can download the database snapshot for the client and network you wish to run.
 
-Always verify snapshots by comparing the sha256sum of the downloaded file to the sha256sum listed on this [page](./snapshot-downloads.md). Check the sha256sum of the downloaded file by running `sha256sum <filename>`in a terminal.
+Always verify snapshots by comparing the sha256sum of the downloaded file to the sha256sum listed on this [page](snapshot-downloads). Check the sha256sum of the downloaded file by running `sha256sum <filename>`in a terminal.
 
 * BOBA Mainnet
 

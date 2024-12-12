@@ -16,7 +16,11 @@
   },
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "Testnet Faucets",
-    "permalink": "/faucets"
+    "title": "Node Software Releases",
+    "permalink": "/node-operators/software-release"
+  },
+  "next": {
+    "title": "Basic Operations",
+    "permalink": "/basics/basic-ops"
   }
 }

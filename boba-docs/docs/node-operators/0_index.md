@@ -26,8 +26,8 @@ You don't always need Legacy Geth, though. It's mainly for those who want to kee
 
 The diagram below explains how three parts - the Rollup Node, Execution Client, and Legacy Geth - fit together to make a full Boba node. It uses examples called `op-node` for the Rollup Node and `op-erigon` for the Execution Client, but this setup is similar for other versions too.
 
-![image](../diagrams/node-operator.png)
+![image](../../assets/diagrams/node-operator.png)
 
 ### Software Release
 
-Make sure to update your node software regularly. This keeps your node working well with others, especially when new updates come out. Updates can fix problems and improve stability. Check the [Software Releases](./releases.md) page to see the newest versions of the software. Also, follow the [@Boba Twitter account](https://twitter.com/bobanetwork) to get alerts about important updates.
+Make sure to update your node software regularly. This keeps your node working well with others, especially when new updates come out. Updates can fix problems and improve stability. Check the [Software Releases](software-release) page to see the newest versions of the software. Also, follow the [@Boba Twitter account](https://twitter.com/bobanetwork) to get alerts about important updates.

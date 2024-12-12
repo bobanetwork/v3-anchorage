@@ -31,7 +31,7 @@ cp .env.example .env
 
 ### Configure the `.env` file
 
-Open the `.env` in your directory and set the variables inside. Read the descriptions of each variable to understand what they do and how to set them. Read the [software release](./software-release.md) page to set the correct version.
+Open the `.env` in your directory and set the variables inside. Read the descriptions of each variable to understand what they do and how to set them. Read the [software release](software-release) page to set the correct version.
 
 ## DB Configuration
 
@@ -39,7 +39,7 @@ Open the `.env` in your directory and set the variables inside. Read the descrip
 
 You can download the database snapshot for the client and network you wish to run.
 
-Always verify snapshots by comparing the sha256sum of the downloaded file to the sha256sum listed on this [page](./snapshot-downloads.md). Check the sha256sum of the downloaded file by running `sha256sum <filename>`in a terminal.
+Always verify snapshots by comparing the sha256sum of the downloaded file to the sha256sum listed on this [page](snapshot-downloads). Check the sha256sum of the downloaded file by running `sha256sum <filename>`in a terminal.
 
 * BOBA Mainnet
 
