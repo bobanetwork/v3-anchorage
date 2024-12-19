@@ -14,8 +14,8 @@
   "frontMatter": {},
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "Biconomy Integration with Boba",
-    "permalink": "/account-abstraction/biconomy"
+    "title": "Contract Addresses",
+    "permalink": "/account-abstraction/contract-addresses"
   },
   "next": {
     "title": "Price Fetch Example",

@@ -18,7 +18,7 @@
     "permalink": "/node-operators/snapshot-downloads"
   },
   "next": {
-    "title": "Contract and Token Addresses",
-    "permalink": "/addresses/"
+    "title": "Using The Graph",
+    "permalink": "/indexers/subgraph"
   }
 }

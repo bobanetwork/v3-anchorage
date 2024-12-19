@@ -44,7 +44,7 @@ Many wallets now allow applications to trigger a popup to switch between network
 
 \* [Universal gateway](https://gateway.boba.network).
 
-If your wallet does not support this feature, you will have to connect manually. The exact process for connecting your wallet to a Boba Ethereum network depends on the specific wallet software you are using. To get started on Boba/Ethereum, you can use the available [community RPC endpoint](contents/developer/multichain/network-eth.md).
+If your wallet does not support this feature, you will have to connect manually. The exact process for connecting your wallet to a Boba Ethereum network depends on the specific wallet software you are using. To get started on Boba/Ethereum, you can use the available [community RPC endpoint](./addresses/network-eth).
 
 ### How do I move assets into or out of Boba Network?
 
@@ -62,7 +62,7 @@ Only if the centralized exchange supports Boba Network. For exchanges that do no
 
 ### Where can I find RPC endpoints and connection details?
 
-Connection details for our Mainnet and Sepolia network are [here for ETH](developer/multichain/network-eth.md) and [here for BNB](developer/multichain/network-bnb.md).
+Connection details for our Mainnet and Sepolia network are [here for ETH](./addresses/network-eth) and [here for BNB](./addresses/network-bnb).
 
 ### Are multicall contracts supported on Boba?
 
@@ -150,7 +150,7 @@ Technically, an L1 token can have multiple representations on L2. This mean that
 
 Yes! Please refer to [Boba Faucets](faucets).
 
-For more information on Boba’s testnet and fountain, [check out our documentation](contents/developer/multichain/network-eth.md).
+For more information on Boba’s testnet and fountain, [check out our documentation](./addresses/network-eth).
 
 ### I am trying to run Boba Network locally and I am able to run unit tests. However, integration tests give an error:
 
@@ -160,7 +160,7 @@ Please run `docker-compose logs`, as well as integration tests, and send us the 
 
 ### I have started deploying Boba Testnet, what can I use to index events?
 
-You can use [GoldSky](contents/developer/features/subgraph.md) to index events.
+You can use either [TheGraph](./indexers/subgraph) or [SubQuery](./indexers/subquery).
 
 ***
 
@@ -174,7 +174,7 @@ When you make an Ethereum transaction, the user will be given an expected fee fo
 
 Here, Boba is looking out for you. Before that unexpected increased fee goes through, Boba throws an error message and prevents the payment from going through. If the transaction fee is at least three times what the expected cost was (in this example, your transaction fee of 3 USD jumped to 9 USD), the transaction will fail and saves you from the increased fee.
 
-[Here's more info on fees](contents/developer/fee-scheme.md#for-frontend-and-wallet-developers).
+[Here's more info on fees](./fees/fee-scheme#for-frontend-and-wallet-developers).
 
 ### DAPPs require an XYZ gas amount to deploy. However, Boba's block gas limit of only 11,000,000 makes it impossible to deploy a smart contract. What can I do to deploy this smart contract on Boba?
 
@@ -195,9 +195,8 @@ Optimization does not mean that there’s a limit set to the number of transacti
 You can also [look into using compilers and optimization options](https://docs.soliditylang.org/en/v0.8.4/using-the-compiler.html#optimizer-options) in Solidity’s documentation.
 
 ### Does Boba Network have a public TheGraph Node for deploying Subgraphs?
-No, but you can use GoldSky.
 
-[Please refer to the Boba docs on using GoldSky](contents/developer/features/subgraph.md).
+Yes! Learn more about it [here](./indexers/subgraph)
 
 ### Which bridge does Boba Network use?
 

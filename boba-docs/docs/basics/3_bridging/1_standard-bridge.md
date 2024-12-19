@@ -164,19 +164,3 @@ The Standard bridge allows a one-to-many mapping between L1 and L2 tokens, meani
 | ------- | ------------------------------------------------------------ |
 | Mainnet | [Mainnet Boba Token List](../../token-addresses.md#Ethereum `<>` BOBA L2) |
 | Sepolia | [Sepolia Boba Token List](../../token-addresses.md#Ethereum Sepolia `<>` BOBA L2) |
-
-## Links
-
-### Mainnet
-
-| Contract Name             | Contract Address                           |
-| ------------------------- | ------------------------------------------ |
-| Proxy\_\_L1StandardBridge | 0xdc1664458d2f0B6090bEa60A8793A4E66c2F1c00 |
-| L2StandardBridge          | 0x4200000000000000000000000000000000000010 |
-
-### Sepolia
-
-| Contract Name             | Contract Address                           |
-| ------------------------- | ------------------------------------------ |
-| Proxy\_\_L1StandardBridge | 0x244d7b81EE3949788Da5F1178D911e83bA24E157 |
-| L2StandardBridge          | 0x4200000000000000000000000000000000000010 |

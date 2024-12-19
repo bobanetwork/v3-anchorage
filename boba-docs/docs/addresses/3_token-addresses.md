@@ -1,8 +1,8 @@
 # Token Addresses
 
-![mainnet](../../assets/mainnet.png)
+## Mainnet
 
-### Ethereum <> BOBA L2
+### Ethereum, BOBA L2
 
 |       | L1                                         | L2                                         |
 | ----- | ------------------------------------------ | ------------------------------------------ |
@@ -29,7 +29,7 @@
 | ETH   | 0x0000000000000000000000000000000000000000 | 0x4200000000000000000000000000000000000006 |
 | WETH  |                                            | 0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000 |
 
-### BNB <> BOBA BNB L2
+### BNB, BOBA BNB L2
 
 |       | L1                                         | L2                                         |
 | ----- | ------------------------------------------ | ------------------------------------------ |
@@ -40,9 +40,9 @@
 | BUSD  | 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56 | 0x4a2c2838c3907D024916c3f4Fe07832745Ae4bec |
 | USDT  | 0x55d398326f99059fF775485246999027B3197955 | 0x1E633Dcd0d3D349126983D58988051F7c62c543D |
 
-![testnet](../../assets/testnet.png)
+## Testnet
 
-### Ethereum Sepolia <> BOBA L2
+### Ethereum Sepolia, BOBA L2
 
 |      | L1                                         | L2                                         |
 | ---- | ------------------------------------------ | ------------------------------------------ |
@@ -50,7 +50,7 @@
 | BOBA | 0x33faF65b3DfcC6A1FccaD4531D9ce518F0FDc896 | 0x4200000000000000000000000000000000000023 |
 | WETH |                                            | 0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000 |
 
-### BNB <> BOBA BNB L2
+### BNB, BOBA BNB L2
 
 |       | L1                                         | L2                                         |
 | ----- | ------------------------------------------ | ------------------------------------------ |

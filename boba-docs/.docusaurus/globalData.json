@@ -31,6 +31,11 @@
               "sidebar": "tutorialSidebar"
             },
             {
+              "id": "account-abstraction/contract-addresses",
+              "path": "/account-abstraction/contract-addresses",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "account-abstraction/index",
               "path": "/account-abstraction/index",
               "sidebar": "tutorialSidebar"
@@ -41,33 +46,18 @@
               "sidebar": "tutorialSidebar"
             },
             {
-              "id": "addresses/aa-contract-addresses",
-              "path": "/addresses/aa-contract-addresses",
-              "sidebar": "tutorialSidebar"
-            },
-            {
-              "id": "addresses/contract/network-bnb",
-              "path": "/addresses/contract/network-bnb",
-              "sidebar": "tutorialSidebar"
-            },
-            {
-              "id": "addresses/contract/network-eth",
-              "path": "/addresses/contract/network-eth",
-              "sidebar": "tutorialSidebar"
-            },
-            {
-              "id": "addresses/custom-fee-token",
-              "path": "/addresses/custom-fee-token",
-              "sidebar": "tutorialSidebar"
-            },
-            {
               "id": "addresses/index",
               "path": "/addresses/index",
               "sidebar": "tutorialSidebar"
             },
             {
-              "id": "addresses/README",
-              "path": "/addresses/",
+              "id": "addresses/network-bnb",
+              "path": "/addresses/network-bnb",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "addresses/network-eth",
+              "path": "/addresses/network-eth",
               "sidebar": "tutorialSidebar"
             },
             {
@@ -131,6 +121,16 @@
               "sidebar": "tutorialSidebar"
             },
             {
+              "id": "fees/custom-fee-token",
+              "path": "/fees/custom-fee-token",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "fees/fee-scheme",
+              "path": "/fees/fee-scheme",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "hc/addsub/README",
               "path": "/hc/addsub/",
               "sidebar": "tutorialSidebar"
@@ -171,6 +171,16 @@
               "sidebar": "tutorialSidebar"
             },
             {
+              "id": "indexers/subgraph",
+              "path": "/indexers/subgraph",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "indexers/subquery",
+              "path": "/indexers/subquery",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "node-operators/index",
               "path": "/node-operators/index",
               "sidebar": "tutorialSidebar"
@@ -198,11 +208,6 @@
             {
               "id": "node-operators/software-release",
               "path": "/node-operators/software-release",
-              "sidebar": "tutorialSidebar"
-            },
-            {
-              "id": "subgraph",
-              "path": "/subgraph",
               "sidebar": "tutorialSidebar"
             }
           ],

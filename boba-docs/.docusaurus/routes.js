@@ -114,15 +114,15 @@ export default [
   },
   {
     path: '/',
-    component: ComponentCreator('/', 'a80'),
+    component: ComponentCreator('/', '8b4'),
     routes: [
       {
         path: '/',
-        component: ComponentCreator('/', '194'),
+        component: ComponentCreator('/', '153'),
         routes: [
           {
             path: '/',
-            component: ComponentCreator('/', '373'),
+            component: ComponentCreator('/', '159'),
             routes: [
               {
                 path: '/account-abstraction/biconomy',
@@ -149,6 +149,12 @@ export default [
                 sidebar: "tutorialSidebar"
               },
               {
+                path: '/account-abstraction/contract-addresses',
+                component: ComponentCreator('/account-abstraction/contract-addresses', '021'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
                 path: '/account-abstraction/index',
                 component: ComponentCreator('/account-abstraction/index', '7df'),
                 exact: true,
@@ -161,44 +167,26 @@ export default [
                 sidebar: "tutorialSidebar"
               },
               {
-                path: '/addresses/',
-                component: ComponentCreator('/addresses/', '287'),
-                exact: true,
-                sidebar: "tutorialSidebar"
-              },
-              {
-                path: '/addresses/aa-contract-addresses',
-                component: ComponentCreator('/addresses/aa-contract-addresses', 'ef0'),
-                exact: true,
-                sidebar: "tutorialSidebar"
-              },
-              {
-                path: '/addresses/contract/network-bnb',
-                component: ComponentCreator('/addresses/contract/network-bnb', '38d'),
-                exact: true,
-                sidebar: "tutorialSidebar"
-              },
-              {
-                path: '/addresses/contract/network-eth',
-                component: ComponentCreator('/addresses/contract/network-eth', '4f1'),
-                exact: true,
-                sidebar: "tutorialSidebar"
-              },
-              {
-                path: '/addresses/custom-fee-token',
-                component: ComponentCreator('/addresses/custom-fee-token', '7e5'),
-                exact: true,
-                sidebar: "tutorialSidebar"
-              },
-              {
                 path: '/addresses/index',
                 component: ComponentCreator('/addresses/index', '621'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
+                path: '/addresses/network-bnb',
+                component: ComponentCreator('/addresses/network-bnb', 'e26'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/addresses/network-eth',
+                component: ComponentCreator('/addresses/network-eth', '22f'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
                 path: '/addresses/token-addresses',
-                component: ComponentCreator('/addresses/token-addresses', 'e32'),
+                component: ComponentCreator('/addresses/token-addresses', '5b8'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
@@ -264,7 +252,19 @@ export default [
               },
               {
                 path: '/faucets',
-                component: ComponentCreator('/faucets', '815'),
+                component: ComponentCreator('/faucets', 'd23'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/fees/custom-fee-token',
+                component: ComponentCreator('/fees/custom-fee-token', '62c'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/fees/fee-scheme',
+                component: ComponentCreator('/fees/fee-scheme', '85a'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
@@ -311,6 +311,18 @@ export default [
                 sidebar: "tutorialSidebar"
               },
               {
+                path: '/indexers/subgraph',
+                component: ComponentCreator('/indexers/subgraph', '7e0'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/indexers/subquery',
+                component: ComponentCreator('/indexers/subquery', 'e91'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
                 path: '/node-operators/index',
                 component: ComponentCreator('/node-operators/index', 'c7a'),
                 exact: true,
@@ -343,12 +355,6 @@ export default [
               {
                 path: '/node-operators/software-release',
                 component: ComponentCreator('/node-operators/software-release', '1a0'),
-                exact: true,
-                sidebar: "tutorialSidebar"
-              },
-              {
-                path: '/subgraph',
-                component: ComponentCreator('/subgraph', 'bb7'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },

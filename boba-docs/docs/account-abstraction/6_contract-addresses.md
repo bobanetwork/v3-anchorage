@@ -1,6 +1,6 @@
 # Contract Addresses
 
-### Boba Sepolia Testnet
+## Boba Sepolia Testnet
 
 | Contract                   | Address(L2)                                |
 | -------------------------- | ------------------------------------------ |
@@ -8,8 +8,7 @@
 | L2\_SimpleAccountFactory   | 0x9406cc6185a346906296840746125a0e44976454 |
 | L2\_EntryPointWrapper      | 0xcdd1821df75b874502c9fa9d491a2602d6b22b73 |
 
-
-### Boba BNB Testnet
+## Boba BNB Testnet
 
 | Contract              | Address(L2)                                |
 | --------------------- | ------------------------------------------ |
