@@ -20,8 +20,11 @@ An account abstraction bundler is a component of a blockchain system designed to
 
 Before you begin, make sure you have the following prerequisites in place:
 
-- Typescript or Python
-- Docker
+- Python or TypeScript (backend)
+- TypeScript, React (frontend)
+- Solidity tools (e.g. Foundry, Hardhat)
+- Docker (optional)
+- Whitelist your project; request access on [Telegram](https://t.me/+mf_-jwCkqOU3NmVh)
 
 You also need to install the Hybrid Compute SDK:
 

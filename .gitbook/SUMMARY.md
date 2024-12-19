@@ -2,6 +2,7 @@
 
 * [Welcome to Boba](README.md)
 * [Notices](contents/notices/README.md)
+  * [Prepare for Holocene Breaking Changes](contents/notices/holocene-breaking-changes.md)
   * [Prepare for Granite Breaking Changes](contents/notices/granite-breaking-changes.md)
   * [Prepare for Fjord Breaking Changes](contents/notices/fjord-breaking-changes.md)
   * [Prepare for Fraud Proofs on Boba Sepolia and Boba BNB Testnet](contents/notices/fraud-proofs.md)
