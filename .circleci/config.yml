@@ -903,7 +903,7 @@ jobs:
     docker:
       - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
-    parallelism: <<parameters.parallelism>>
+    parallelism: <<parameters.test_parallelism>>
     steps:
       - checkout
       - attach_workspace:
