@@ -225,7 +225,7 @@ func CLIFlagsWithDefaults(envPrefix string, defaults DefaultFlagValues) []cli.Fl
 			Usage:   "KMS Region",
 			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_REGION"),
 		},
-	}, opsigner.CLIFlags(envPrefix)...)
+	}, opsigner.CLIFlags(envPrefix, "")...)
 }
 
 type CLIConfig struct {
