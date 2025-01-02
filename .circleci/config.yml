@@ -873,6 +873,10 @@ jobs:
         description: Whether to notify on failure
         type: boolean
         default: false
+      test_parallelism:
+        description: Number of test jobs to run in parallel
+        type: integer
+        default: 4
       mentions:
         description: Slack user or group to mention when notifying of failures
         type: string
