@@ -20,8 +20,8 @@ evm_version = 'cancun'
 
 remappings = [
   '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts',
-  '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts',
   '@openzeppelin/contracts-v5/=lib/openzeppelin-contracts-v5/contracts',
+  '@openzeppelin/contracts/=lib/openzeppelin-contracts-patched/contracts',
   '@rari-capital/solmate/=lib/solmate',
   '@lib-keccak/=lib/lib-keccak/contracts/lib',
   '@solady/=lib/solady/src',
@@ -67,6 +67,7 @@ line_length=120
 multiline_func_header='all'
 bracket_spacing=true
 wrap_comments=true
+ignore = ['src/boba/WETH9.sol']
 
 ################################################################
 #                         PROFILE: CI                          #

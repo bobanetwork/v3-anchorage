@@ -15,7 +15,7 @@ checksum=$(bash scripts/ops/calculate-checksum.sh)
 archive_name="artifacts-v1-$checksum.tar.gz"
 
 echoerr "> Checking for existing artifacts..."
-exists=$(curl -s -o /dev/null --fail -LI "https://storage.googleapis.com/oplabs-contract-artifacts/$archive_name" || echo "fail")
+exists=$(curl -s -o /dev/null --fail -LI "https://storage.googleapis.com/boba-contract-artifacts/$archive_name" || echo "fail")
 
 if [ "$exists" == "fail" ]; then
   echoerr "> No existing artifacts found, exiting."
@@ -29,7 +29,7 @@ rm -rf cache
 echoerr "> Done."
 
 echoerr "> Found existing artifacts. Downloading..."
-curl -o "$archive_name" "https://storage.googleapis.com/oplabs-contract-artifacts/$archive_name"
+curl -o "$archive_name" "https://storage.googleapis.com/boba-contract-artifacts/$archive_name"
 echoerr "> Done."
 
 echoerr "> Extracting existing artifacts..."

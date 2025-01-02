@@ -26,6 +26,9 @@ import {
 
 // Contracts
 import { OPContractsManager } from "src/L1/OPContractsManager.sol";
+import { Chains } from "scripts/libraries/Chains.sol";
+import { Config } from "scripts/libraries/Config.sol";
+import { BOBA } from "src/boba/BOBA.sol";
 
 // Libraries
 import { Constants } from "src/libraries/Constants.sol";
@@ -231,6 +234,8 @@ contract Deploy is Deployer {
         }
 
         transferProxyAdminOwnership();
+
+        deployBOBA();
         console.log("set up op chain!");
     }
 
@@ -416,6 +421,76 @@ contract Deploy is Deployer {
         deployDataAvailabilityChallengeProxy();
         deployDataAvailabilityChallenge();
         initializeDataAvailabilityChallenge();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    //              Non-Proxied Deployment Functions              //
+    ////////////////////////////////////////////////////////////////
+
+    /// @notice Deploy the AddressManager
+    function deployAddressManager() public broadcast returns (address addr_) {
+        // Use create instead of create2 because we need the owner to be set to msg.sender but
+        // forge will automatically use the create2 factory which messes up the sender.
+        IAddressManager manager = IAddressManager(
+            DeployUtils.create1AndSave({
+                _save: this,
+                _name: "AddressManager",
+                _args: DeployUtils.encodeConstructor(abi.encodeCall(IAddressManager.__constructor__, ()))
+            })
+        );
+        require(manager.owner() == msg.sender);
+        addr_ = address(manager);
+    }
+
+    /// @notice Deploys the ProxyAdmin contract. Should NOT be used for the Superchain.
+    function deployProxyAdmin() public broadcast returns (address addr_) {
+        // Deploy the ProxyAdmin contract.
+        IProxyAdmin admin = IProxyAdmin(
+            DeployUtils.create2AndSave({
+                _save: this,
+                _salt: _implSalt(),
+                _name: "ProxyAdmin",
+                _args: DeployUtils.encodeConstructor(abi.encodeCall(IProxyAdmin.__constructor__, (msg.sender)))
+            })
+        );
+
+        // Make sure the owner was set to the deployer.
+        require(admin.owner() == msg.sender);
+
+        // Set the address manager if it is not already set.
+        IAddressManager addressManager = IAddressManager(mustGetAddress("AddressManager"));
+        if (admin.addressManager() != addressManager) {
+            admin.setAddressManager(addressManager);
+        }
+
+        // Make sure the address manager is set properly.
+        require(admin.addressManager() == addressManager);
+
+        // Return the address of the deployed contract.
+        addr_ = address(admin);
+    }
+
+    /// @notice Deploy the StorageSetter contract, used for upgrades.
+    function deployStorageSetter() public broadcast returns (address addr_) {
+        console.log("Deploying StorageSetter");
+        StorageSetter setter = new StorageSetter{ salt: _implSalt() }();
+        console.log("StorageSetter deployed at: %s", address(setter));
+        string memory version = setter.version();
+        console.log("StorageSetter version: %s", version);
+        addr_ = address(setter);
+    }
+
+    /// @notice Deploy the BOBA
+    function deployBOBA() public broadcast returns (address addr_) {
+        BOBA bobaToken = new BOBA();
+
+        save("BOBA", address(bobaToken));
+        console.log("BOBA deployed at %s", address(bobaToken));
+
+        addr_ = address(bobaToken);
+
+        address owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+        bobaToken.transfer(owner, 10000e18);
     }
 
     ////////////////////////////////////////////////////////////////

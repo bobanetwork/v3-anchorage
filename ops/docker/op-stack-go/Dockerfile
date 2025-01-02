@@ -34,6 +34,10 @@ RUN curl -L https://github.com/casey/just/releases/download/$(yq '.tools.just' m
 COPY ./go.mod /app/go.mod
 COPY ./go.sum /app/go.sum
 
+# We copy OCID script and aws config
+COPY ./ops/scripts/aws_credential.sh /app/ops/scripts/aws_credential.sh
+COPY ./ops/scripts/aws_config /app/ops/scripts/aws_config
+
 WORKDIR /app
 
 RUN echo "go mod cache: $(go env GOMODCACHE)"
@@ -168,10 +172,14 @@ CMD ["op-dispute-mon"]
 
 FROM --platform=$TARGETPLATFORM $TARGET_BASE_IMAGE AS op-batcher-target
 COPY --from=op-batcher-builder /app/op-batcher/bin/op-batcher /usr/local/bin/
+COPY --from=op-batcher-builder /app/ops/scripts/aws_credential.sh /opt/aws/credentials.sh
+COPY --from=op-batcher-builder /app/ops/scripts/aws_config /opt/.aws/config
 CMD ["op-batcher"]
 
 FROM --platform=$TARGETPLATFORM $TARGET_BASE_IMAGE AS op-proposer-target
 COPY --from=op-proposer-builder /app/op-proposer/bin/op-proposer /usr/local/bin/
+COPY --from=op-batcher-builder /app/ops/scripts/aws_credential.sh /opt/aws/credentials.sh
+COPY --from=op-batcher-builder /app/ops/scripts/aws_config /opt/.aws/config
 CMD ["op-proposer"]
 
 FROM --platform=$TARGETPLATFORM $TARGET_BASE_IMAGE AS op-conductor-target

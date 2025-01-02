@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	opsigner "github.com/ethereum-optimism/optimism/op-service/signer"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
@@ -38,6 +39,12 @@ const (
 	TxSendTimeoutFlagName             = "txmgr.send-timeout"
 	TxNotInMempoolTimeoutFlagName     = "txmgr.not-in-mempool-timeout"
 	ReceiptQueryIntervalFlagName      = "txmgr.receipt-query-interval"
+	// Kms
+	KmsProductionName = "kms.production"
+	KmsProfileName    = "kms.profile"
+	KmsKeyIDName      = "kms.key.id"
+	KmsEndpointName   = "kms.endpoint"
+	KmsRegionName     = "kms.region"
 )
 
 var (
@@ -191,7 +198,34 @@ func CLIFlagsWithDefaults(envPrefix string, defaults DefaultFlagValues) []cli.Fl
 			Value:   defaults.ReceiptQueryInterval,
 			EnvVars: prefixEnvVars("TXMGR_RECEIPT_QUERY_INTERVAL"),
 		},
-	}, opsigner.CLIFlags(envPrefix, "")...)
+		&cli.BoolFlag{
+			Name: KmsProductionName,
+			Usage: "Whether to use the production KMS. If false, the KMS will be " +
+				"initialized in development mode.",
+			Value:   false,
+			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_PRODUCTION"),
+		},
+		&cli.StringFlag{
+			Name:    KmsProfileName,
+			Usage:   "The profile to use when initializing the KMS. If not set, the default profile will be used.",
+			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_PROFILE"),
+		},
+		&cli.StringFlag{
+			Name:    KmsKeyIDName,
+			Usage:   "KMS Key ID.",
+			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_KEY_ID"),
+		},
+		&cli.StringFlag{
+			Name:    KmsEndpointName,
+			Usage:   "KMS Endpoint.",
+			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_ENDPOINT"),
+		},
+		&cli.StringFlag{
+			Name:    KmsRegionName,
+			Usage:   "KMS Region",
+			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_REGION"),
+		},
+	}, opsigner.CLIFlags(envPrefix)...)
 }
 
 type CLIConfig struct {
@@ -213,6 +247,11 @@ type CLIConfig struct {
 	NetworkTimeout            time.Duration
 	TxSendTimeout             time.Duration
 	TxNotInMempoolTimeout     time.Duration
+	KmsProduction             bool
+	KmsProfile                string
+	KmsKeyID                  string
+	KmsEndpoint               string
+	KmsRegion                 string
 }
 
 func NewCLIConfig(l1RPCURL string, defaults DefaultFlagValues) CLIConfig {
@@ -265,6 +304,14 @@ func (m CLIConfig) Check() error {
 	if err := m.SignerCLIConfig.Check(); err != nil {
 		return err
 	}
+	if m.KmsKeyID != "" {
+		if !m.KmsProduction && m.KmsEndpoint == "" {
+			return errors.New("KMS Endpoint must be provided")
+		}
+		if m.KmsRegion == "" {
+			return errors.New("KMS Region must be provided")
+		}
+	}
 	return nil
 }
 
@@ -288,6 +335,11 @@ func ReadCLIConfig(ctx *cli.Context) CLIConfig {
 		NetworkTimeout:            ctx.Duration(NetworkTimeoutFlagName),
 		TxSendTimeout:             ctx.Duration(TxSendTimeoutFlagName),
 		TxNotInMempoolTimeout:     ctx.Duration(TxNotInMempoolTimeoutFlagName),
+		KmsProduction:             ctx.Bool(KmsProductionName),
+		KmsProfile:                ctx.String(KmsProfileName),
+		KmsKeyID:                  ctx.String(KmsKeyIDName),
+		KmsEndpoint:               ctx.String(KmsEndpointName),
+		KmsRegion:                 ctx.String(KmsRegionName),
 	}
 }
 
@@ -318,9 +370,31 @@ func NewConfig(cfg CLIConfig, l log.Logger) (*Config, error) {
 		hdPath = cfg.L2OutputHDPath
 	}
 
-	signerFactory, from, err := opcrypto.SignerFactoryFromConfig(l, cfg.PrivateKey, cfg.Mnemonic, hdPath, cfg.SignerCLIConfig)
-	if err != nil {
-		return nil, fmt.Errorf("could not init signer: %w", err)
+	var (
+		from          common.Address
+		signerFactory opcrypto.SignerFactory
+		kmsManager    KmsManager
+	)
+
+	if cfg.KmsKeyID != "" {
+		kmsManager, err = NewKmsConfig(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("could not init kms: %w", err)
+		}
+		from, err = kmsManager.GetAddr()
+		if err != nil {
+			return nil, fmt.Errorf("could not get address from kms: %w", err)
+		}
+		signerFactory = func(chainID *big.Int) opcrypto.SignerFn {
+			return func(ctx context.Context, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+				return kmsManager.Sign(chainID, tx)
+			}
+		}
+	} else {
+		signerFactory, from, err = opcrypto.SignerFactoryFromConfig(l, cfg.PrivateKey, cfg.Mnemonic, hdPath, cfg.SignerCLIConfig)
+		if err != nil {
+			return nil, fmt.Errorf("could not init signer: %w", err)
+		}
 	}
 
 	feeLimitThreshold, err := eth.GweiToWei(cfg.FeeLimitThresholdGwei)
@@ -349,6 +423,7 @@ func NewConfig(cfg CLIConfig, l log.Logger) (*Config, error) {
 		SafeAbortNonceTooLowCount: cfg.SafeAbortNonceTooLowCount,
 		Signer:                    signerFactory(chainID),
 		From:                      from,
+		KmsManager:                kmsManager,
 	}
 
 	res.ResubmissionTimeout.Store(int64(cfg.ResubmissionTimeout))
@@ -422,6 +497,9 @@ type Config struct {
 	// GasPriceEstimatorFn is used to estimate the gas price for a transaction.
 	// If nil, DefaultGasPriceEstimatorFn is used.
 	GasPriceEstimatorFn GasPriceEstimatorFn
+
+	// Kms structure for signing transactions
+	KmsManager KmsManager
 }
 
 func (m *Config) Check() error {
