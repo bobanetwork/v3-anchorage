@@ -50,7 +50,7 @@ If your wallet does not support this feature, you will have to connect manually.
 
 To move assets into or out of an Optimistic Ethereum network you can use the [**Boba Gateway**](https://gateway.boba.network).
 
-You can choose any of these two methods: [the **classical bridge**, or the **light bridge**](basics/3_bridging/light-bridge).
+You can choose any of these two methods: [the **classical bridge**, or the **light bridge**](basics/bridging/light-bridge).
 
 ### Can I cancel a withdrawal after it has been submitted?
 
@@ -83,7 +83,7 @@ const decimals = await this.ERC20_Contract.attach(tokenAddress).connect(this.L2P
 
 ### Why is the incentive contract for verification proofs disabled?
 
-In the current release of the Boba Network protocol, there may be rare cases where the Sequencer submits a state root (transaction result), that is invalid and hence could be challenged. As a result, we have not yet deployed the [Bond Manager](packages/contracts/contracts/L1/verification/BondManager.sol) contract which compensates Verifier nodes for gas spent when submitting state root challenges. Additionally, our upgrade keys have the ability to directly remove state roots without going through an uncompensated state root challenge.
+In the current release of the Boba Network protocol, there may be rare cases where the Sequencer submits a state root (transaction result), that is invalid and hence could be challenged. As a result, we have not yet deployed the [Bond Manager](https://github.com/bobanetwork/boba/packages/contracts/contracts/L1/verification/BondManager.sol) contract which compensates Verifier nodes for gas spent when submitting state root challenges. Additionally, our upgrade keys have the ability to directly remove state roots without going through an uncompensated state root challenge.
 
 ### Does Boba operate the only _Sequencer_ node?
 
