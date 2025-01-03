@@ -18,10 +18,10 @@ parameters:
     default: default
   mainnet_rpc_url:
     type: string
-    default: ${ETH_RPC_URL}
+    default: https://rpc.ankr.com/eth
   sepolia_rpc_url:
     type: string
-    default: $SEPOLIA_RPC_URL}
+    default: https://rpc.ankr.com/eth_sepolia
   # The dispatch parameters are used to manually dispatch pipelines that normally only run post-merge on develop
   # from the CircleCI UI. Example configuration:
   #   when:
