@@ -200,6 +200,10 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/src/universal/WETH98.sol
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/lib/openzeppelin-contracts-patched/**/*.sol
+        - packages/contracts-bedrock/scripts/deploy/FPUpgrade.s.sol
+        - packages/contracts-bedrock/src/dispute/PermissionedDisputeGame.sol
 
   - id: sol-style-no-bare-imports
     languages: [solidity]

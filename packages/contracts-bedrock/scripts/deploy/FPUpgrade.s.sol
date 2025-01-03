@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import { console2 as console } from "forge-std/console2.sol";
 import { stdJson } from "forge-std/StdJson.sol";
-import { Vm } from "forge-std/Vm.sol";
+// import { Vm } from "forge-std/Vm.sol";
 
 import { Deployer } from "scripts/deploy/Deployer.sol";
 
@@ -19,13 +19,13 @@ import { AnchorStateRegistry } from "src/dispute/AnchorStateRegistry.sol";
 import { PreimageOracle } from "src/cannon/PreimageOracle.sol";
 import { MIPS } from "src/cannon/MIPS.sol";
 import { Chains } from "scripts/libraries/Chains.sol";
-import { Config } from "scripts/libraries/Config.sol";
+// import { Config } from "scripts/libraries/Config.sol";
 
 import { IDisputeGameFactory } from "interfaces/dispute/IDisputeGameFactory.sol";
-import { IDisputeGame } from "interfaces/dispute/IDisputeGame.sol";
+// import { IDisputeGame } from "interfaces/dispute/IDisputeGame.sol";
 import { IPreimageOracle } from "interfaces/cannon/IPreimageOracle.sol";
-import { IDelayedWETH } from "interfaces/dispute/IDelayedWETH.sol";
-import { IAnchorStateRegistry } from "interfaces/dispute/IAnchorStateRegistry.sol";
+// import { IDelayedWETH } from "interfaces/dispute/IDelayedWETH.sol";
+// import { IAnchorStateRegistry } from "interfaces/dispute/IAnchorStateRegistry.sol";
 import { ISuperchainConfig } from "interfaces/L1/ISuperchainConfig.sol";
 
 import { IBigStepper } from "interfaces/dispute/IBigStepper.sol";
