@@ -755,7 +755,7 @@ jobs:
           command: just test-upgrade
           environment:
             FOUNDRY_PROFILE: ci
-            ETH_RPC_URL: <<pipeline.parameters.mainnet_rpc_url>>
+            ETH_RPC_URL: "<<pipeline.parameters.mainnet_rpc_url>>"
           working_directory: packages/contracts-bedrock
           no_output_timeout: 15m
       - run:
@@ -763,7 +763,7 @@ jobs:
           command: just test-upgrade-rerun
           environment:
             FOUNDRY_PROFILE: ci
-            ETH_RPC_URL: <<pipeline.parameters.mainnet_rpc_url>>
+            ETH_RPC_URL: "<<pipeline.parameters.mainnet_rpc_url>>"
           working_directory: packages/contracts-bedrock
           when: on_fail
       - save_cache:
