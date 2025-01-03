@@ -138,15 +138,11 @@ func testCustomGasToken(t *testing.T, allocType config.AllocType) {
 		gto := setup(t)
 		checkL1TokenNameAndSymbol(t, gto, gto.disabledExpectations)
 		checkL2TokenNameAndSymbol(t, gto, gto.disabledExpectations)
+		checkWETHTokenNameAndSymbol(t, gto, gto.disabledExpectations)
 		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address, allocType)
 		checkL1TokenNameAndSymbol(t, gto, gto.enabledExpectations)
 		checkL2TokenNameAndSymbol(t, gto, gto.enabledExpectations)
-		// Optimism compresses the gensis block to json and we have a different WETH address
-		// This test will be skipped for the l2oo type
-		if allocType == config.AllocTypeStandard {
-			checkWETHTokenNameAndSymbol(t, gto, gto.disabledExpectations)
-			checkWETHTokenNameAndSymbol(t, gto, gto.enabledExpectations)
-		}
+		checkWETHTokenNameAndSymbol(t, gto, gto.enabledExpectations)
 	})
 }
 
