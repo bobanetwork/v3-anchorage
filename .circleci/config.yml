@@ -748,6 +748,9 @@ jobs:
           name: Restore forked state
           key: forked-state-contracts-bedrock-tests-upgrade-{{ checksum "packages/contracts-bedrock/pinnedBlockNumber.txt" }}
       - run:
+          name: echo url
+          command: echo "<<pipeline.parameters.mainnet_rpc_url>>"
+      - run:
           name: Run tests
           command: just test-upgrade
           environment:
