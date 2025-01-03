@@ -78,7 +78,7 @@ test-upgrade *ARGS: build-go-ffi
     FORK_TEST=true \
     forge test --match-path "test/{L1,dispute}/**" \
     --no-match-contract "$NO_MATCH_CONTRACTS" \
-    {{ARGS}} --rerun -vvv
+    {{ARGS}}
 
 test-upgrade-rerun *ARGS: build-go-ffi
   just test-upgrade {{ARGS}} --rerun -vvv
