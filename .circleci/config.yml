@@ -18,10 +18,10 @@ parameters:
     default: default
   mainnet_rpc_url:
     type: string
-    default: https://rpc.ankr.com/eth
+    default: ${ETH_RPC_URL}
   sepolia_rpc_url:
     type: string
-    default: https://rpc.ankr.com/eth_sepolia
+    default: {SEPOLIA_RPC_URL}
   # The dispatch parameters are used to manually dispatch pipelines that normally only run post-merge on develop
   # from the CircleCI UI. Example configuration:
   #   when:
@@ -748,14 +748,13 @@ jobs:
           name: Restore forked state
           key: forked-state-contracts-bedrock-tests-upgrade-{{ checksum "packages/contracts-bedrock/pinnedBlockNumber.txt" }}
       - run:
-          name: echo url
-          command: echo "<<pipeline.parameters.mainnet_rpc_url>>"
+          name: Set ETH_RPC_URL
+          command: echo 'export ETH_RPC_URL=<<pipeline.parameters.mainnet_rpc_url>>' >> $BASH_ENV
       - run:
           name: Run tests
           command: just test-upgrade
           environment:
             FOUNDRY_PROFILE: ci
-            ETH_RPC_URL: "<<pipeline.parameters.mainnet_rpc_url>>"
           working_directory: packages/contracts-bedrock
           no_output_timeout: 15m
       - run:
@@ -763,7 +762,6 @@ jobs:
           command: just test-upgrade-rerun
           environment:
             FOUNDRY_PROFILE: ci
-            ETH_RPC_URL: "<<pipeline.parameters.mainnet_rpc_url>>"
           working_directory: packages/contracts-bedrock
           when: on_fail
       - save_cache:
