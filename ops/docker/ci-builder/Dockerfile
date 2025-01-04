@@ -30,7 +30,7 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV DEBIAN_FRONTEND=noninteractive
 RUN /bin/sh -c set -eux; \
   apt-get update; \
-  apt-get install -y --no-install-recommends bash curl openssh-client git build-essential ca-certificates jq gnupg binutils-mips-linux-gnu clang libffi-dev binutils gcc-9 python3-dev python3-pip; \
+  apt-get install -y --no-install-recommends bash curl openssh-client git build-essential ca-certificates gnupg binutils-mips-linux-gnu clang libffi-dev; \
   mkdir -p /etc/apt/keyrings; \
   curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg; \
   chmod a+r /etc/apt/keyrings/docker.gpg; \
@@ -51,15 +51,6 @@ RUN /bin/sh -c set -eux; \
   rm -rf /root/.cache/pip; \
   rm -rf /root/.cache/uv; \
   rm -rf /root/.rustup;
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh && \
-  chmod +x ./rustup.sh && \
-  sh rustup.sh -y
-
-RUN source $HOME/.profile && rustup update nightly
-RUN source $HOME/.profile && cargo install svm-rs --version 0.5.7
-
-RUN cp /root/.cargo/bin/svm /usr/local/bin/svm
 
 # Install Solidity versions
 RUN echo "installing Solidity versions" && \
@@ -85,11 +76,15 @@ COPY --from=buildx /usr/libexec/docker/cli-plugins/docker-buildx /usr/libexec/do
 # Set up entrypoint
 ENTRYPOINT ["/bin/bash", "-c"]
 
+
 ###############################################################################
 #                              CI BUILDER (RUST)                              #
 ###############################################################################
 
-FROM base-builder as rust-builder
+FROM base-builder AS rust-builder
 
 # Install clang & lld
-RUN apt-get update && apt-get install -y clang lld parallel
+RUN apt-get update && apt-get install -y clang lld
+
+# Install nightly toolchain
+RUN rustup update nightly
