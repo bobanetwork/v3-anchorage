@@ -52,6 +52,15 @@ RUN /bin/sh -c set -eux; \
   rm -rf /root/.cache/uv; \
   rm -rf /root/.rustup;
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh && \
+  chmod +x ./rustup.sh && \
+  sh rustup.sh -y
+
+RUN source $HOME/.profile && rustup update nightly
+RUN source $HOME/.profile && cargo install svm-rs --version 0.5.7
+
+RUN cp /root/.cargo/bin/svm /usr/local/bin/svm
+
 # Install Solidity versions
 RUN echo "installing Solidity versions" && \
   svm install 0.8.25 && \
@@ -84,6 +93,3 @@ FROM base-builder as rust-builder
 
 # Install clang & lld
 RUN apt-get update && apt-get install -y clang lld parallel
-
-# Install nightly toolchain
-RUN rustup update nightly
