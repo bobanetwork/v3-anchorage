@@ -1,7 +1,7 @@
 {
   "go": "1.22.6",
   "abigen": "v1.10.25",
-  "foundry": "nightly-59f354c179f4e7f6d7292acb3d068815c79286d1",
+  "foundry": "59f354c179f4e7f6d7292acb3d068815c79286d1",
   "geth": "v1.14.7",
   "geth_release": "1.14.7-aa55f5ea",
   "eth2_testnet_genesis": "v0.10.0",
