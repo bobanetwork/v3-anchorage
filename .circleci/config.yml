@@ -948,7 +948,7 @@ jobs:
               formatted_packages="$formatted_packages ./$package/..."
             done
 
-            export ENABLE_KURTOSIS=true
+            export ENABLE_KURTOSIS=false
             export OP_E2E_CANNON_ENABLED="false"
             export OP_E2E_SKIP_SLOW_TEST=true
             export OP_E2E_USE_HTTP=true
