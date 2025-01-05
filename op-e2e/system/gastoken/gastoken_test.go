@@ -138,11 +138,19 @@ func testCustomGasToken(t *testing.T, allocType config.AllocType) {
 		gto := setup(t)
 		checkL1TokenNameAndSymbol(t, gto, gto.disabledExpectations)
 		checkL2TokenNameAndSymbol(t, gto, gto.disabledExpectations)
-		checkWETHTokenNameAndSymbol(t, gto, gto.disabledExpectations)
+		// Optmism compresses the genesis states for l2oo allocs, so we can't check the token name and symbol
+		// for the custom WETH token on L2OO genesis
+		if allocType == config.AllocTypeStandard {
+			checkWETHTokenNameAndSymbol(t, gto, gto.disabledExpectations)
+		}
 		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address, allocType)
 		checkL1TokenNameAndSymbol(t, gto, gto.enabledExpectations)
 		checkL2TokenNameAndSymbol(t, gto, gto.enabledExpectations)
-		checkWETHTokenNameAndSymbol(t, gto, gto.enabledExpectations)
+		// Optmism compresses the genesis states for l2oo allocs, so we can't check the token name and symbol
+		// for the custom WETH token on L2OO genesis
+		if allocType == config.AllocTypeStandard {
+			checkWETHTokenNameAndSymbol(t, gto, gto.enabledExpectations)
+		}
 	})
 }
 
