@@ -254,8 +254,8 @@ require (
 	zombiezen.com/go/sqlite v0.13.1 // indirect
 )
 
-replace github.com/ledgerwatch/erigon-lib => github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20250103000810-c12c3282b1a4
+replace github.com/ledgerwatch/erigon-lib => github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20250106174309-505e94326c26
 
 replace github.com/tendermint/tendermint => github.com/bnb-chain/tendermint v0.31.12
 
-replace github.com/ledgerwatch/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20250103000810-c12c3282b1a4
+replace github.com/ledgerwatch/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20250106174309-505e94326c26
