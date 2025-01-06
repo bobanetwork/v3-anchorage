@@ -57,7 +57,7 @@ func testCustomGasToken(t *testing.T, allocType config.AllocType) {
 		uint8(18),
 	}
 
-	setup := func() gasTokenTestOpts {
+	setup := func(t *testing.T) gasTokenTestOpts {
 		cfg := e2esys.DefaultSystemConfig(t, e2esys.WithAllocType(allocType))
 		offset := hexutil.Uint64(0)
 		cfg.DeployConfig.L2GenesisRegolithTimeOffset = &offset
@@ -111,45 +111,53 @@ func testCustomGasToken(t *testing.T, allocType config.AllocType) {
 
 	t.Run("deposit", func(t *testing.T) {
 		op_e2e.InitParallel(t)
-		gto := setup()
+		gto := setup(t)
 		checkDeposit(t, gto, false)
-		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address)
+		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address, allocType)
 		checkDeposit(t, gto, true)
 	})
 
 	t.Run("withdrawal", func(t *testing.T) {
 		op_e2e.InitParallel(t)
-		gto := setup()
-		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address)
+		gto := setup(t)
+		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address, allocType)
 		checkDeposit(t, gto, true)
 		checkWithdrawal(t, gto)
 	})
 
 	t.Run("fee withdrawal", func(t *testing.T) {
 		op_e2e.InitParallel(t)
-		gto := setup()
-		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address)
+		gto := setup(t)
+		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address, allocType)
 		checkDeposit(t, gto, true)
 		checkFeeWithdrawal(t, gto, true)
 	})
 
 	t.Run("token name and symbol", func(t *testing.T) {
 		op_e2e.InitParallel(t)
-		gto := setup()
+		gto := setup(t)
 		checkL1TokenNameAndSymbol(t, gto, gto.disabledExpectations)
 		checkL2TokenNameAndSymbol(t, gto, gto.disabledExpectations)
-		checkWETHTokenNameAndSymbol(t, gto, gto.disabledExpectations)
-		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address)
+		// Optmism compresses the genesis states for l2oo allocs, so we can't check the token name and symbol
+		// for the custom WETH token on L2OO genesis
+		if allocType == config.AllocTypeStandard {
+			checkWETHTokenNameAndSymbol(t, gto, gto.disabledExpectations)
+		}
+		setCustomGasToken(t, gto.cfg, gto.sys, gto.weth9Address, allocType)
 		checkL1TokenNameAndSymbol(t, gto, gto.enabledExpectations)
 		checkL2TokenNameAndSymbol(t, gto, gto.enabledExpectations)
-		checkWETHTokenNameAndSymbol(t, gto, gto.enabledExpectations)
+		// Optmism compresses the genesis states for l2oo allocs, so we can't check the token name and symbol
+		// for the custom WETH token on L2OO genesis
+		if allocType == config.AllocTypeStandard {
+			checkWETHTokenNameAndSymbol(t, gto, gto.enabledExpectations)
+		}
 	})
 }
 
 // setCustomGasToken enables the Custom Gas Token feature on a chain where it wasn't enabled at genesis.
 // It reads existing parameters from the SystemConfig contract, inserts the supplied cgtAddress and reinitializes that contract.
 // To do this it uses the ProxyAdmin and StorageSetter from the supplied cfg.
-func setCustomGasToken(t *testing.T, cfg e2esys.SystemConfig, sys *e2esys.System, cgtAddress common.Address) {
+func setCustomGasToken(t *testing.T, cfg e2esys.SystemConfig, sys *e2esys.System, cgtAddress common.Address, allocType config.AllocType) {
 	l1Client := sys.NodeClient("l1")
 	deployerOpts, err := bind.NewKeyedTransactorWithChainID(cfg.Secrets.Deployer, cfg.L1ChainIDBig())
 	require.NoError(t, err)
@@ -203,7 +211,11 @@ func setCustomGasToken(t *testing.T, cfg e2esys.SystemConfig, sys *e2esys.System
 	// Set up a signer which controls the Proxy Admin.
 	// The deploy config's finalSystemOwner is the owner of the ProxyAdmin as well as the SystemConfig,
 	// so we can use that address for the proxy admin owner.
-	proxyAdminOwnerOpts, err := bind.NewKeyedTransactorWithChainID(cfg.Secrets.SysCfgOwner, cfg.L1ChainIDBig())
+	ownerSecret := cfg.Secrets.Deployer
+	if allocType == config.AllocTypeL2OO {
+		ownerSecret = cfg.Secrets.SysCfgOwner
+	}
+	proxyAdminOwnerOpts, err := bind.NewKeyedTransactorWithChainID(ownerSecret, cfg.L1ChainIDBig())
 	require.NoError(t, err)
 
 	// Execute the upgrade SystemConfigProxy -> StorageSetter via ProxyAdmin

@@ -11,10 +11,10 @@ import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { Predeploys } from "src/libraries/Predeploys.sol";
 
 // Interfaces
-import { ISuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
-import { ICrossDomainMessenger } from "src/universal/interfaces/ICrossDomainMessenger.sol";
-import { IL1ERC721Bridge } from "src/L1/interfaces/IL1ERC721Bridge.sol";
-import { IL2ERC721Bridge } from "src/L2/interfaces/IL2ERC721Bridge.sol";
+import { ISuperchainConfig } from "interfaces/L1/ISuperchainConfig.sol";
+import { ICrossDomainMessenger } from "interfaces/universal/ICrossDomainMessenger.sol";
+import { IL1ERC721Bridge } from "interfaces/L1/IL1ERC721Bridge.sol";
+import { IL2ERC721Bridge } from "interfaces/L2/IL2ERC721Bridge.sol";
 
 /// @dev Test ERC721 contract.
 contract TestERC721 is ERC721 {
@@ -72,9 +72,12 @@ contract L1ERC721Bridge_Test is CommonTest {
         IL1ERC721Bridge impl = IL1ERC721Bridge(deploy.mustGetAddress("L1ERC721Bridge"));
         assertEq(address(impl.MESSENGER()), address(0));
         assertEq(address(impl.messenger()), address(0));
-        assertEq(address(impl.OTHER_BRIDGE()), Predeploys.L2_ERC721_BRIDGE);
-        assertEq(address(impl.otherBridge()), Predeploys.L2_ERC721_BRIDGE);
         assertEq(address(impl.superchainConfig()), address(0));
+
+        // The constructor now uses _disableInitializers, whereas OP Mainnet has the other bridge in storage
+        returnIfForkTest("L1ERC721Bridge_Test: impl storage differs on forked network");
+        assertEq(address(impl.OTHER_BRIDGE()), address(0));
+        assertEq(address(impl.otherBridge()), address(0));
     }
 
     /// @dev Tests that the proxy is initialized with the correct values.
@@ -235,6 +238,14 @@ contract L1ERC721Bridge_Test is CommonTest {
         // Token is not locked in the bridge.
         assertEq(l1ERC721Bridge.deposits(address(localToken), address(remoteToken), tokenId), false);
         assertEq(localToken.ownerOf(tokenId), alice);
+    }
+
+    /// @dev Tests that `bridgeERC721To` reverts if the to address is the zero address.
+    function test_bridgeERC721To_toZeroAddress_reverts() external {
+        // Bridge the token.
+        vm.prank(bob);
+        vm.expectRevert("ERC721Bridge: nft recipient cannot be address(0)");
+        l1ERC721Bridge.bridgeERC721To(address(localToken), address(remoteToken), address(0), tokenId, 1234, hex"5678");
     }
 
     /// @dev Tests that the ERC721 bridge successfully finalizes a withdrawal.

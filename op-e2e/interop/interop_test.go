@@ -105,6 +105,24 @@ func TestInterop_IsolatedChains(t *testing.T) {
 	setupAndRun(t, config, test)
 }
 
+// TestInterop_SupervisorFinality tests that the supervisor updates its finality
+// It waits for the finalized block to advance past the genesis block.
+func TestInterop_SupervisorFinality(t *testing.T) {
+	test := func(t *testing.T, s2 SuperSystem) {
+		supervisor := s2.SupervisorClient()
+		require.Eventually(t, func() bool {
+			final, err := supervisor.FinalizedL1(context.Background())
+			require.NoError(t, err)
+			return final.Number > 0
+			// this test takes about 30 seconds, with a longer Eventually timeout for CI
+		}, time.Second*60, time.Second, "wait for finalized block to be greater than 0")
+	}
+	config := SuperSystemConfig{
+		mempoolFiltering: false,
+	}
+	setupAndRun(t, config, test)
+}
+
 // TestInterop_EmitLogs tests a simple interop scenario
 // Chains A and B exist, but no messages are sent between them.
 // A contract is deployed on each chain, and logs are emitted repeatedly.
@@ -121,7 +139,9 @@ func TestInterop_EmitLogs(t *testing.T) {
 		var emitParallel sync.WaitGroup
 		emitOn := func(chainID string) {
 			for i := 0; i < numEmits; i++ {
-				s2.EmitData(chainID, "Alice", payload1)
+				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+				s2.EmitData(ctx, chainID, "Alice", payload1)
+				cancel()
 			}
 			emitParallel.Done()
 		}
@@ -218,7 +238,9 @@ func TestInteropBlockBuilding(t *testing.T) {
 
 		// Add chain A as dependency to chain B,
 		// such that we can execute a message on B that was initiated on A.
-		depRec := s2.AddDependency(chainB, s2.ChainID(chainA))
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		depRec := s2.AddDependency(ctx, chainB, s2.ChainID(chainA))
+		cancel()
 		t.Logf("Dependency set in L1 block %d", depRec.BlockNumber)
 
 		rollupClA, err := dial.DialRollupClientWithTimeout(context.Background(), time.Second*15, logger, s2.OpNode(chainA).UserRPC().RPC())
@@ -233,7 +255,9 @@ func TestInteropBlockBuilding(t *testing.T) {
 		t.Log("Dependency information has been processed in L2 block")
 
 		// emit log on chain A
-		emitRec := s2.EmitData(chainA, "Alice", "hello world")
+		ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+		emitRec := s2.EmitData(ctx, chainA, "Alice", "hello world")
+		cancel()
 		t.Logf("Emitted a log event in block %d", emitRec.BlockNumber.Uint64())
 
 		// Wait for initiating side to become cross-unsafe

@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import { console2 as console } from "forge-std/console2.sol";
 import { stdJson } from "forge-std/StdJson.sol";
-import { Vm } from "forge-std/Vm.sol";
 
 import { Deployer } from "scripts/deploy/Deployer.sol";
 
@@ -19,17 +18,14 @@ import { AnchorStateRegistry } from "src/dispute/AnchorStateRegistry.sol";
 import { PreimageOracle } from "src/cannon/PreimageOracle.sol";
 import { MIPS } from "src/cannon/MIPS.sol";
 import { Chains } from "scripts/libraries/Chains.sol";
-import { Config } from "scripts/libraries/Config.sol";
 
-import { IDisputeGameFactory } from "src/dispute/interfaces/IDisputeGameFactory.sol";
-import { IDisputeGame } from "src/dispute/interfaces/IDisputeGame.sol";
-import { IPreimageOracle } from "src/cannon/interfaces/IPreimageOracle.sol";
-import { IDelayedWETH } from "src/dispute/interfaces/IDelayedWETH.sol";
-import { IAnchorStateRegistry } from "src/dispute/interfaces/IAnchorStateRegistry.sol";
-import { ISuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
+import { IDisputeGameFactory } from "interfaces/dispute/IDisputeGameFactory.sol";
+import { IPreimageOracle } from "interfaces/cannon/IPreimageOracle.sol";
+import { ISuperchainConfig } from "interfaces/L1/ISuperchainConfig.sol";
 
-import { IBigStepper } from "src/dispute/interfaces/IBigStepper.sol";
-import { IPreimageOracle } from "src/cannon/interfaces/IPreimageOracle.sol";
+import { IBigStepper } from "interfaces/dispute/IBigStepper.sol";
+import { IPreimageOracle } from "interfaces/cannon/IPreimageOracle.sol";
+
 import { AlphabetVM } from "test/mocks/AlphabetVM.sol";
 import "src/dispute/lib/Types.sol";
 import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
@@ -101,12 +97,10 @@ contract Deploy is Deployer {
             AnchorStateRegistry: mustGetAddress("AnchorStateRegistryProxy"),
             OptimismMintableERC20Factory: mustGetAddress("OptimismMintableERC20FactoryProxy"),
             OptimismPortal: mustGetAddress("OptimismPortalProxy"),
-            OptimismPortal2: mustGetAddress("OptimismPortalProxy"),
             SystemConfig: mustGetAddress("SystemConfigProxy"),
             L1ERC721Bridge: mustGetAddress("L1ERC721BridgeProxy"),
             ProtocolVersions: mustGetAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: mustGetAddress("SuperchainConfigProxy"),
-            OPContractsManager: mustGetAddress("OPContractsManagerProxy")
+            SuperchainConfig: mustGetAddress("SuperchainConfigProxy")
         });
     }
 
@@ -122,12 +116,10 @@ contract Deploy is Deployer {
             AnchorStateRegistry: getAddress("AnchorStateRegistryProxy"),
             OptimismMintableERC20Factory: getAddress("OptimismMintableERC20FactoryProxy"),
             OptimismPortal: getAddress("OptimismPortalProxy"),
-            OptimismPortal2: getAddress("OptimismPortalProxy"),
             SystemConfig: getAddress("SystemConfigProxy"),
             L1ERC721Bridge: getAddress("L1ERC721BridgeProxy"),
             ProtocolVersions: getAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: getAddress("SuperchainConfigProxy"),
-            OPContractsManager: getAddress("OPContractsManagerProxy")
+            SuperchainConfig: getAddress("SuperchainConfigProxy")
         });
     }
 
@@ -260,7 +252,7 @@ contract Deploy is Deployer {
         // to check the `OptimismPortal2` implementation alongside dependent contracts, which
         // are always proxies.
         Types.ContractSet memory contracts = _proxiesUnstrict();
-        contracts.OptimismPortal2 = address(portal);
+        contracts.OptimismPortal = address(portal);
         ChainAssertions.checkOptimismPortal2({ _contracts: contracts, _cfg: cfg, _isProxy: false });
 
         addr_ = address(portal);
@@ -496,6 +488,7 @@ contract Deploy is Deployer {
     }
 
     /// @notice Sets the implementation for the given fault game type in the `DisputeGameFactory`.
+    /// TODO: Fix later
     function _setFaultGameImplementation(
         DisputeGameFactory _factory,
         bool _allowUpgrade,
@@ -503,63 +496,63 @@ contract Deploy is Deployer {
     )
         internal
     {
-        if (address(_factory.gameImpls(_params.gameType)) != address(0) && !_allowUpgrade) {
-            console.log(
-                "[WARN] DisputeGameFactoryProxy: `FaultDisputeGame` implementation already set for game type: %s",
-                vm.toString(GameType.unwrap(_params.gameType))
-            );
-            return;
-        }
+        // if (address(_factory.gameImpls(_params.gameType)) != address(0) && !_allowUpgrade) {
+        //     console.log(
+        //         "[WARN] DisputeGameFactoryProxy: `FaultDisputeGame` implementation already set for game type: %s",
+        //         vm.toString(GameType.unwrap(_params.gameType))
+        //     );
+        //     return;
+        // }
 
-        uint32 rawGameType = GameType.unwrap(_params.gameType);
-        if (rawGameType != GameTypes.PERMISSIONED_CANNON.raw()) {
-            FaultDisputeGame faultDisputeGame = new FaultDisputeGame({
-                _gameType: _params.gameType,
-                _absolutePrestate: _params.absolutePrestate,
-                _maxGameDepth: _params.maxGameDepth,
-                _splitDepth: cfg.faultGameSplitDepth(),
-                _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
-                _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-                _vm: _params.faultVm,
-                _weth: IDelayedWETH(payable(address(_params.weth))),
-                _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
-                _l2ChainId: cfg.l2ChainID()
-            });
-            _factory.setImplementation(_params.gameType, IDisputeGame(address(faultDisputeGame)));
-        } else {
-            PermissionedDisputeGame permissionedDisputeGame = new PermissionedDisputeGame({
-                _gameType: _params.gameType,
-                _absolutePrestate: _params.absolutePrestate,
-                _maxGameDepth: _params.maxGameDepth,
-                _splitDepth: cfg.faultGameSplitDepth(),
-                _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
-                _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-                _vm: _params.faultVm,
-                _weth: IDelayedWETH(payable(address(_params.weth))),
-                _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
-                _l2ChainId: cfg.l2ChainID(),
-                _proposer: cfg.l2OutputOracleProposer(),
-                _challenger: cfg.l2OutputOracleChallenger()
-            });
-            _factory.setImplementation(_params.gameType, IDisputeGame(address(permissionedDisputeGame)));
-        }
+        // uint32 rawGameType = GameType.unwrap(_params.gameType);
+        // if (rawGameType != GameTypes.PERMISSIONED_CANNON.raw()) {
+        //     FaultDisputeGame faultDisputeGame = new FaultDisputeGame({
+        //         _gameType: _params.gameType,
+        //         _absolutePrestate: _params.absolutePrestate,
+        //         _maxGameDepth: _params.maxGameDepth,
+        //         _splitDepth: cfg.faultGameSplitDepth(),
+        //         _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
+        //         _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
+        //         _vm: _params.faultVm,
+        //         _weth: IDelayedWETH(payable(address(_params.weth))),
+        //         _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
+        //         _l2ChainId: cfg.l2ChainID()
+        //     });
+        //     _factory.setImplementation(_params.gameType, IDisputeGame(address(faultDisputeGame)));
+        // } else {
+        //     PermissionedDisputeGame permissionedDisputeGame = new PermissionedDisputeGame({
+        //         _gameType: _params.gameType,
+        //         _absolutePrestate: _params.absolutePrestate,
+        //         _maxGameDepth: _params.maxGameDepth,
+        //         _splitDepth: cfg.faultGameSplitDepth(),
+        //         _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
+        //         _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
+        //         _vm: _params.faultVm,
+        //         _weth: IDelayedWETH(payable(address(_params.weth))),
+        //         _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
+        //         _l2ChainId: cfg.l2ChainID(),
+        //         _proposer: cfg.l2OutputOracleProposer(),
+        //         _challenger: cfg.l2OutputOracleChallenger()
+        //     });
+        //     _factory.setImplementation(_params.gameType, IDisputeGame(address(permissionedDisputeGame)));
+        // }
 
-        string memory gameTypeString;
-        if (rawGameType == GameTypes.CANNON.raw()) {
-            gameTypeString = "Cannon";
-        } else if (rawGameType == GameTypes.PERMISSIONED_CANNON.raw()) {
-            gameTypeString = "PermissionedCannon";
-        } else if (rawGameType == GameTypes.ALPHABET.raw()) {
-            gameTypeString = "Alphabet";
-        } else {
-            gameTypeString = "Unknown";
-        }
+        // string memory gameTypeString;
+        // if (rawGameType == GameTypes.CANNON.raw()) {
+        //     gameTypeString = "Cannon";
+        // } else if (rawGameType == GameTypes.PERMISSIONED_CANNON.raw()) {
+        //     gameTypeString = "PermissionedCannon";
+        // } else if (rawGameType == GameTypes.ALPHABET.raw()) {
+        //     gameTypeString = "Alphabet";
+        // } else {
+        //     gameTypeString = "Unknown";
+        // }
 
-        console.log(
-            "DisputeGameFactoryProxy: set `FaultDisputeGame` implementation (Backend: %s | GameType: %s)",
-            gameTypeString,
-            vm.toString(rawGameType)
-        );
+        // console.log(
+        //     "DisputeGameFactoryProxy: set `FaultDisputeGame` implementation (Backend: %s | GameType: %s)",
+        //     gameTypeString,
+        //     vm.toString(rawGameType)
+        // );
     }
 
     /// @notice Custom error for missing Cannon prestate dump

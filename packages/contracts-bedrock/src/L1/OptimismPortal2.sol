@@ -34,17 +34,17 @@ import {
     ProposalNotValidated,
     AlreadyFinalized
 } from "src/libraries/PortalErrors.sol";
-import { GameStatus, GameType, Claim, Timestamp, Hash } from "src/dispute/lib/Types.sol";
+import { GameStatus, GameType, Claim, Timestamp } from "src/dispute/lib/Types.sol";
 
 // Interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ISemver } from "src/universal/interfaces/ISemver.sol";
-import { ISystemConfig } from "src/L1/interfaces/ISystemConfig.sol";
-import { IResourceMetering } from "src/L1/interfaces/IResourceMetering.sol";
-import { ISuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
-import { IDisputeGameFactory } from "src/dispute/interfaces/IDisputeGameFactory.sol";
-import { IDisputeGame } from "src/dispute/interfaces/IDisputeGame.sol";
-import { IL1Block } from "src/L2/interfaces/IL1Block.sol";
+import { ISemver } from "interfaces/universal/ISemver.sol";
+import { ISystemConfig } from "interfaces/L1/ISystemConfig.sol";
+import { IResourceMetering } from "interfaces/L1/IResourceMetering.sol";
+import { ISuperchainConfig } from "interfaces/L1/ISuperchainConfig.sol";
+import { IDisputeGameFactory } from "interfaces/dispute/IDisputeGameFactory.sol";
+import { IDisputeGame } from "interfaces/dispute/IDisputeGame.sol";
+import { IL1Block } from "interfaces/L2/IL1Block.sol";
 
 /// @custom:proxied true
 /// @title OptimismPortal2
@@ -183,9 +183,9 @@ contract OptimismPortal2 is Initializable, ResourceMetering, ISemver {
     }
 
     /// @notice Semantic version.
-    /// @custom:semver 3.11.0-beta.6
+    /// @custom:semver 3.11.0-beta.9
     function version() public pure virtual returns (string memory) {
-        return "3.11.0-beta.6";
+        return "3.11.0-beta.9";
     }
 
     /// @notice Constructs the OptimismPortal contract.
@@ -193,12 +193,7 @@ contract OptimismPortal2 is Initializable, ResourceMetering, ISemver {
         PROOF_MATURITY_DELAY_SECONDS = _proofMaturityDelaySeconds;
         DISPUTE_GAME_FINALITY_DELAY_SECONDS = _disputeGameFinalityDelaySeconds;
 
-        initialize({
-            _disputeGameFactory: IDisputeGameFactory(address(0)),
-            _systemConfig: ISystemConfig(address(0)),
-            _superchainConfig: ISuperchainConfig(address(0)),
-            _initialRespectedGameType: GameType.wrap(0)
-        });
+        _disableInitializers();
     }
 
     /// @notice Initializer.
@@ -211,7 +206,7 @@ contract OptimismPortal2 is Initializable, ResourceMetering, ISemver {
         ISuperchainConfig _superchainConfig,
         GameType _initialRespectedGameType
     )
-        public
+        external
         initializer
     {
         disputeGameFactory = _disputeGameFactory;

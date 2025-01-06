@@ -1,3 +1,6 @@
+# provide JUSTFLAGS for just-backed targets
+include ./just/flags.mk
+
 COMPOSEFLAGS=-d
 ITESTS_L2_HOST=http://localhost:9545
 BEDROCK_TAGS_REMOTE?=origin
@@ -100,7 +103,7 @@ submodules: ## Updates git submodules
 
 
 op-node: ## Builds op-node binary
-	make -C ./op-node op-node
+	just $(JUSTFLAGS) ./op-node/op-node
 .PHONY: op-node
 
 generate-mocks-op-node: ## Generates mocks for op-node
@@ -112,11 +115,11 @@ generate-mocks-op-service: ## Generates mocks for op-service
 .PHONY: generate-mocks-op-service
 
 op-batcher: ## Builds op-batcher binary
-	make -C ./op-batcher op-batcher
+	just $(JUSTFLAGS) ./op-batcher/op-batcher
 .PHONY: op-batcher
 
 op-proposer: ## Builds op-proposer binary
-	make -C ./op-proposer op-proposer
+	just $(JUSTFLAGS) ./op-proposer/op-proposer
 .PHONY: op-proposer
 
 op-challenger: ## Builds op-challenger binary
@@ -157,8 +160,8 @@ cannon-prestate: op-program cannon ## Generates prestate using cannon and op-pro
 	mv op-program/bin/0.json op-program/bin/prestate-proof.json
 .PHONY: cannon-prestate
 
-cannon-prestate-mt: op-program cannon ## Generates prestate using cannon and op-program in the multithreaded cannon format
-	./cannon/bin/cannon load-elf --type multithreaded --path op-program/bin/op-program-client.elf --out op-program/bin/prestate-mt.bin.gz --meta op-program/bin/meta-mt.json
+cannon-prestate-mt: op-program cannon ## Generates prestate using cannon and op-program in the multithreaded64 cannon format
+	./cannon/bin/cannon load-elf --type multithreaded64 --path op-program/bin/op-program-client64.elf --out op-program/bin/prestate-mt.bin.gz --meta op-program/bin/meta-mt.json
 	./cannon/bin/cannon run --proof-at '=0' --stop-at '=1' --input op-program/bin/prestate-mt.bin.gz --meta op-program/bin/meta-mt.json --proof-fmt 'op-program/bin/%d-mt.json' --output ""
 	mv op-program/bin/0-mt.json op-program/bin/prestate-proof-mt.json
 .PHONY: cannon-prestate-mt
@@ -184,9 +187,6 @@ nuke: clean devnet-clean ## Completely clean the project directory
 
 ## Prepares for running a local devnet
 pre-devnet: submodules $(DEVNET_CANNON_PRESTATE_FILES)
-	@if ! [ -x "$$(command -v geth)" ]; then \
-		make install-geth; \
-	fi
 	@if ! [ -x "$$(command -v eth2-testnet-genesis)" ]; then \
 		make install-eth2-testnet-genesis; \
 	fi
@@ -258,14 +258,6 @@ update-op-geth: ## Updates the Geth version used in the project
 	./ops/scripts/update-op-geth.py
 .PHONY: update-op-geth
 
-install-geth: ## Installs or updates Geth if versions do not match
-	./ops/scripts/geth-version-checker.sh && \
-	 	(echo "Geth versions match, not installing geth..."; true) || \
- 		(echo "Versions do not match, installing geth!"; \
- 			go install -v github.com/ethereum/go-ethereum/cmd/geth@$(shell jq -r .geth < versions.json); \
- 			echo "Installed geth!"; true)
-.PHONY: install-geth
-
 install-eth2-testnet-genesis:
-	go install -v github.com/protolambda/eth2-testnet-genesis@$(shell jq -r .eth2_testnet_genesis < versions.json)
+	go install -v github.com/protolambda/eth2-testnet-genesis@v$(shell yq '.tools."go:github.com/protolambda/eth2-testnet-genesis"' mise.toml)
 .PHONY: install-eth2-testnet-genesis

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity ^0.8.0;
 
+// Libraries
 import { MIPS64Memory } from "src/cannon/libraries/MIPS64Memory.sol";
 import { MIPS64State as st } from "src/cannon/libraries/MIPS64State.sol";
 import { MIPS64Arch as arch } from "src/cannon/libraries/MIPS64Arch.sol";
@@ -642,6 +643,11 @@ library MIPS64Instructions {
                 uint32 rtv = ((_insn >> 16) & 0x1F);
                 if (rtv == 0) {
                     shouldBranch = int64(_rs) < 0;
+                }
+                // bltzal
+                if (rtv == 0x10) {
+                    shouldBranch = int64(_rs) < 0;
+                    _registers[REG_RA] = _cpu.pc + 8; // always set regardless of branch taken
                 }
                 if (rtv == 1) {
                     shouldBranch = int64(_rs) >= 0;

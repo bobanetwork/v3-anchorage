@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/rand"
 
+	"github.com/ethereum-optimism/optimism/op-chain-ops/genesis"
 	e2ecfg "github.com/ethereum-optimism/optimism/op-e2e/config"
 
 	altda "github.com/ethereum-optimism/optimism/op-alt-da"
@@ -28,6 +29,7 @@ import (
 // L2FaultProofEnv is a test harness for a fault provable L2 chain.
 type L2FaultProofEnv struct {
 	log       log.Logger
+	Logs      *testlog.CapturingHandler
 	Batcher   *helpers.L2Batcher
 	Sequencer *helpers.L2Sequencer
 	Engine    *helpers.L2Engine
@@ -39,8 +41,11 @@ type L2FaultProofEnv struct {
 	Bob       *helpers.CrossLayerUser
 }
 
-func NewL2FaultProofEnv[c any](t helpers.Testing, testCfg *TestCfg[c], tp *e2eutils.TestParams, batcherCfg *helpers.BatcherCfg) *L2FaultProofEnv {
-	log := testlog.Logger(t, log.LvlDebug)
+type deployConfigOverride func(*genesis.DeployConfig)
+
+func NewL2FaultProofEnv[c any](t helpers.Testing, testCfg *TestCfg[c], tp *e2eutils.TestParams, batcherCfg *helpers.BatcherCfg, deployConfigOverrides ...deployConfigOverride) *L2FaultProofEnv {
+	log, logs := testlog.CaptureLogger(t, log.LevelDebug)
+
 	dp := NewDeployParams(t, tp, func(dp *e2eutils.DeployParams) {
 		genesisBlock := hexutil.Uint64(0)
 
@@ -63,6 +68,10 @@ func NewL2FaultProofEnv[c any](t helpers.Testing, testCfg *TestCfg[c], tp *e2eut
 			dp.DeployConfig.L2GenesisGraniteTimeOffset = &genesisBlock
 		case Holocene:
 			dp.DeployConfig.L2GenesisHoloceneTimeOffset = &genesisBlock
+		}
+
+		for _, override := range deployConfigOverrides {
+			override(dp.DeployConfig)
 		}
 	})
 	sd := e2eutils.Setup(t, dp, helpers.DefaultAlloc)
@@ -111,6 +120,7 @@ func NewL2FaultProofEnv[c any](t helpers.Testing, testCfg *TestCfg[c], tp *e2eut
 
 	return &L2FaultProofEnv{
 		log:       log,
+		Logs:      logs,
 		Batcher:   batcher,
 		Sequencer: sequencer,
 		Engine:    engine,

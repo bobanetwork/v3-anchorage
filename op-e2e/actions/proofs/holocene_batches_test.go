@@ -25,41 +25,54 @@ func Test_ProgramAction_HoloceneBatches(gt *testing.T) {
 	testCases := []testCase{
 		// Standard channel composition
 		{
-			name: "case-0", blocks: []uint{1, 2, 3},
+			name: "ordered", blocks: []uint{1, 2, 3},
 			holoceneExpectations: holoceneExpectations{
-				safeHeadPreHolocene: 3,
-				safeHeadHolocene:    3,
+				preHolocene: expectations{safeHead: 3},
+				holocene:    expectations{safeHead: 3},
 			},
 		},
 
 		// Non-standard channel composition
 		{
-			name: "case-2a", blocks: []uint{1, 3, 2},
+			name: "disordered-a", blocks: []uint{1, 3, 2},
 			holoceneExpectations: holoceneExpectations{
-				safeHeadPreHolocene: 3, // batches are buffered, so the block ordering does not matter
-				safeHeadHolocene:    1, // batch for block 3 is considered invalid because it is from the future. This batch + remaining channel is dropped.
+				preHolocene: expectations{safeHead: 3}, // batches are buffered, so the block ordering does not matter
+				holocene: expectations{safeHead: 1, // batch for block 3 is considered invalid because it is from the future. This batch + remaining channel is dropped.
+					logs: append(
+						sequencerOnce("dropping future batch"),
+						sequencerOnce("Dropping invalid singular batch, flushing channel")...,
+					)},
 			},
 		},
 		{
-			name: "case-2b", blocks: []uint{2, 1, 3},
+			name: "disordered-b", blocks: []uint{2, 1, 3},
 			holoceneExpectations: holoceneExpectations{
-				safeHeadPreHolocene: 3, // batches are buffered, so the block ordering does not matter
-				safeHeadHolocene:    0, // batch for block 2 is considered invalid because it is from the future. This batch + remaining channel is dropped.
+				preHolocene: expectations{safeHead: 3}, // batches are buffered, so the block ordering does not matter
+				holocene: expectations{safeHead: 0, // batch for block 2 is considered invalid because it is from the future. This batch + remaining channel is dropped.
+					logs: append(
+						sequencerOnce("dropping future batch"),
+						sequencerOnce("Dropping invalid singular batch, flushing channel")...,
+					)},
 			},
 		},
 
 		{
-			name: "case-2c", blocks: []uint{1, 1, 2, 3},
+			name: "duplicates-a", blocks: []uint{1, 1, 2, 3},
 			holoceneExpectations: holoceneExpectations{
-				safeHeadPreHolocene: 3, // duplicate batches are silently dropped, so this reduceds to case-0
-				safeHeadHolocene:    3, // duplicate batches are silently dropped
+				preHolocene: expectations{safeHead: 3}, // duplicate batches are dropped, so this reduces to the "ordered" case
+				holocene: expectations{safeHead: 3, // duplicate batches are dropped, so this reduces to the "ordered" case
+					logs: sequencerOnce("dropping past batch with old timestamp")},
 			},
 		},
 		{
-			name: "case-2d", blocks: []uint{2, 2, 1, 3},
+			name: "duplicates-b", blocks: []uint{2, 2, 1, 3},
 			holoceneExpectations: holoceneExpectations{
-				safeHeadPreHolocene: 3, // duplicate batches are silently dropped, so this reduces to case-2b
-				safeHeadHolocene:    0, // duplicate batches are silently dropped, so this reduces to case-2b
+				preHolocene: expectations{safeHead: 3}, // duplicate batches are silently dropped, so this reduces to disordered-2b
+				holocene: expectations{safeHead: 0, // duplicate batches are silently dropped, so this reduces to disordered-2b
+					logs: append(
+						sequencerOnce("dropping future batch"),
+						sequencerOnce("Dropping invalid singular batch, flushing channel")...,
+					)},
 			},
 		},
 	}
@@ -112,8 +125,8 @@ func Test_ProgramAction_HoloceneBatches(gt *testing.T) {
 		env.Sequencer.ActL2PipelineFull(t)
 
 		l2SafeHead := env.Sequencer.L2Safe()
-		testCfg.Custom.RequireExpectedProgress(t, l2SafeHead, testCfg.Hardfork.Precedence < helpers.Holocene.Precedence, env.Engine)
-
+		isHolocene := testCfg.Hardfork.Precedence >= helpers.Holocene.Precedence
+		testCfg.Custom.RequireExpectedProgressAndLogs(t, l2SafeHead, isHolocene, env.Engine, env.Logs)
 		t.Log("Safe head progressed as expected", "l2SafeHeadNumber", l2SafeHead.Number)
 
 		env.RunFaultProofProgram(t, l2SafeHead.Number, testCfg.CheckResult, testCfg.InputParams...)

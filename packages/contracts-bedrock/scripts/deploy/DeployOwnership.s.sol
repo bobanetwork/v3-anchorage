@@ -11,12 +11,11 @@ import { GuardManager } from "safe-contracts/base/GuardManager.sol";
 import { Enum as SafeOps } from "safe-contracts/common/Enum.sol";
 
 import { DeployUtils } from "scripts/libraries/DeployUtils.sol";
-import { Deployer } from "scripts/deploy/Deployer.sol";
 
 import { LivenessGuard } from "src/safe/LivenessGuard.sol";
 import { LivenessModule } from "src/safe/LivenessModule.sol";
 import { DeputyGuardianModule } from "src/safe/DeputyGuardianModule.sol";
-import { ISuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
+import { ISuperchainConfig } from "interfaces/L1/ISuperchainConfig.sol";
 
 import { Deploy } from "./Deploy.s.sol";
 
@@ -59,7 +58,7 @@ struct GuardianConfig {
 ///         be used as an example to guide the setup and configuration of the Safe contracts.
 contract DeployOwnership is Deploy {
     /// @notice Internal function containing the deploy logic.
-    function _run() internal override {
+    function _run(bool) internal override {
         console.log("start of Ownership Deployment");
         // The SuperchainConfig is needed as a constructor argument to the Deputy Guardian Module
         deploySuperchainConfig();
@@ -145,7 +144,7 @@ contract DeployOwnership is Deploy {
     /// @param _name The name of the Safe to deploy.
     /// @param _owners The owners of the Safe.
     /// @param _threshold The threshold of the Safe.
-    /// @param _keepDeployer Wether or not the deployer address will be added as an owner of the Safe.
+    /// @param _keepDeployer Whether or not the deployer address will be added as an owner of the Safe.
     function deploySafe(
         string memory _name,
         address[] memory _owners,
@@ -328,9 +327,9 @@ contract DeployOwnership is Deploy {
             })
         );
 
-        require(superchainConfig.guardian() == address(0));
+        require(superchainConfig.guardian() == address(0), "SuperchainConfig: guardian must be address(0)");
         bytes32 initialized = vm.load(address(superchainConfig), bytes32(0));
-        require(initialized != 0);
+        require(initialized != 0, "SuperchainConfig: must be initialized");
     }
 
     /// @notice Configure the Guardian Safe with the DeputyGuardianModule.

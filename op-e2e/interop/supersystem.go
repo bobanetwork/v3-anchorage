@@ -11,9 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/eth/ethconfig"
-	gn "github.com/ethereum/go-ethereum/node"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -21,15 +18,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/eth/ethconfig"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
+	gn "github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/rpc"
-
-	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/interop/contracts/bindings/emit"
-	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/interop/contracts/bindings/inbox"
-	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/interop/contracts/bindings/systemconfig"
-	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/wait"
-	"github.com/ethereum-optimism/optimism/op-service/predeploys"
 
 	bss "github.com/ethereum-optimism/optimism/op-batcher/batcher"
 	batcherFlags "github.com/ethereum-optimism/optimism/op-batcher/flags"
@@ -39,14 +32,19 @@ import (
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/fakebeacon"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/geth"
+	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/interop/contracts/bindings/emit"
+	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/interop/contracts/bindings/inbox"
+	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/interop/contracts/bindings/systemconfig"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/opnode"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/services"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/setuputils"
+	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/wait"
 	"github.com/ethereum-optimism/optimism/op-e2e/system/helpers"
 	"github.com/ethereum-optimism/optimism/op-node/node"
 	"github.com/ethereum-optimism/optimism/op-node/p2p"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/driver"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/interop"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/sync"
 	l2os "github.com/ethereum-optimism/optimism/op-proposer/proposer"
 	"github.com/ethereum-optimism/optimism/op-service/client"
@@ -56,12 +54,14 @@ import (
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 	"github.com/ethereum-optimism/optimism/op-service/metrics"
 	"github.com/ethereum-optimism/optimism/op-service/oppprof"
+	"github.com/ethereum-optimism/optimism/op-service/predeploys"
 	oprpc "github.com/ethereum-optimism/optimism/op-service/rpc"
 	"github.com/ethereum-optimism/optimism/op-service/sources"
 	"github.com/ethereum-optimism/optimism/op-service/testlog"
 	supervisorConfig "github.com/ethereum-optimism/optimism/op-supervisor/config"
 	"github.com/ethereum-optimism/optimism/op-supervisor/supervisor"
 	"github.com/ethereum-optimism/optimism/op-supervisor/supervisor/backend/depset"
+	"github.com/ethereum-optimism/optimism/op-supervisor/supervisor/backend/syncnode"
 	supervisortypes "github.com/ethereum-optimism/optimism/op-supervisor/supervisor/types"
 )
 
@@ -103,9 +103,9 @@ type SuperSystem interface {
 	// Deploy the Emitter Contract, which emits Event Logs
 	DeployEmitterContract(network string, username string) common.Address
 	// Use the Emitter Contract to emit an Event Log
-	EmitData(network string, username string, data string) *types.Receipt
+	EmitData(ctx context.Context, network string, username string, data string) *types.Receipt
 	// AddDependency adds a dependency (by chain ID) to the given chain
-	AddDependency(network string, dep *big.Int) *types.Receipt
+	AddDependency(ctx context.Context, network string, dep *big.Int) *types.Receipt
 	// ExecuteMessage calls the CrossL2Inbox executeMessage function
 	ExecuteMessage(
 		ctx context.Context,
@@ -319,8 +319,11 @@ func (s *interopE2ESystem) newNodeForL2(
 			ListenPort:  0,
 			EnableAdmin: true,
 		},
-		Supervisor: &node.SupervisorEndpointConfig{
-			SupervisorAddr: s.supervisor.RPC(),
+		InteropConfig: &interop.Config{
+			SupervisorAddr:   s.supervisor.RPC(),
+			RPCAddr:          "127.0.0.1",
+			RPCPort:          0,
+			RPCJwtSecretPath: "",
 		},
 		P2P:                         nil, // disabled P2P setup for now
 		L1EpochPollInterval:         time.Second * 2,
@@ -481,8 +484,9 @@ func (s *interopE2ESystem) prepareSupervisor() *supervisor.SupervisorService {
 			ListenPort:  0,
 			EnableAdmin: true,
 		},
-		L2RPCs:  []string{},
-		Datadir: path.Join(s.t.TempDir(), "supervisor"),
+		SyncSources: &syncnode.CLISyncNodes{}, // no sync-sources
+		L1RPC:       s.l1.UserRPC().RPC(),
+		Datadir:     path.Join(s.t.TempDir(), "supervisor"),
 	}
 	depSet := make(map[supervisortypes.ChainID]*depset.StaticConfigDependency)
 
@@ -538,10 +542,11 @@ func (s *interopE2ESystem) prepare(t *testing.T, w worldResourcePaths) {
 	s.hdWallet = s.prepareHDWallet()
 	s.worldDeployment, s.worldOutput = s.prepareWorld(w)
 
-	// the supervisor and client are created first so that the L2s can use the supervisor
+	// L1 first so that the Supervisor and L2s can connect to it
+	s.beacon, s.l1 = s.prepareL1()
+
 	s.supervisor = s.prepareSupervisor()
 
-	s.beacon, s.l1 = s.prepareL1()
 	s.l2s = s.prepareL2s()
 
 	s.prepareContracts()
@@ -549,7 +554,8 @@ func (s *interopE2ESystem) prepare(t *testing.T, w worldResourcePaths) {
 	// add the L2 RPCs to the supervisor now that the L2s are created
 	ctx := context.Background()
 	for _, l2 := range s.l2s {
-		err := s.SupervisorClient().AddL2RPC(ctx, l2.l2Geth.UserRPC().RPC())
+		rpcEndpoint, secret := l2.opNode.InteropRPC()
+		err := s.SupervisorClient().AddL2RPC(ctx, rpcEndpoint, secret)
 		require.NoError(s.t, err, "failed to add L2 RPC to supervisor")
 	}
 
@@ -769,7 +775,7 @@ func (s *interopE2ESystem) ExecuteMessage(
 	return bind.WaitMined(ctx, s.L2GethClient(id), tx)
 }
 
-func (s *interopE2ESystem) AddDependency(id string, dep *big.Int) *types.Receipt {
+func (s *interopE2ESystem) AddDependency(ctx context.Context, id string, dep *big.Int) *types.Receipt {
 	// There is a note in OPContractsManagerInterop that the proxy-admin is used for now,
 	// even though it should be a separate dependency-set-manager address.
 	secret, err := s.hdWallet.Secret(devkeys.ChainOperatorKey{
@@ -781,7 +787,7 @@ func (s *interopE2ESystem) AddDependency(id string, dep *big.Int) *types.Receipt
 	auth, err := bind.NewKeyedTransactorWithChainID(secret, s.worldOutput.L1.Genesis.Config.ChainID)
 	require.NoError(s.t, err)
 
-	balance, err := s.l1GethClient.BalanceAt(context.Background(), crypto.PubkeyToAddress(secret.PublicKey), nil)
+	balance, err := s.l1GethClient.BalanceAt(ctx, crypto.PubkeyToAddress(secret.PublicKey), nil)
 	require.NoError(s.t, err)
 	require.False(s.t, balance.Sign() == 0, "system config owner needs a balance")
 
@@ -792,7 +798,7 @@ func (s *interopE2ESystem) AddDependency(id string, dep *big.Int) *types.Receipt
 	tx, err := contract.SystemconfigTransactor.AddDependency(auth, dep)
 	require.NoError(s.t, err)
 
-	receipt, err := wait.ForReceiptOK(context.Background(), s.L1GethClient(), tx.Hash())
+	receipt, err := wait.ForReceiptOK(ctx, s.L1GethClient(), tx.Hash())
 	require.NoError(s.t, err)
 	return receipt
 }
@@ -815,6 +821,7 @@ func (s *interopE2ESystem) DeployEmitterContract(
 }
 
 func (s *interopE2ESystem) EmitData(
+	ctx context.Context,
 	id string,
 	sender string,
 	data string,
@@ -830,7 +837,7 @@ func (s *interopE2ESystem) EmitData(
 	contract := s.Contract(id, "emitter").(*emit.Emit)
 	tx, err := contract.EmitTransactor.EmitData(auth, []byte(data))
 	require.NoError(s.t, err)
-	receipt, err := bind.WaitMined(context.Background(), s.L2GethClient(id), tx)
+	receipt, err := bind.WaitMined(ctx, s.L2GethClient(id), tx)
 	require.NoError(s.t, err)
 	return receipt
 }

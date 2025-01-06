@@ -4,10 +4,10 @@ pragma solidity 0.8.15;
 import { Script } from "forge-std/Script.sol";
 import { stdToml } from "forge-std/StdToml.sol";
 
-import { ISuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
-import { IProtocolVersions, ProtocolVersion } from "src/L1/interfaces/IProtocolVersions.sol";
-import { IProxyAdmin } from "src/universal/interfaces/IProxyAdmin.sol";
-import { IProxy } from "src/universal/interfaces/IProxy.sol";
+import { ISuperchainConfig } from "interfaces/L1/ISuperchainConfig.sol";
+import { IProtocolVersions, ProtocolVersion } from "interfaces/L1/IProtocolVersions.sol";
+import { IProxyAdmin } from "interfaces/universal/IProxyAdmin.sol";
+import { IProxy } from "interfaces/universal/IProxy.sol";
 
 import { DeployUtils } from "scripts/libraries/DeployUtils.sol";
 import { Solarray } from "scripts/libraries/Solarray.sol";
@@ -60,9 +60,9 @@ import { BaseDeployIO } from "scripts/deploy/BaseDeployIO.sol";
 // we use variable names that are shorthand for the full contract names, for example:
 //   - `dsi` for DeploySuperchainInput
 //   - `dso` for DeploySuperchainOutput
-//   - `dio` for DeployImplementationsInput
+//   - `dii` for DeployImplementationsInput
 //   - `dio` for DeployImplementationsOutput
-//   - `doo` for DeployOPChainInput
+//   - `doi` for DeployOPChainInput
 //   - `doo` for DeployOPChainOutput
 //   - etc.
 
@@ -239,7 +239,12 @@ contract DeploySuperchainOutput is BaseDeployIO {
     function assertValidSuperchainConfig(DeploySuperchainInput _dsi) internal {
         // Proxy checks.
         ISuperchainConfig superchainConfig = superchainConfigProxy();
-        DeployUtils.assertInitialized({ _contractAddress: address(superchainConfig), _slot: 0, _offset: 0 });
+        DeployUtils.assertInitialized({
+            _contractAddress: address(superchainConfig),
+            _isProxy: true,
+            _slot: 0,
+            _offset: 0
+        });
         require(superchainConfig.guardian() == _dsi.guardian(), "SUPCON-10");
         require(superchainConfig.paused() == _dsi.paused(), "SUPCON-20");
 
@@ -259,7 +264,7 @@ contract DeploySuperchainOutput is BaseDeployIO {
     function assertValidProtocolVersions(DeploySuperchainInput _dsi) internal {
         // Proxy checks.
         IProtocolVersions pv = protocolVersionsProxy();
-        DeployUtils.assertInitialized({ _contractAddress: address(pv), _slot: 0, _offset: 0 });
+        DeployUtils.assertInitialized({ _contractAddress: address(pv), _isProxy: true, _slot: 0, _offset: 0 });
         require(pv.owner() == _dsi.protocolVersionsOwner(), "PV-10");
         require(
             ProtocolVersion.unwrap(pv.required()) == ProtocolVersion.unwrap(_dsi.requiredProtocolVersion()), "PV-20"
@@ -276,7 +281,7 @@ contract DeploySuperchainOutput is BaseDeployIO {
 
         // Implementation checks.
         pv = protocolVersionsImpl();
-        require(pv.owner() == address(0xdead), "PV-60");
+        require(pv.owner() == address(0), "PV-60");
         require(ProtocolVersion.unwrap(pv.required()) == 0, "PV-70");
         require(ProtocolVersion.unwrap(pv.recommended()) == 0, "PV-80");
     }

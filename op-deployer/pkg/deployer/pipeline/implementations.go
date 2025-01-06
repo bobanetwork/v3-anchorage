@@ -4,21 +4,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer/standard"
 	"github.com/ethereum-optimism/optimism/op-service/jsonutil"
 
 	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer/opcm"
+	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer/standard"
 	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer/state"
 )
-
-type SuperchainProofParams struct {
-	WithdrawalDelaySeconds          uint64 `json:"withdrawalDelaySeconds" toml:"withdrawalDelaySeconds"`
-	MinProposalSizeBytes            uint64 `json:"minProposalSizeBytes" toml:"minProposalSizeBytes"`
-	ChallengePeriodSeconds          uint64 `json:"challengePeriodSeconds" toml:"challengePeriodSeconds"`
-	ProofMaturityDelaySeconds       uint64 `json:"proofMaturityDelaySeconds" toml:"proofMaturityDelaySeconds"`
-	DisputeGameFinalityDelaySeconds uint64 `json:"disputeGameFinalityDelaySeconds" toml:"disputeGameFinalityDelaySeconds"`
-	MIPSVersion                     uint64 `json:"mipsVersion" toml:"mipsVersion"`
-}
 
 func DeployImplementations(env *Env, intent *state.Intent, st *state.State) error {
 	lgr := env.Logger.New("stage", "deploy-implementations")
@@ -35,16 +26,18 @@ func DeployImplementations(env *Env, intent *state.Intent, st *state.State) erro
 	var err error
 	if intent.L1ContractsLocator.IsTag() && intent.DeploymentStrategy == state.DeploymentStrategyLive {
 		standardVersionsTOML, err = standard.L1VersionsDataFor(intent.L1ChainID)
-		if err != nil {
-			return fmt.Errorf("error getting standard versions TOML: %w", err)
+		if err == nil {
+			contractsRelease = intent.L1ContractsLocator.Tag
+		} else {
+			contractsRelease = "dev"
 		}
-		contractsRelease = intent.L1ContractsLocator.Tag
+
 	} else {
 		contractsRelease = "dev"
 	}
 
 	proofParams, err := jsonutil.MergeJSON(
-		SuperchainProofParams{
+		state.SuperchainProofParams{
 			WithdrawalDelaySeconds:          standard.WithdrawalDelaySeconds,
 			MinProposalSizeBytes:            standard.MinProposalSizeBytes,
 			ChallengePeriodSeconds:          standard.ChallengePeriodSeconds,
@@ -58,8 +51,6 @@ func DeployImplementations(env *Env, intent *state.Intent, st *state.State) erro
 		return fmt.Errorf("error merging proof params from overrides: %w", err)
 	}
 
-	env.L1ScriptHost.ImportState(st.L1StateDump.Data)
-
 	dio, err := opcm.DeployImplementations(
 		env.L1ScriptHost,
 		opcm.DeployImplementationsInput{
@@ -70,10 +61,9 @@ func DeployImplementations(env *Env, intent *state.Intent, st *state.State) erro
 			ProofMaturityDelaySeconds:       new(big.Int).SetUint64(proofParams.ProofMaturityDelaySeconds),
 			DisputeGameFinalityDelaySeconds: new(big.Int).SetUint64(proofParams.DisputeGameFinalityDelaySeconds),
 			MipsVersion:                     new(big.Int).SetUint64(proofParams.MIPSVersion),
-			Release:                         contractsRelease,
+			L1ContractsRelease:              contractsRelease,
 			SuperchainConfigProxy:           st.SuperchainDeployment.SuperchainConfigProxyAddress,
 			ProtocolVersionsProxy:           st.SuperchainDeployment.ProtocolVersionsProxyAddress,
-			OpcmProxyOwner:                  st.SuperchainDeployment.ProxyAdminAddress,
 			StandardVersionsToml:            standardVersionsTOML,
 			UseInterop:                      intent.UseInterop,
 		},
@@ -83,7 +73,7 @@ func DeployImplementations(env *Env, intent *state.Intent, st *state.State) erro
 	}
 
 	st.ImplementationsDeployment = &state.ImplementationsDeployment{
-		OpcmProxyAddress:                        dio.OpcmProxy,
+		OpcmAddress:                             dio.Opcm,
 		DelayedWETHImplAddress:                  dio.DelayedWETHImpl,
 		OptimismPortalImplAddress:               dio.OptimismPortalImpl,
 		PreimageOracleSingletonAddress:          dio.PreimageOracleSingleton,
