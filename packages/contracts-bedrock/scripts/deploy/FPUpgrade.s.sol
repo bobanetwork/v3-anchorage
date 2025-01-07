@@ -1,36 +1,46 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// Testing
 import { console2 as console } from "forge-std/console2.sol";
 import { stdJson } from "forge-std/StdJson.sol";
+import { AlphabetVM } from "test/mocks/AlphabetVM.sol";
+import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
 
+// Scripts
 import { Deployer } from "scripts/deploy/Deployer.sol";
+import { DeployUtils } from "scripts/libraries/DeployUtils.sol";
+import { ChainAssertions } from "scripts/deploy/ChainAssertions.sol";
 
+// Contracts
+import { Chains } from "scripts/libraries/Chains.sol";
+import { Config } from "scripts/libraries/Config.sol";
 import { Proxy } from "src/universal/Proxy.sol";
 import { ProxyAdmin } from "src/universal/ProxyAdmin.sol";
 import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
 import { OptimismPortal2 } from "src/L1/OptimismPortal2.sol";
 import { DisputeGameFactory } from "src/dispute/DisputeGameFactory.sol";
 import { FaultDisputeGame } from "src/dispute/FaultDisputeGame.sol";
-import { PermissionedDisputeGame } from "src/dispute/PermissionedDisputeGame.sol";
 import { DelayedWETH } from "src/dispute/DelayedWETH.sol";
 import { AnchorStateRegistry } from "src/dispute/AnchorStateRegistry.sol";
 import { PreimageOracle } from "src/cannon/PreimageOracle.sol";
 import { MIPS } from "src/cannon/MIPS.sol";
-import { Chains } from "scripts/libraries/Chains.sol";
 
+// Libraries
+import { Types } from "scripts/libraries/Types.sol";
+import { Duration } from "src/dispute/lib/LibUDT.sol";
+import { GameType, Claim, GameTypes, OutputRoot, Hash } from "src/dispute/lib/Types.sol";
+
+// Interfaces
 import { IDisputeGameFactory } from "interfaces/dispute/IDisputeGameFactory.sol";
+import { IDisputeGame } from "interfaces/dispute/IDisputeGame.sol";
+import { IFaultDisputeGame } from "interfaces/dispute/IFaultDisputeGame.sol";
+import { IDelayedWETH } from "interfaces/dispute/IDelayedWETH.sol";
+import { IAnchorStateRegistry } from "interfaces/dispute/IAnchorStateRegistry.sol";
 import { IPreimageOracle } from "interfaces/cannon/IPreimageOracle.sol";
 import { ISuperchainConfig } from "interfaces/L1/ISuperchainConfig.sol";
-
 import { IBigStepper } from "interfaces/dispute/IBigStepper.sol";
 import { IPreimageOracle } from "interfaces/cannon/IPreimageOracle.sol";
-
-import { AlphabetVM } from "test/mocks/AlphabetVM.sol";
-import "src/dispute/lib/Types.sol";
-import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
-import { ChainAssertions } from "scripts/deploy/ChainAssertions.sol";
-import { Types } from "scripts/libraries/Types.sol";
 
 /// @title Deploy
 /// @notice Script used to upgrade the FP contracts
@@ -84,6 +94,13 @@ contract Deploy is Deployer {
     ////////////////////////////////////////////////////////////////
     //                        Accessors                           //
     ////////////////////////////////////////////////////////////////
+
+    /// @notice The create2 salt used for deployment of the contract implementations.
+    ///         Using this helps to reduce config across networks as the implementation
+    ///         addresses will be the same across networks when deployed with create2.
+    function _implSalt() internal view returns (bytes32) {
+        return keccak256(bytes(Config.implSalt()));
+    }
 
     /// @notice Returns the proxy addresses. If a proxy is not found, it will have address(0).
     function _proxies() internal view returns (Types.ContractSet memory proxies_) {
@@ -149,9 +166,9 @@ contract Deploy is Deployer {
         deployImplementations();
         initializeImplementations();
 
-        setAlphabetFaultGameImplementation({ _allowUpgrade: false });
-        setCannonFaultGameImplementation({ _allowUpgrade: false });
-        setPermissionedCannonFaultGameImplementation({ _allowUpgrade: false });
+        setAlphabetFaultGameImplementation();
+        setFastFaultGameImplementation();
+        setCannonFaultGameImplementation();
 
         transferERC1967Proxy("DisputeGameFactoryProxy");
         transferERC1967Proxy("DelayedWETHProxy");
@@ -424,135 +441,137 @@ contract Deploy is Deployer {
     }
 
     /// @notice Sets the implementation for the `CANNON` game type in the `DisputeGameFactory`
-    function setCannonFaultGameImplementation(bool _allowUpgrade) public broadcast {
+    function setCannonFaultGameImplementation() public broadcast {
         console.log("Setting Cannon FaultDisputeGame implementation");
-        DisputeGameFactory factory = DisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
-        DelayedWETH weth = DelayedWETH(mustGetAddress("DelayedWETHProxy"));
+        IDisputeGameFactory factory = IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
+        IDelayedWETH weth = IDelayedWETH(mustGetAddress("DelayedWETHProxy"));
 
         // Set the Cannon FaultDisputeGame implementation in the factory.
         _setFaultGameImplementation({
             _factory: factory,
-            _allowUpgrade: _allowUpgrade,
-            _params: FaultDisputeGameParams({
-                anchorStateRegistry: AnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
-                weth: weth,
+            _params: IFaultDisputeGame.GameConstructorParams({
                 gameType: GameTypes.CANNON,
                 absolutePrestate: loadMipsAbsolutePrestate(),
-                faultVm: IBigStepper(mustGetAddress("Mips")),
-                maxGameDepth: cfg.faultGameMaxDepth()
-            })
-        });
-    }
-
-    /// @notice Sets the implementation for the `PERMISSIONED_CANNON` game type in the `DisputeGameFactory`
-    function setPermissionedCannonFaultGameImplementation(bool _allowUpgrade) public broadcast {
-        console.log("Setting Cannon PermissionedDisputeGame implementation");
-        DisputeGameFactory factory = DisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
-        DelayedWETH weth = DelayedWETH(mustGetAddress("DelayedWETHProxy"));
-
-        // Set the Cannon FaultDisputeGame implementation in the factory.
-        _setFaultGameImplementation({
-            _factory: factory,
-            _allowUpgrade: _allowUpgrade,
-            _params: FaultDisputeGameParams({
-                anchorStateRegistry: AnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
+                maxGameDepth: cfg.faultGameMaxDepth(),
+                splitDepth: cfg.faultGameSplitDepth(),
+                clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
+                maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
+                vm: IBigStepper(mustGetAddress("Mips")),
                 weth: weth,
-                gameType: GameTypes.PERMISSIONED_CANNON,
-                absolutePrestate: loadMipsAbsolutePrestate(),
-                faultVm: IBigStepper(mustGetAddress("Mips")),
-                maxGameDepth: cfg.faultGameMaxDepth()
+                anchorStateRegistry: IAnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
+                l2ChainId: cfg.l2ChainID()
             })
         });
     }
 
     /// @notice Sets the implementation for the `ALPHABET` game type in the `DisputeGameFactory`
-    function setAlphabetFaultGameImplementation(bool _allowUpgrade) public broadcast {
+    function setAlphabetFaultGameImplementation() public broadcast {
         console.log("Setting Alphabet FaultDisputeGame implementation");
-        DisputeGameFactory factory = DisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
-        DelayedWETH weth = DelayedWETH(mustGetAddress("DelayedWETHProxy"));
+        IDisputeGameFactory factory = IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
+        IDelayedWETH weth = IDelayedWETH(mustGetAddress("DelayedWETHProxy"));
 
         Claim outputAbsolutePrestate = Claim.wrap(bytes32(cfg.faultGameAbsolutePrestate()));
         _setFaultGameImplementation({
             _factory: factory,
-            _allowUpgrade: _allowUpgrade,
-            _params: FaultDisputeGameParams({
-                anchorStateRegistry: AnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
-                weth: weth,
+            _params: IFaultDisputeGame.GameConstructorParams({
                 gameType: GameTypes.ALPHABET,
                 absolutePrestate: outputAbsolutePrestate,
-                faultVm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, IPreimageOracle(mustGetAddress("PreimageOracle")))),
                 // The max depth for the alphabet trace is always 3. Add 1 because split depth is fully inclusive.
-                maxGameDepth: cfg.faultGameSplitDepth() + 3 + 1
+                maxGameDepth: cfg.faultGameSplitDepth() + 3 + 1,
+                splitDepth: cfg.faultGameSplitDepth(),
+                clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
+                maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
+                vm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, IPreimageOracle(mustGetAddress("PreimageOracle")))),
+                weth: weth,
+                anchorStateRegistry: IAnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
+                l2ChainId: cfg.l2ChainID()
+            })
+        });
+    }
+
+    /// @notice Sets the implementation for the `ALPHABET` game type in the `DisputeGameFactory`
+    function setFastFaultGameImplementation() public broadcast {
+        console.log("Setting Fast FaultDisputeGame implementation");
+        IDisputeGameFactory factory = IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
+        IDelayedWETH weth = IDelayedWETH(mustGetAddress("DelayedWETHProxy"));
+
+        Claim outputAbsolutePrestate = Claim.wrap(bytes32(cfg.faultGameAbsolutePrestate()));
+        IPreimageOracle fastOracle = IPreimageOracle(
+            DeployUtils.create2AndSave({
+                _save: this,
+                _salt: _implSalt(),
+                _name: "PreimageOracle",
+                _nick: "FastPreimageOracle",
+                _args: DeployUtils.encodeConstructor(
+                    abi.encodeCall(IPreimageOracle.__constructor__, (cfg.preimageOracleMinProposalSize(), 0))
+                )
+            })
+        );
+        _setFaultGameImplementation({
+            _factory: factory,
+            _params: IFaultDisputeGame.GameConstructorParams({
+                gameType: GameTypes.FAST,
+                absolutePrestate: outputAbsolutePrestate,
+                // The max depth for the alphabet trace is always 3. Add 1 because split depth is fully inclusive.
+                maxGameDepth: cfg.faultGameSplitDepth() + 3 + 1,
+                splitDepth: cfg.faultGameSplitDepth(),
+                clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
+                maxClockDuration: Duration.wrap(0), // Resolvable immediately
+                vm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, fastOracle)),
+                weth: weth,
+                anchorStateRegistry: IAnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
+                l2ChainId: cfg.l2ChainID()
             })
         });
     }
 
     /// @notice Sets the implementation for the given fault game type in the `DisputeGameFactory`.
-    /// TODO: Fix later
     function _setFaultGameImplementation(
-        DisputeGameFactory _factory,
-        bool _allowUpgrade,
-        FaultDisputeGameParams memory _params
+        IDisputeGameFactory _factory,
+        IFaultDisputeGame.GameConstructorParams memory _params
     )
         internal
     {
-        // if (address(_factory.gameImpls(_params.gameType)) != address(0) && !_allowUpgrade) {
-        //     console.log(
-        //         "[WARN] DisputeGameFactoryProxy: `FaultDisputeGame` implementation already set for game type: %s",
-        //         vm.toString(GameType.unwrap(_params.gameType))
-        //     );
-        //     return;
-        // }
+        if (address(_factory.gameImpls(_params.gameType)) != address(0)) {
+            console.log(
+                "[WARN] DisputeGameFactoryProxy: `FaultDisputeGame` implementation already set for game type: %s",
+                vm.toString(GameType.unwrap(_params.gameType))
+            );
+            return;
+        }
 
-        // uint32 rawGameType = GameType.unwrap(_params.gameType);
-        // if (rawGameType != GameTypes.PERMISSIONED_CANNON.raw()) {
-        //     FaultDisputeGame faultDisputeGame = new FaultDisputeGame({
-        //         _gameType: _params.gameType,
-        //         _absolutePrestate: _params.absolutePrestate,
-        //         _maxGameDepth: _params.maxGameDepth,
-        //         _splitDepth: cfg.faultGameSplitDepth(),
-        //         _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
-        //         _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-        //         _vm: _params.faultVm,
-        //         _weth: IDelayedWETH(payable(address(_params.weth))),
-        //         _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
-        //         _l2ChainId: cfg.l2ChainID()
-        //     });
-        //     _factory.setImplementation(_params.gameType, IDisputeGame(address(faultDisputeGame)));
-        // } else {
-        //     PermissionedDisputeGame permissionedDisputeGame = new PermissionedDisputeGame({
-        //         _gameType: _params.gameType,
-        //         _absolutePrestate: _params.absolutePrestate,
-        //         _maxGameDepth: _params.maxGameDepth,
-        //         _splitDepth: cfg.faultGameSplitDepth(),
-        //         _clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
-        //         _maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-        //         _vm: _params.faultVm,
-        //         _weth: IDelayedWETH(payable(address(_params.weth))),
-        //         _anchorStateRegistry: IAnchorStateRegistry(address(_params.anchorStateRegistry)),
-        //         _l2ChainId: cfg.l2ChainID(),
-        //         _proposer: cfg.l2OutputOracleProposer(),
-        //         _challenger: cfg.l2OutputOracleChallenger()
-        //     });
-        //     _factory.setImplementation(_params.gameType, IDisputeGame(address(permissionedDisputeGame)));
-        // }
+        uint32 rawGameType = GameType.unwrap(_params.gameType);
+        require(
+            rawGameType != GameTypes.PERMISSIONED_CANNON.raw(), "Deploy: Permissioned Game should be deployed by OPCM"
+        );
 
-        // string memory gameTypeString;
-        // if (rawGameType == GameTypes.CANNON.raw()) {
-        //     gameTypeString = "Cannon";
-        // } else if (rawGameType == GameTypes.PERMISSIONED_CANNON.raw()) {
-        //     gameTypeString = "PermissionedCannon";
-        // } else if (rawGameType == GameTypes.ALPHABET.raw()) {
-        //     gameTypeString = "Alphabet";
-        // } else {
-        //     gameTypeString = "Unknown";
-        // }
+        _factory.setImplementation(
+            _params.gameType,
+            IDisputeGame(
+                DeployUtils.create2AndSave({
+                    _save: this,
+                    _salt: _implSalt(),
+                    _name: "FaultDisputeGame",
+                    _nick: string.concat("FaultDisputeGame_", vm.toString(rawGameType)),
+                    _args: DeployUtils.encodeConstructor(abi.encodeCall(IFaultDisputeGame.__constructor__, (_params)))
+                })
+            )
+        );
 
-        // console.log(
-        //     "DisputeGameFactoryProxy: set `FaultDisputeGame` implementation (Backend: %s | GameType: %s)",
-        //     gameTypeString,
-        //     vm.toString(rawGameType)
-        // );
+        string memory gameTypeString;
+        if (rawGameType == GameTypes.CANNON.raw()) {
+            gameTypeString = "Cannon";
+        } else if (rawGameType == GameTypes.ALPHABET.raw()) {
+            gameTypeString = "Alphabet";
+        } else {
+            gameTypeString = "Unknown";
+        }
+
+        console.log(
+            "DisputeGameFactoryProxy: set `FaultDisputeGame` implementation (Backend: %s | GameType: %s)",
+            gameTypeString,
+            vm.toString(rawGameType)
+        );
     }
 
     /// @notice Custom error for missing Cannon prestate dump
