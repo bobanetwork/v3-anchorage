@@ -86,7 +86,7 @@ var (
 		MinBaseFeeGwei:            1.0,
 		ResubmissionTimeout:       48 * time.Second,
 		NetworkTimeout:            10 * time.Second,
-		TxSendTimeout:             10 * time.Minute,
+		TxSendTimeout:             0, // Try sending txs indefinitely, to preserve tx ordering for Holocene
 		TxNotInMempoolTimeout:     2 * time.Minute,
 		ReceiptQueryInterval:      12 * time.Second,
 	}
@@ -225,7 +225,7 @@ func CLIFlagsWithDefaults(envPrefix string, defaults DefaultFlagValues) []cli.Fl
 			Usage:   "KMS Region",
 			EnvVars: opservice.PrefixEnvVar(envPrefix, "KMS_REGION"),
 		},
-	}, opsigner.CLIFlags(envPrefix)...)
+	}, opsigner.CLIFlags(envPrefix, "")...)
 }
 
 type CLIConfig struct {

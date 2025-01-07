@@ -8,6 +8,7 @@ require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/andybalholm/brotli v1.1.0
 	github.com/aws/aws-sdk-go v1.55.5
+	github.com/bmatcuk/doublestar/v4 v4.7.1
 	github.com/btcsuite/btcd v0.24.2
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/cockroachdb/pebble v1.1.2
@@ -15,7 +16,7 @@ require (
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/ethereum-optimism/go-ethereum-hdwallet v0.1.3
-	github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20240910145426-b3905c89e8ac
+	github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20241213092551-33a63fce8214
 	github.com/ethereum/go-ethereum v1.14.11
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb
@@ -25,20 +26,21 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/hashicorp/raft v1.7.1
 	github.com/hashicorp/raft-boltdb/v2 v2.3.0
-	github.com/holiman/uint256 v1.3.1
+	github.com/holiman/uint256 v1.3.2
 	github.com/ipfs/go-datastore v0.6.0
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/klauspost/compress v1.17.11
-	github.com/kurtosis-tech/kurtosis/api/golang v1.4.1
+	github.com/kurtosis-tech/kurtosis/api/golang v1.4.3
 	github.com/libp2p/go-libp2p v0.36.2
 	github.com/libp2p/go-libp2p-mplex v0.9.0
 	github.com/libp2p/go-libp2p-pubsub v0.12.0
 	github.com/libp2p/go-libp2p-testing v0.12.0
+	github.com/lmittmann/w3 v0.17.1
 	github.com/mattn/go-isatty v0.0.20
-	github.com/minio/minio-go/v7 v7.0.80
+	github.com/minio/minio-go/v7 v7.0.81
 	github.com/multiformats/go-base32 v0.1.0
 	github.com/multiformats/go-multiaddr v0.14.0
-	github.com/multiformats/go-multiaddr-dns v0.4.0
+	github.com/multiformats/go-multiaddr-dns v0.4.1
 	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.34.1
@@ -46,14 +48,15 @@ require (
 	github.com/pkg/profile v1.7.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/protolambda/ctxlock v0.1.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/welthee/go-ethereum-aws-kms-tx-signer v0.0.0-20211013075913-ca566ae7abeb
 	golang.org/x/crypto v0.28.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
-	golang.org/x/sync v0.8.0
+	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.25.0
 	golang.org/x/time v0.7.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -164,7 +167,7 @@ require (
 	github.com/libp2p/go-yamux/v4 v4.0.1 // indirect
 	github.com/marten-seemann/tcp v0.0.0-20210406111302-dfbc87cc63fd // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/miekg/dns v1.1.62 // indirect
 	github.com/mikioh/tcpinfo v0.0.0-20190314235526-30a79bb1804b // indirect
@@ -218,7 +221,7 @@ require (
 	github.com/quic-go/quic-go v0.46.0 // indirect
 	github.com/quic-go/webtransport-go v0.8.0 // indirect
 	github.com/raulk/go-watchdog v1.3.0 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/cors v1.11.0 // indirect
 	github.com/rs/xid v1.6.0 // indirect
@@ -257,16 +260,15 @@ require (
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-replace github.com/ethereum/go-ethereum v1.14.11 => github.com/ethereum-optimism/op-geth v1.101411.1-rc.6
+replace github.com/ethereum/go-ethereum => github.com/ethereum-optimism/op-geth v1.101411.5-rc.1
 
 //replace github.com/ethereum/go-ethereum => ../go-ethereum
 
-replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20241205210931-5e9b6db19ee3
+replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20250104193005-5eee47ed0ff5
 
 // This release keeps breaking Go builds. Stop that.
 exclude (

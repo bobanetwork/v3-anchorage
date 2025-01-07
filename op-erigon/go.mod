@@ -227,7 +227,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
-	golang.org/x/mod v0.20.0 // indirect
+	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
@@ -254,8 +254,8 @@ require (
 	zombiezen.com/go/sqlite v0.13.1 // indirect
 )
 
-replace github.com/ledgerwatch/erigon-lib => github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20241101155105-7a1fef894377
+replace github.com/ledgerwatch/erigon-lib => github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20250106174309-505e94326c26
 
 replace github.com/tendermint/tendermint => github.com/bnb-chain/tendermint v0.31.12
 
-replace github.com/ledgerwatch/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20241101155105-7a1fef894377
+replace github.com/ledgerwatch/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20250106174309-505e94326c26

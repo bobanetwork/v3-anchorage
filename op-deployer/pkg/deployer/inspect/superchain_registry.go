@@ -28,6 +28,10 @@ func SuperchainRegistryCLI(cliCtx *cli.Context) error {
 		return fmt.Errorf("failed to read intent: %w", err)
 	}
 
+	if err := globalIntent.Check(); err != nil {
+		return fmt.Errorf("intent check failed: %w", err)
+	}
+
 	envVars := map[string]string{}
 	envVars["SCR_CHAIN_NAME"] = ""
 	envVars["SCR_CHAIN_SHORT_NAME"] = ""
@@ -161,7 +165,7 @@ func createAddressList(l1Contracts *L1Contracts, appliedIntent *state.Intent, ch
 
 		// Fault proof contracts
 		AnchorStateRegistryProxy: superchain.Address(l1Contracts.OpChainDeployment.AnchorStateRegistryProxyAddress),
-		DelayedWETHProxy:         superchain.Address(l1Contracts.OpChainDeployment.L1CrossDomainMessengerProxyAddress),
+		DelayedWETHProxy:         superchain.Address(l1Contracts.OpChainDeployment.DelayedWETHPermissionedGameProxyAddress),
 		DisputeGameFactoryProxy:  superchain.Address(l1Contracts.OpChainDeployment.DisputeGameFactoryProxyAddress),
 		FaultDisputeGame:         superchain.Address(l1Contracts.OpChainDeployment.FaultDisputeGameAddress),
 		MIPS:                     superchain.Address(l1Contracts.ImplementationsDeployment.MipsSingletonAddress),

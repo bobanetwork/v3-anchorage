@@ -6,8 +6,10 @@ import "github.com/ethereum/go-ethereum/common"
 // This needs to be kept in sync with @eth-optimism/contracts-ts/wagmi.config.ts which also specifies this
 // To improve robustness and maintainability contracts-bedrock should export all addresses
 const (
-	L2ToL1MessagePasser           = "0x4200000000000000000000000000000000000016"
-	DeployerWhitelist             = "0x4200000000000000000000000000000000000002"
+	L2ToL1MessagePasser = "0x4200000000000000000000000000000000000016"
+	DeployerWhitelist   = "0x4200000000000000000000000000000000000002"
+	OpWETH              = "0x4200000000000000000000000000000000000006"
+	// Boba uses a different WETH address
 	WETH                          = "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000"
 	L2CrossDomainMessenger        = "0x4200000000000000000000000000000000000007"
 	L2StandardBridge              = "0x4200000000000000000000000000000000000010"
@@ -51,6 +53,7 @@ const (
 var (
 	L2ToL1MessagePasserAddr           = common.HexToAddress(L2ToL1MessagePasser)
 	DeployerWhitelistAddr             = common.HexToAddress(DeployerWhitelist)
+	OpWETHAddr                        = common.HexToAddress(OpWETH)
 	WETHAddr                          = common.HexToAddress(WETH)
 	L2CrossDomainMessengerAddr        = common.HexToAddress(L2CrossDomainMessenger)
 	L2StandardBridgeAddr              = common.HexToAddress(L2StandardBridge)
