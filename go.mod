@@ -268,7 +268,7 @@ replace github.com/ethereum/go-ethereum => github.com/ethereum-optimism/op-geth 
 
 //replace github.com/ethereum/go-ethereum => ../go-ethereum
 
-replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20250104193005-5eee47ed0ff5
+replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20250107213715-cb3c5cb83e2e
 
 // This release keeps breaking Go builds. Stop that.
 exclude (

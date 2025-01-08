@@ -219,6 +219,7 @@ var bobaMainnetCfg = rollup.Config{
 	EcotoneTime:             u64Ptr(1713302880),
 	FjordTime:               u64Ptr(1725951600),
 	GraniteTime:             u64Ptr(1729753200),
+	HoloceneTime:            u64Ptr(1738785600),
 	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
 }
 
