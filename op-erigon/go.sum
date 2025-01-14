@@ -167,8 +167,8 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/bits-and-blooms/bitset v1.12.0 h1:U/q1fAF7xXRhFCrhROzIfffYnu+dlS38vCZtmFVPHmA=
 github.com/bits-and-blooms/bitset v1.12.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
-github.com/bobanetwork/op-erigon v1.9.7-0.20250114213955-82134df00b07 h1:ZG6Yy8rdnMVsXHSfoSoGTCMhKfMI9xDSmDBY8ofGuFw=
-github.com/bobanetwork/op-erigon v1.9.7-0.20250114213955-82134df00b07/go.mod h1:vqD2x5W+cjYMXcUzLp4FKRhSKkxDxB0LYmS1d9mbBJQ=
+github.com/bobanetwork/op-erigon v1.9.7-0.20250114222040-d8b7f17b3802 h1:V4EoCn+jvSjPLK8tK7TrpaxgfdOc2K9G+rF7R/2mC4Y=
+github.com/bobanetwork/op-erigon v1.9.7-0.20250114222040-d8b7f17b3802/go.mod h1:3CLvV0Ob6tdgIu3ZFcateMY7jGRQD29V6WLKRXxWy+0=
 github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20250114213955-82134df00b07 h1:S+NS4s5Q5Fd7vN1GXwstP0uIfUZTwxGk6N+unudFJDk=
 github.com/bobanetwork/op-erigon/erigon-lib v0.0.0-20250114213955-82134df00b07/go.mod h1:OpeDRQsLpAU44iBLzAMzm6j50ZoHjrc7PkcCknp3NuQ=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
@@ -868,8 +868,9 @@ github.com/tklauser/go-sysconf v0.3.14/go.mod h1:1ym4lWMLUOhuBOPGtRcJm7tEGX4SCYN
 github.com/tklauser/numcpus v0.8.0 h1:Mx4Wwe/FjZLeQsK/6kt2EOepwwSl7SmJrK5bV/dXYgY=
 github.com/tklauser/numcpus v0.8.0/go.mod h1:ZJZlAY+dmR4eut8epnzf0u/VwodKmryxR8txiloSqBE=
 github.com/ugorji/go v1.1.13/go.mod h1:jxau1n+/wyTGLQoCkjok9r5zFa/FxT6eI5HiHKQszjc=
-github.com/ugorji/go/codec v1.1.13 h1:013LbFhocBoIqgHeIHKlV4JWYhqogATYWZhIcH0WHn4=
 github.com/ugorji/go/codec v1.1.13/go.mod h1:oNVt3Dq+FO91WNQ/9JnHKQP2QJxTzoN7wCBFCq1OeuU=
+github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
+github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/ugorji/go/codec/codecgen v1.1.13 h1:rGpZ4Q63VcWA3DMBbIHvg+SQweUkfXBBa/f9X0W+tFg=
 github.com/ugorji/go/codec/codecgen v1.1.13/go.mod h1:EhCxlc7Crov+HLygD4+hBCitXNrrGKRrRWj+pRsyJGg=
 github.com/urfave/cli v1.22.2/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=

@@ -85,7 +85,7 @@ require (
 	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
-	github.com/ugorji/go/codec v1.1.13 // indirect
+	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/ugorji/go/codec/codecgen v1.1.13 // indirect
 	github.com/urfave/cli/v2 v2.27.2 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
@@ -268,4 +268,4 @@ replace github.com/erigontech/erigon-lib => github.com/bobanetwork/op-erigon/eri
 
 replace github.com/tendermint/tendermint => github.com/bnb-chain/tendermint v0.31.12
 
-replace github.com/erigontech/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20250114213955-82134df00b07
+replace github.com/erigontech/erigon => github.com/bobanetwork/op-erigon v1.9.7-0.20250114222040-d8b7f17b3802
