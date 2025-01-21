@@ -2,7 +2,7 @@
 
 Boba Network shares the same [JSON-RPC API (opens new window)](https://eth.wiki/json-rpc/API) as Ethereum. Some new custom methods have been introduced and some other have been made unsupported for operation.
 
-<figure><img src="../../../assets/debug json rpc methods.png" alt=""><figcaption></figcaption></figure>
+## Debug JSON-RPC Methods
 
 You can use the Tenderly node to debug your transactions.
 
@@ -12,7 +12,7 @@ You can use the Tenderly node to debug your transactions.
 curl https://1rpc.io/boba/eth -X POST --header 'Content-type: application/json' --data '{"jsonrpc":"2.0", "method":"debug_traceTransaction", "params":["0xf97b6fdce473b96d9cb00bb45d8fbfbc2911f383c7d525ec9d84d916cc30d347", {}], "id":1}'
 ```
 
-<figure><img src="../../../assets/custom json rpc methods.png" alt=""><figcaption></figcaption></figure>
+## Custom JSON-RPC Methods
 
 **`eth_getProof`**
 
@@ -100,7 +100,7 @@ curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","metho
 }
 ```
 
-<figure><img src="../../../assets/unspported json rpc methods.png" alt=""><figcaption></figcaption></figure>
+## Unsupported JSON-RPC Methods
 
 **`eth_getAccounts`**
 

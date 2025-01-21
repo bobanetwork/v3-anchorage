@@ -6,9 +6,7 @@ description: Learn how to verify smart contracts on Boba
 
 The Boba Explorers support verifying smart contracts via the [hardhat-etherscan](https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-etherscan#hardhat-etherscan) plug
 
-
-
-<figure><img src="../../.gitbook/assets/verifying contracts with hardhat.png" alt=""><figcaption></figcaption></figure>
+## Verifying Contracts with Hardhat
 
 ### Installation
 

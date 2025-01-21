@@ -10,11 +10,11 @@ There are 4 different mechanisms for following the status of a transaction. In a
 2. A typescript `messenger`
 3. The Boba `watcher-api`
 
-<figure><img src="../../assets/using third party analytics.png" alt=""><figcaption></figcaption></figure>
+## Using Third Party Analytics
 
 Subgraphs have been migrated to [Goldsky](https://docs.goldsky.com/introduction). Please see [subgraph.md](./features/subgraph.md) for more information.
 
-<figure><img src="../../assets/running a messenger.png" alt=""><figcaption></figcaption></figure>
+## Running a Messenger
 
 Internally in all the services and also in the `gateway`, the status of transactions is monitored through a `messenger`. Here is an example for how that is done.
 
@@ -58,7 +58,7 @@ Internally in all the services and also in the `gateway`, the status of transact
   )
 ```
 
-<figure><img src="../../assets/running the boba transaction API.png" alt=""><figcaption></figcaption></figure>
+## Running the Boba Transaction API
 
 The system is [documented here](https://github.com/bobanetwork/boba\_legacy/tree/develop/ops_boba/api/watcher-api). For example, to get L2 transactions between two blocks, use `get.l2.transactions`:
 
