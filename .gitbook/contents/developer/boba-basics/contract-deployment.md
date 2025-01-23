@@ -10,7 +10,7 @@ We'll work through that one in this quick tutorial. The example linked above is 
 
 It's a great starting point for learning how to deploy a contract to Boba. Let's begin.
 
-<figure><img src="../../../assets/step 1.png" alt=""><figcaption></figcaption></figure>
+## Step 1: Compile Your Contracts
 
 Compiling a contract for Boba is identical to compiling a contract for Ethereum mainchain. Notably, all standard solidity compiler versions can be used. For this contract, we will use `0.8.9`.
 
@@ -54,7 +54,7 @@ hardhat compile
 
 Yep, it's that easy. You can verify that everything went well by looking for the `build` directory that contains your new JSON files. Now let's move on to testing!
 
-<figure><img src="../../../assets/step 2.png" alt=""><figcaption></figcaption></figure>
+## Step 2: Test Your Contracts
 
 Woot! It's time to test our contract. Since the JSON RPC provider URL (for Boba Sepolia) has already been specified in your Hardhat config file, all we need to do next is run the test command. Run:
 
@@ -86,7 +86,7 @@ Contract deployed at:  0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 
 If so, congrats! You're ready to deploy an application to Boba. It really is that easy.
 
-<figure><img src="../../../assets/step 3.png" alt=""><figcaption></figcaption></figure>
+## Step 3: Deploy Your Contracts
 
 Now we're going to deploy a contract using `hardhat`.
 
@@ -181,6 +181,6 @@ Summary
 
 That's pretty much it. Contracts deployed! Tutorial complete. Hopefully now you know the basics of working with Boba!
 
-<figure><img src="../../../assets/troubleshooting.png" alt=""><figcaption></figcaption></figure>
+## Troubleshooting
 
 Example project not working? [Create a Github Issue](https://github.com/bobanetwork/boba/issues).

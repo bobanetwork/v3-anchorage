@@ -10,7 +10,7 @@ Below, we provide code snippets for several typical operations on the L2, such a
 
 To see examples of how to perform dozens of basic operations on Boba, you can also look at the react code for the [Boba Gateway](https://github.com/bobanetwork/gateway/blob/main/src/services/networkService.ts).
 
-<figure><img src="../../../assets/check the current gas price.png" alt=""><figcaption></figcaption></figure>
+## Check the Current Gas Price
 
 The Gas Price on L2 changes as part of the chain derivation protocol. The exact derivation is described in the [protocol documentation](https://github.com/ethereum-optimism/specs/blob/298e745a7aa2e0aa78b6f18eb88bf1c484c00c4a/specs/protocol/predeploys.md#gaspriceoracle). Like on Mainnet, the current gas price can be obtained via `.getGasPrice()`:
 
@@ -26,7 +26,7 @@ The Gas Price on L2 changes as part of the chain derivation protocol. The exact 
   //prints: Current gas price: 10000000000
 ```
 
-<figure><img src="../../../assets/estimate the cost of a contract call.png" alt=""><figcaption></figcaption></figure>
+## Estimate the Cost of a Contract Call
 
 Like on Mainnet, the cost of a L2 transaction is the product of the current gas price and the 'complexity' of the contract call, with some calls being much more expensive than others. The contract call complexity is quantified via the `gas`.
 
@@ -69,7 +69,7 @@ NOTE: The gas for a particular transaction depends both on the nature of the cal
 
 NOTE: Unlike on L1, there is no transaction pool.  Although transactions can be ordered based on gas priority, because only the sequencer sees the pending transactions there are generally no opportunities for MEV with respect to transaction ordering.  Thus there is generally no benefit to paying more than the estimated gas fee.
 
-<figure><img src="../../../assets/l2-l2 transfer.png" alt=""><figcaption></figcaption></figure>
+## L2-L2 Transfer
 
 ```javascript
 //Transfer funds from one account to another, on the L2
@@ -113,7 +113,7 @@ async transfer(address, value_Wei_String, currency) {
 }
 ```
 
-<figure><img src="../../../assets/l1-l2 classic bridge operation.png" alt=""><figcaption></figcaption></figure>
+## L1-L2 Classic Bridge Operation
 
 ```javascript
   //Move ERC20 Tokens from L1 to L2
@@ -163,7 +163,7 @@ async transfer(address, value_Wei_String, currency) {
   }
 ```
 
-<figure><img src="../../../assets/accessing latest L1 block number.png" alt=""><figcaption></figcaption></figure>
+## Accessing the Latest L1 Block Number
 
 Information about the L1 is available via the [L1 Block Attributes Predeploy
 Contract](https://github.com/ethereum-optimism/specs/blob/298e745a7aa2e0aa78b6f18eb88bf1c484c00c4a/specs/protocol/deposits.md#l1-attributes-predeployed-contract).  This contract is always updated by the first implicit deposit transaction in every block.

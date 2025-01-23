@@ -10,7 +10,7 @@ The BOBA Token Bridge is composed of two main contracts the [`EthBridge` (opens 
 
 Here we'll go over the basics of using this bridge to move BOBA tokens between Layer 1s.
 
-<figure><img src="../../../../assets/bridge boba tokens from ethereum.png" alt=""><figcaption></figcaption></figure>
+## Bridge Boba Tokens From Ethereum
 
 For normal users, bridging can be accomplished simply via the [Light Bridge](contents/developer/boba-basics/bridge-basics/light-bridge.md).
 
@@ -81,7 +81,7 @@ console.log(`-> Sent ${DEPOSIT_AMOUNT} BOBA tokens to the bridge contract....`);
 
 Example code can be found here: [bridgeFromEthereumToAltL.js](https://github.com/bobanetwork/boba-cross-chain-bridges/blob/main/scripts/bridgeFromEthereumToAltL1.js).
 
-<figure><img src="../../../../assets/bridge boba tokens from alt l1s.png" alt=""><figcaption></figcaption></figure>
+## Bridge Boba Tokens From Ethereum to Alt L1s
 
 For normal users, bridging can be accomplished simply via the [Light Bridge](contents/developer/boba-basics/bridge-basics/light-bridge.md).
 
@@ -150,7 +150,7 @@ await Proxy__AltL1Bridge.depositERC20To(
 console.log(`-> Sent ${DEPOSIT_AMOUNT} BOBA tokens to the bridge contract....`);
 ```
 
-<figure><img src="../../../../assets/links (1).png" alt=""><figcaption></figcaption></figure>
+## Links
 
 ### Mainnet
 

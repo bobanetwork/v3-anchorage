@@ -4,7 +4,7 @@ description: A collection of links and addresses to get started on Boba-Ethereum
 
 # Contract Addresses Boba/Ethereum
 
-<figure><img src="../../../assets/sepolia 28882.png" alt=""><figcaption></figcaption></figure>
+## Sepolia (28882)
 
 For **primary network contracts and addresses** see [packages/contracts-bedrock/deployments/boba-sepolia](https://github.com/bobanetwork/boba/tree/develop/packages/contracts-bedrock/deployments/boba-sepolia)
 
@@ -19,7 +19,7 @@ For **primary network contracts and addresses** see [packages/contracts-bedrock/
 | Websocket      | [wss://wss.sepolia.boba.network](wss://wss.sepolia.boba.network) |
 | Gas Cap        | 50000000                                                     |
 
-<figure><img src="../../../assets/mainnet 288.png" alt=""><figcaption></figcaption></figure>
+## Mainnet (288)
 
 ### Mainnet Addresses
 

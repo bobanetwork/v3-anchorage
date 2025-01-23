@@ -1,6 +1,6 @@
 # Token Addresses
 
-<figure><img src="../../assets/mainnet.png" alt=""><figcaption></figcaption></figure>
+## Mainnet
 
 ### Ethereum <> BOBA L2
 
@@ -40,7 +40,7 @@
 | BUSD  | 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56 | 0x4a2c2838c3907D024916c3f4Fe07832745Ae4bec |
 | USDT  | 0x55d398326f99059fF775485246999027B3197955 | 0x1E633Dcd0d3D349126983D58988051F7c62c543D |
 
-<figure><img src="../../assets/testnet.png" alt=""><figcaption></figcaption></figure>
+## Testnet
 
 ### Ethereum Sepolia <> BOBA L2
 

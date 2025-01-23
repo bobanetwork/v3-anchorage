@@ -5,7 +5,7 @@ Price Feed oracles allow smart contracts to work with external data and open the
 1. Witnet
 2. Hybrid Compute
 
-<figure><img src="../../../assets/witnet price feeds.png" alt=""><figcaption></figcaption></figure>
+## Witnet Price Feeds
 
 The Witnet multichain decentralized oracle enables smart contracts to realize their true potential by giving them access to all sorts of valuable data sets, and by attesting and delivering that information securely thanks to its strong cryptoeconomic guarantees.
 
@@ -90,9 +90,7 @@ For more information about Witnet please refer to:
 
 [website](https://witnet.io/) | [docs](https://docs.witnet.io/) | [github](https://github.com/witnet) | [twitter](https://twitter.com/witnet\_io) | [telegram](https://t.me/witnetio) | [discord](https://discord.gg/witnet)
 
-<figure><img src="../../../assets/hc-under-upgrade.png" alt=""><figcaption></figcaption></figure>
-
-<figure><img src="../../../assets/hybridcompute.png" alt=""><figcaption></figcaption></figure>
+## Hybrid Compute
 
 Hybrid Compute is Boba's off-chain compute system and among many other things you can fetch real-world market price data. Hybrid Compute gives you the flexibility to select and set up your own data source. Or even select and work with any other reliable service that can help provide such data. In the background, Hybrid Compute works with a modified L2Geth, by intercepting and injecting real world responses into the transaction. Learn more about Hybrid Compute [here](hybrid\_compute.md).
 

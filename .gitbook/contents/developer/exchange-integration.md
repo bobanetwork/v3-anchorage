@@ -6,7 +6,7 @@ description: >-
 
 # Exchange Integration
 
-<figure><img src="../../assets/bridging basics.png" alt=""><figcaption></figcaption></figure>
+## Bridging Basics
 
 Although Boba Network is an L2 (and therefore fundamentally connected to Ethereum), it's also a separate blockchain. App developers commonly need to move data and assets between Boba Network and Ethereum. We call the process of moving data and assets between the two networks "bridging".
 
@@ -14,7 +14,7 @@ Although Boba Network is an L2 (and therefore fundamentally connected to Ethereu
 
 For the most common usecase, moving tokens around, we provide the Standard Token Bridge. The Standard Token Bridge is a simple smart contract with all the functionality you need to move tokens between Boba Network and Ethereum . Technical details may be found in the [Optimism documentation](https://docs.optimism.io/builders/app-developers/bridging/standard-bridge).
 
-<figure><img src="../../assets/using the standard token bridge.png" alt=""><figcaption></figcaption></figure>
+## Using the Standard Token Bridge
 
 The standard bridge functionality provides a method for an ERC20 token to be deposited and locked on L1 in exchange of the same amount of an equivalent token on L2. This process is known as "bridging a token", e.g. depositing 100 BOBA on L1 in exchange for 100 BOBA on L2 and also the reverse - withdrawing 100 BOBA on L2 in exchange for the same amount on L1. In addition to bridging tokens the standard bridge is also used for ETH.
 

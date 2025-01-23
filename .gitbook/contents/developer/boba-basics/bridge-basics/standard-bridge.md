@@ -10,7 +10,7 @@ The Standard Bridge is composed of two main contracts the [`L1StandardBridge` (o
 
 Here we'll go over the basics of using this bridge to move ERC20 and ETH assets between Layer 1 and Layer 2.
 
-<figure><img src="../../../../assets/deposits.png" alt=""><figcaption></figcaption></figure>
+## Deposits
 
 > Note: **We currently block smart contract wallets from calling the `depositETH` and `depositERC20` functions for security reasons**. If you want to deposit not using an EOA accounts and you know what are doing, you can use `depositETHTo` and `depositERC20To` functions instead.
 
@@ -91,7 +91,7 @@ const depositToTx = await Proxy__L1StandardBridge.depositETHTo(
 await depositToTx.wait()
 ```
 
-<figure><img src="../../../../assets/withdrawals.png" alt=""><figcaption></figcaption></figure>
+## Withdrawals
 
 ### Withdraw tokens (ERC20s and ETH)
 
@@ -156,7 +156,7 @@ const withdrawToTx = await Proxy__L2StandardBridge.withdrawTo(
 await withdrawToTx.wait()
 ```
 
-<figure><img src="../../../../assets/the boba token list.png" alt=""><figcaption></figcaption></figure>
+## The Boba Token List
 
 The Standard bridge allows a one-to-many mapping between L1 and L2 tokens, meaning that there can be many Boba implementations of an L1 token. However there is always a one-to-one mapping between L1 and L2 tokens in the Boba token list.
 
@@ -165,7 +165,7 @@ The Standard bridge allows a one-to-many mapping between L1 and L2 tokens, meani
 | Mainnet | [Mainnet Boba Token List](../../token-addresses.md#Ethereum <> BOBA L2) |
 | Sepolia | [Sepolia Boba Token List](../../token-addresses.md#Ethereum Sepolia <> BOBA L2) |
 
-<figure><img src="../../../../assets/links.png" alt=""><figcaption></figcaption></figure>
+## Links
 
 ### Mainnet
 
