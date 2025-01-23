@@ -39,7 +39,7 @@ If the address in the `GAS_PAYING_TOKEN_SLOT` slot for `SystemConfig` is `addres
 
 If the gas paying token is configured and the address in the `L2_ETH_TOKEN_SLOT` slot for `SymstemConfig` is `address(0)`, the system is configured to block the ETH deposit and withdrawal. If the address in the `L2_ETH_TOKEN_SLOT` slot for `SystemConfig` is not `address(0)`, the system is configured to allow the ETH deposit and withdrawal.
 
-![Gas Paying Token](../../assets/gasPayingToken.png)
+![Gas Paying Token](../../assets/gas-paying-token.png)
 
 ## Contract Modifications
 
@@ -153,7 +153,7 @@ Users should deposit ETH by calling `depositTransaction` on the `OptimismPortal`
 
 The following diagram shows the control flow for when a user sends `ether`.
 
-![Gas Paying Eth](../../assets/gasPayingEth.png)
+![Gas Paying Eth](../../assets/gas-paying-eth.png)
 
 ## Technical Review
 

@@ -18,8 +18,8 @@ These custom paymasters, as per compatibiltiy with ERC4337 Account Abstraction d
 
 Here, 'Paymaster' can be substituted for 'Boba Deposit Paymaster','Manual Deposit Paymaster' or 'GPO Deposit Paymaster'. The sole distinction between them is the manner in which their priceRatio is adjusted.
 
-![DepositPaymaster](../../assets/BobaDepositPaymaster.jpg)
+![DepositPaymaster](../../assets/boba-deposit-paymaster.png)
 
 ### Boba Verifying Paymaster
 
-![VerifyingPaymaster](../../assets/VerifyingPaymaster.jpg)
+![VerifyingPaymaster](../../assets/verifying-paymaster.png)
