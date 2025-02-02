@@ -10,7 +10,8 @@ description: Frequently asked questions
 
 The complexity of smart contract algorithms can make them expensive and slow to execute at speed. To solve this, Boba has designed a Hybrid Compute architecture that enables smart contracts to trigger much more complex algorithms off-chain (similar to running an app on AWS for example), and then bring the result back into the on-chain smart contract. Hence, the Boba Hybrid compute model runs both on-chain and off-chain.
 
-![HC Technical Details](../assets/hc-tech-details.png)
+![HC Technical Details 1](../assets/Estimate-Gas.png)
+![HC Technical Details 2](../assets/Submit-Operation.png)
 
 Boba is built on the Optimistic Rollup developed by [Optimism](https://optimism.io). Boba chose to build on Optimism because it is essentially a modified version of Ethereum that makes it relatively easy to ensure Ethereum Virtual Machine (EVM) and Solidity compatibility. This minimizes the efforts required to migrate smart contracts from L1 to L2.
 
