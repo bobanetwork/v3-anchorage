@@ -12,6 +12,7 @@ import { ForgeArtifacts, Abi, AbiEntry } from "scripts/libraries/ForgeArtifacts.
 import { OPContractsManager } from "src/L1/OPContractsManager.sol";
 
 // Interfaces
+import { IOptimismPortal } from "interfaces/L1/IOptimismPortal.sol";
 import { IOptimismPortal2 } from "interfaces/L1/IOptimismPortal2.sol";
 import { IOptimismPortalInterop } from "interfaces/L1/IOptimismPortalInterop.sol";
 import { ISystemConfig } from "interfaces/L1/ISystemConfig.sol";
@@ -272,6 +273,35 @@ contract Specification_Test is CommonTest {
             _sel: IOptimismPortalInterop.setConfig.selector,
             _auth: Role.SYSTEMCONFIGOWNER
         });
+
+        // OptimismPortal
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("depositTransaction(address,uint256,uint64,bool,bytes)") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("donateETH()") });
+        _addSpec({
+            _name: "OptimismPortal",
+            _sel: IOptimismPortal.finalizeWithdrawalTransaction.selector,
+            _pausable: true
+        });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("finalizedWithdrawals(bytes32)") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("guardian()") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("initialize(address,address,address)") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("isOutputFinalized(uint256)") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("l2Oracle()") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("l2Sender()") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("minimumGasLimit(uint64)") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("params()") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("paused()") });
+        _addSpec({ _name: "OptimismPortal", _sel: IOptimismPortal.proveWithdrawalTransaction.selector, _pausable: true });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("provenWithdrawals(bytes32)") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("superchainConfig()") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("systemConfig()") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("version()") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("balance()") });
+        _addSpec({
+            _name: "OptimismPortal",
+            _sel: _getSel("depositERC20Transaction(address,uint256,uint256,uint64,bool,bytes)")
+        });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("setGasPayingToken(address,uint8,bytes32,bytes32)") });
 
         // OptimismPortal2
         _addSpec({ _name: "OptimismPortal2", _sel: _getSel("depositTransaction(address,uint256,uint64,bool,bytes)") });
