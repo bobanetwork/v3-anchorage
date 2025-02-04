@@ -153,11 +153,11 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
 
     /// @notice Constructs the OptimismPortal contract.
     constructor() {
-        initialize({
-            _l2Oracle: IL2OutputOracle(address(0)),
-            _systemConfig: ISystemConfig(address(0)),
-            _superchainConfig: ISuperchainConfig(address(0))
-        });
+        l2Oracle = IL2OutputOracle(address(0));
+        systemConfig = ISystemConfig(address(0));
+        superchainConfig = ISuperchainConfig(address(0));
+
+        _disableInitializers();
     }
 
     /// @notice Initializer.
@@ -169,7 +169,7 @@ contract OptimismPortal is Initializable, ResourceMetering, ISemver {
         ISystemConfig _systemConfig,
         ISuperchainConfig _superchainConfig
     )
-        public
+        external
         initializer
     {
         l2Oracle = _l2Oracle;
