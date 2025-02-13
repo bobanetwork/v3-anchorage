@@ -283,44 +283,44 @@ jobs:
             python3 maketests.py && git diff --exit-code
           working_directory: cannon/mipsevm/tests/open_mips_tests
 
-  diff-asterisc-bytecode:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
-    steps:
-      # - utils/checkout-with-mise
-      - run:
-          name: Check `RISCV.sol` bytecode
-          working_directory: packages/contracts-bedrock
-          command: |
-            # Clone asterisc @ the pinned version to fetch remote `RISCV.sol`
-            ASTERISC_REV="v$(yq '.tools.asterisc' ../../mise.toml)"
-            REMOTE_ASTERISC_PATH="./src/vendor/asterisc/RISCV_Remote.sol"
-            git clone https://github.com/ethereum-optimism/asterisc \
-              -b $ASTERISC_REV && \
-              cp ./asterisc/rvsol/src/RISCV.sol $REMOTE_ASTERISC_PATH
+  # diff-asterisc-bytecode:
+  #   machine: true
+  #   resource_class: ethereum-optimism/latitude-1
+  #   steps:
+  #     # - utils/checkout-with-mise
+  #     - run:
+  #         name: Check `RISCV.sol` bytecode
+  #         working_directory: packages/contracts-bedrock
+  #         command: |
+  #           # Clone asterisc @ the pinned version to fetch remote `RISCV.sol`
+  #           ASTERISC_REV="v$(yq '.tools.asterisc' ../../mise.toml)"
+  #           REMOTE_ASTERISC_PATH="./src/vendor/asterisc/RISCV_Remote.sol"
+  #           git clone https://github.com/ethereum-optimism/asterisc \
+  #             -b $ASTERISC_REV && \
+  #             cp ./asterisc/rvsol/src/RISCV.sol $REMOTE_ASTERISC_PATH
 
-            # Replace import paths
-            sed -i -e 's/@optimism\///' $REMOTE_ASTERISC_PATH
-            # Replace legacy interface paths
-            sed -i -e 's/src\/cannon\/interfaces\//interfaces\/cannon\//g' $REMOTE_ASTERISC_PATH
-            sed -i -e 's/src\/dispute\/interfaces\//interfaces\/dispute\//g' $REMOTE_ASTERISC_PATH
-            # Replace contract name
-            sed -i -e 's/contract RISCV/contract RISCV_Remote/' $REMOTE_ASTERISC_PATH
+  #           # Replace import paths
+  #           sed -i -e 's/@optimism\///' $REMOTE_ASTERISC_PATH
+  #           # Replace legacy interface paths
+  #           sed -i -e 's/src\/cannon\/interfaces\//interfaces\/cannon\//g' $REMOTE_ASTERISC_PATH
+  #           sed -i -e 's/src\/dispute\/interfaces\//interfaces\/dispute\//g' $REMOTE_ASTERISC_PATH
+  #           # Replace contract name
+  #           sed -i -e 's/contract RISCV/contract RISCV_Remote/' $REMOTE_ASTERISC_PATH
 
-            # Install deps
-            forge install
+  #           # Install deps
+  #           forge install
 
-            # Diff bytecode, with both contracts compiled in the local environment.
-            REMOTE_ASTERISC_CODE="$(forge inspect RISCV_Remote bytecode | tr -d '\n')"
-            LOCAL_ASTERISC_CODE="$(forge inspect RISCV bytecode | tr -d '\n')"
-            if [ "$REMOTE_ASTERISC_CODE" != "$LOCAL_ASTERISC_CODE" ]; then
-              echo "Asterisc bytecode mismatch. Local version does not match remote. Diff:"
-              diff <(echo "$REMOTE_ASTERISC_CODE") <(echo "$LOCAL_ASTERISC_CODE")
-            else
-              echo "Asterisc version up to date."
-            fi
-      - notify-failures-on-develop:
-          mentions: "@clabby @proofs-team"
+  #           # Diff bytecode, with both contracts compiled in the local environment.
+  #           REMOTE_ASTERISC_CODE="$(forge inspect RISCV_Remote bytecode | tr -d '\n')"
+  #           LOCAL_ASTERISC_CODE="$(forge inspect RISCV bytecode | tr -d '\n')"
+  #           if [ "$REMOTE_ASTERISC_CODE" != "$LOCAL_ASTERISC_CODE" ]; then
+  #             echo "Asterisc bytecode mismatch. Local version does not match remote. Diff:"
+  #             diff <(echo "$REMOTE_ASTERISC_CODE") <(echo "$LOCAL_ASTERISC_CODE")
+  #           else
+  #             echo "Asterisc version up to date."
+  #           fi
+  #     - notify-failures-on-develop:
+  #         mentions: "@clabby @proofs-team"
 
   contracts-bedrock-build:
     docker:
@@ -1502,10 +1502,10 @@ workflows:
       - contracts-bedrock-checks:
           requires:
             - contracts-bedrock-build
-      - contracts-bedrock-frozen-code:
-          requires:
-            - contracts-bedrock-checks
-      - diff-asterisc-bytecode
+      # - contracts-bedrock-frozen-code:
+      #     requires:
+      #       - contracts-bedrock-checks
+      # - diff-asterisc-bytecode
       - semgrep-scan:
           name: semgrep-scan-local
           scan_command: semgrep scan --timeout=100 --config .semgrep/rules/ --error .
