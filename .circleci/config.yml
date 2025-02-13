@@ -265,7 +265,7 @@ jobs:
 
   cannon-build-test-vectors:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: large
     steps:
       # - utils/checkout-with-mise
@@ -373,7 +373,7 @@ jobs:
 
   check-kontrol-build:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
       # - utils/checkout-with-mise
@@ -579,7 +579,7 @@ jobs:
   # Verify newly published images (built on AMD machine) will run on ARM
   check-cross-platform:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: arm.medium
     parameters:
       registry:
@@ -709,7 +709,7 @@ jobs:
   contracts-bedrock-coverage:
     circleci_ip_ranges: true
     docker:
-        - image: <<pipeline.parameters.default_docker_image>>
+        - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     parameters:
       test_flags:
@@ -1057,7 +1057,7 @@ jobs:
 
   sanitize-op-program:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: large
     steps:
       # - utils/checkout-with-mise
@@ -1181,7 +1181,7 @@ jobs:
 
   cannon-prestate:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     steps:
       # - utils/checkout-with-mise
       # - setup_remote_docker
@@ -1241,7 +1241,7 @@ jobs:
 
   preimage-reproducibility:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     steps:
       # - utils/checkout-with-mise
       # - setup_remote_docker
@@ -1251,7 +1251,7 @@ jobs:
 
   cannon-stf-verify:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     steps:
       # - utils/checkout-with-mise
       # - setup_remote_docker
@@ -1310,7 +1310,7 @@ jobs:
 
   bedrock-go-tests: # just a helper, that depends on all the actual test jobs
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: medium
     steps:
       - run: echo Done
@@ -1364,7 +1364,7 @@ jobs:
 
   kontrol-tests:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
       # - utils/checkout-with-mise
