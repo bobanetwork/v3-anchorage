@@ -71,22 +71,44 @@ services:
       - "/bin/sh"
       - "/entrypoint-vc.sh"
 
+  # l2:
+  #   build:
+  #     context: .
+  #     dockerfile: l2-op-geth.Dockerfile
+  #   ports:
+  #     - "9545:8545"
+  #     - "8060:6060"
+  #   volumes:
+  #     - "l2_data:/db"
+  #     - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
+  #     - "${PWD}/test-jwt-secret.txt:/config/jwt-secret.txt"
+  #   entrypoint:  # pass the L2 specific flags by overriding the entry-point and adding extra arguments
+  #     - "/bin/sh"
+  #     - "/entrypoint.sh"
+  #   environment:
+  #     GETH_MINER_RECOMMIT: 100ms
+
   l2:
     build:
-      context: .
-      dockerfile: l2-op-geth.Dockerfile
+      context: ..
+      dockerfile: ops-bedrock/Dockerfile.l2-erigon
+    environment:
+      - CHAIN_NAME=dev
+      - CHAIN_ID=901
+      - VERBOSITY=6
+      - GETH_MINER_RECOMMIT=100ms
     ports:
       - "9545:8545"
       - "8060:6060"
     volumes:
       - "l2_data:/db"
-      - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
-      - "${PWD}/test-jwt-secret.txt:/config/jwt-secret.txt"
+      - "${PWD}/../.devnet/genesis-l2.json:/config/genesis-l2.json"
+      - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
     entrypoint:  # pass the L2 specific flags by overriding the entry-point and adding extra arguments
       - "/bin/sh"
-      - "/entrypoint.sh"
-    environment:
-      GETH_MINER_RECOMMIT: 100ms
+      - "/home/boba/l2-erigon.sh"
+      - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
+
 
   op-node:
     depends_on:
@@ -208,10 +230,18 @@ services:
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
       OP_BATCHER_RPC_ENABLE_ADMIN: "true"
+<<<<<<<< HEAD:ops-bedrock/docker-compose-geth.yml
       OP_BATCHER_BATCH_TYPE: 0
       OP_BATCHER_PLASMA_ENABLED: "${PLASMA_ENABLED}"
       OP_BATCHER_PLASMA_DA_SERVICE: "${PLASMA_DA_SERVICE}"
       OP_BATCHER_PLASMA_DA_SERVER: "http://da-server:3100"
+========
+      OP_BATCHER_BATCH_TYPE: 1
+      OP_BATCHER_ALTDA_ENABLED: "${ALTDA_ENABLED}"
+      OP_BATCHER_ALTDA_DA_SERVICE: "${ALTDA_SERVICE}"
+      OP_BATCHER_ALTDA_DA_SERVER: "http://da-server:3100"
+      OP_BATCHER_DATA_AVAILABILITY_TYPE: "${DA_TYPE}"
+>>>>>>>> develop:ops-bedrock/docker-compose.yml
       # uncomment to use blobs
       # (requires L1 Dencun and L2 Ecotone activation first)
       # OP_BATCHER_DATA_AVAILABILITY_TYPE: blobs

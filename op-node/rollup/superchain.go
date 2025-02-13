@@ -126,5 +126,15 @@ func LoadOPStackRollupConfig(chainID uint64) (*Config, error) {
 		cfg.MaxSequencerDrift = 900
 		cfg.ProtocolVersionsAddress = common.Address{}
 	}
+	if chainID == bobaSepolia {
+		cfg.ProtocolVersionsAddress = common.Address{}
+	}
+	if chainID == bobaMainnet {
+		cfg.ProtocolVersionsAddress = common.Address{}
+	}
+	if chainID == bobaBnbTestnet {
+		cfg.MaxSequencerDrift = 900
+		cfg.ProtocolVersionsAddress = common.Address{}
+	}
 	return cfg, nil
 }
