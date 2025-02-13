@@ -195,7 +195,7 @@ jobs:
         type: integer
         default: 32
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - check-changed:
           patterns: cannon,packages/contracts-bedrock/src/cannon,op-preimage,go.mod
       - attach_workspace:
@@ -268,7 +268,7 @@ jobs:
       - image: <<pipeline.parameters.default_docker_image>>
     resource_class: large
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - check-changed:
           patterns: cannon/mipsevm/tests/open_mips_tests/test
       - run:
@@ -287,7 +287,7 @@ jobs:
     machine: true
     resource_class: ethereum-optimism/latitude-1
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - run:
           name: Check `RISCV.sol` bytecode
           working_directory: packages/contracts-bedrock
@@ -336,7 +336,7 @@ jobs:
         type: string
         default: ci
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - install-contracts-dependencies
       - run:
           name: Print forge version
@@ -376,13 +376,13 @@ jobs:
       - image: <<pipeline.parameters.default_docker_image>>
     resource_class: xlarge
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace: { at: "." }
       - install-contracts-dependencies
       - check-changed:
           patterns: contracts-bedrock
-      - setup_remote_docker:
-          docker_layer_caching: true
+      # - setup_remote_docker:
+          # docker_layer_caching: true
       - run:
           name: Run Kontrol build
           command: just kontrol-summary-full
@@ -429,7 +429,7 @@ jobs:
       resource_class: "<<parameters.resource_class>>"
       docker_layer_caching: true # we rely on this for faster builds, and actively warm it up for builds with common stages
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace:
           at: /tmp/docker_images
       - run:
@@ -599,7 +599,7 @@ jobs:
         type: string
         default: "<<pipeline.git.revision>>"
     steps:
-      - setup_remote_docker
+      # - setup_remote_docker
       - run:
           name: "Verify Image Platform"
           command: |
@@ -646,7 +646,7 @@ jobs:
         type: string
         default: ci
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace: { at: "." }
       - install-contracts-dependencies
       - run:
@@ -725,7 +725,7 @@ jobs:
         type: string
         default: ci
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace: { at: "." }
       - install-contracts-dependencies
       - check-changed:
@@ -783,7 +783,7 @@ jobs:
       - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace: { at: "." }
       - install-contracts-dependencies
       - check-changed:
@@ -848,7 +848,7 @@ jobs:
       - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace: { at: "." }
       - install-contracts-dependencies
       - check-changed:
@@ -889,7 +889,7 @@ jobs:
     machine:
       image: <<pipeline.parameters.base_image>>
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - run:
           name: Install ripgrep
           command: sudo apt-get install -y ripgrep
@@ -914,7 +914,7 @@ jobs:
       - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - check-changed:
           patterns: "<<parameters.package_name>>"
       - attach_workspace:
@@ -944,7 +944,7 @@ jobs:
     docker:
       - image: <<pipeline.parameters.ci_builder_image>>
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - run:
           name: run Go linter
           command: |
@@ -989,7 +989,7 @@ jobs:
     resource_class: xlarge
     parallelism: <<parameters.test_parallelism>>
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace:
           at: "."
       - run:
@@ -1060,7 +1060,7 @@ jobs:
       - image: <<pipeline.parameters.default_docker_image>>
     resource_class: large
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - run:
           name: Install tools
           command: |
@@ -1158,7 +1158,7 @@ jobs:
     machine: true
     resource_class: ethereum-optimism/latitude-1
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - restore_cache:
           name: Restore cannon prestate cache
           key: cannon-prestate-{{ checksum "./cannon/bin/cannon" }}-{{ checksum "op-program/bin/op-program-client.elf" }}
@@ -1183,8 +1183,8 @@ jobs:
     docker:
       - image: <<pipeline.parameters.default_docker_image>>
     steps:
-      - utils/checkout-with-mise
-      - setup_remote_docker
+      # - utils/checkout-with-mise
+      # - setup_remote_docker
       - run:
           name: Build prestates
           command: make reproducible-prestate
@@ -1198,7 +1198,7 @@ jobs:
     machine: true
     resource_class: ethereum-optimism/latitude-1
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - attach_workspace:
           at: "."
       - gcp-cli/install
@@ -1243,8 +1243,8 @@ jobs:
     docker:
       - image: <<pipeline.parameters.default_docker_image>>
     steps:
-      - utils/checkout-with-mise
-      - setup_remote_docker
+      # - utils/checkout-with-mise
+      # - setup_remote_docker
       - run: make -C op-program verify-reproducibility
       - notify-failures-on-develop:
           mentions: "@proofs-team"
@@ -1253,8 +1253,8 @@ jobs:
     docker:
       - image: <<pipeline.parameters.default_docker_image>>
     steps:
-      - utils/checkout-with-mise
-      - setup_remote_docker
+      # - utils/checkout-with-mise
+      # - setup_remote_docker
       - run:
           name: Build cannon
           command: make cannon
@@ -1320,7 +1320,7 @@ jobs:
     docker:
       - image: cimg/go:1.21
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - run:
           name: verify-sepolia
           command: |
@@ -1333,7 +1333,7 @@ jobs:
     machine: true
     resource_class: ethereum-optimism/latitude-1
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - run:
           name: compat-sepolia
           command: |
@@ -1344,7 +1344,7 @@ jobs:
     machine: true
     resource_class: ethereum-optimism/latitude-1
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - check-changed:
           patterns: op-node
       - run:
@@ -1355,7 +1355,7 @@ jobs:
     machine: true
     resource_class: ethereum-optimism/latitude-1
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - check-changed:
           patterns: op-service
       - run:
@@ -1367,13 +1367,13 @@ jobs:
       - image: <<pipeline.parameters.default_docker_image>>
     resource_class: xlarge
     steps:
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - install-contracts-dependencies
       - check-changed:
           no_go_deps: "true"
           patterns: contracts-bedrock/test/kontrol,contracts-bedrock/src/L1/OptimismPortal\.sol,contracts-bedrock/src/L1/OptimismPortal2\.sol,contracts-bedrock/src/L1/L1CrossDomainMessenger\.sol,contracts-bedrock/src/L1/L1ERC721Bridge\.sol,contracts-bedrock/src/L1/L1StandardBridge\.sol,contracts-bedrock/src/L1/ResourceMetering\.sol,contracts-bedrock/src/universal/StandardBridge\.sol,contracts-bedrock/src/universal/ERC721Bridge\.sol,contracts-bedrock/src/universal/CrossDomainMessenger\.sol
-      - setup_remote_docker:
-          docker_layer_caching: true
+      # - setup_remote_docker:
+          # docker_layer_caching: true
       - run:
           name: Run Kontrol Tests
           command: |
@@ -1432,12 +1432,12 @@ jobs:
       - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
-      - setup_remote_docker
+      # - setup_remote_docker
       - gcp-cli/install
       - gcp-oidc-authenticate:
           gcp_cred_config_file_path: /tmp/gcp_cred_config.json
           oidc_token_file_path: /tmp/oidc_token.json
-      - utils/checkout-with-mise
+      # - utils/checkout-with-mise
       - run:
           name: Configure Docker
           command: |
