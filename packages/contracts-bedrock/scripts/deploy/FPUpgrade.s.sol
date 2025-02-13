@@ -213,7 +213,7 @@ contract Deploy is Deployer {
 
         initializeDisputeGameFactory();
         initializeDelayedWETH();
-        Fix later
+        // Fix later
         // initializeAnchorStateRegistry();
     }
 
