@@ -68,30 +68,33 @@ func testSystem4844E2E(t *testing.T, multiBlob bool, daType batcherFlags.DataAva
 		cfg.BatcherMaxL1TxSizeBytes = uint64(maxL1TxSize)
 	}
 
-	// For each test we intentionally block the batcher by submitting an incompatible tx type up
-	// front. This lets us test the ability for the batcher to clear out the incompatible
-	// transaction. The hook used here makes sure we make the jamming call before batch submission
-	// is started, as is required by the function.
-	var jamChan chan error
-	jamCtx, jamCancel := context.WithTimeout(context.Background(), 20*time.Second)
-	action := e2esys.StartOption{
-		Key: "beforeBatcherStart",
-		Action: func(cfg *e2esys.SystemConfig, s *e2esys.System) {
-			driver := s.BatchSubmitter.TestDriver()
-			err := driver.JamTxPool(jamCtx)
-			require.NoError(t, err)
-			jamChan = make(chan error)
-			go func() {
-				jamChan <- driver.WaitOnJammingTx(jamCtx)
-			}()
-		},
-	}
-	defer func() {
-		if jamChan != nil { // only check if we actually got to a successful batcher start
-			jamCancel()
-			require.NoError(t, <-jamChan, "jam tx error")
+	var action e2esys.StartOption
+	if cfg.ExternalL2Shim == "" {
+		// For each test we intentionally block the batcher by submitting an incompatible tx type up
+		// front. This lets us test the ability for the batcher to clear out the incompatible
+		// transaction. The hook used here makes sure we make the jamming call before batch submission
+		// is started, as is required by the function.
+		var jamChan chan error
+		jamCtx, jamCancel := context.WithTimeout(context.Background(), 20*time.Second)
+		action = e2esys.StartOption{
+			Key: "beforeBatcherStart",
+			Action: func(cfg *e2esys.SystemConfig, s *e2esys.System) {
+				driver := s.BatchSubmitter.TestDriver()
+				err := driver.JamTxPool(jamCtx)
+				require.NoError(t, err)
+				jamChan = make(chan error)
+				go func() {
+					jamChan <- driver.WaitOnJammingTx(jamCtx)
+				}()
+			},
 		}
-	}()
+		defer func() {
+			if jamChan != nil { // only check if we actually got to a successful batcher start
+				jamCancel()
+				require.NoError(t, <-jamChan, "jam tx error")
+			}
+		}()
+	}
 
 	cfg.DisableProposer = true // disable L2 output submission for this test
 	sys, err := cfg.Start(t, action)

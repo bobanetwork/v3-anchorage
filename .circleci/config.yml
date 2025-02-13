@@ -1,12 +1,27 @@
 version: 2.1
 
 parameters:
-  default_docker_image:
+  registry:
     type: string
-    default: cimg/base:2024.01
+    default: "us-docker.pkg.dev"
+  ci_builder_image:
+    type: string
+    default: us-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images/ci-builder:v1.5.2
+  repo:
+    type: string
+    default: ${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/images
+  ci_builder_rust_image:
+    type: string
+    default: us-docker.pkg.dev/oplabs-tools-artifacts/images/ci-builder-rust:latest
   base_image:
     type: string
     default: default
+  mainnet_rpc_url:
+    type: string
+    default: ${ETH_RPC_URL}
+  sepolia_rpc_url:
+    type: string
+    default: ${SEPOLIA_RPC_URL}
   # The dispatch parameters are used to manually dispatch pipelines that normally only run post-merge on develop
   # from the CircleCI UI. Example configuration:
   #   when:
@@ -60,9 +75,9 @@ commands:
   gcp-oidc-authenticate:
     description: "Authenticate with GCP using a CircleCI OIDC token."
     parameters:
-      project_id:
+      project_number:
         type: env_var_name
-        default: GCP_PROJECT_ID
+        default: GCP_PROJECT_NUMBER
       workload_identity_pool_id:
         type: env_var_name
         default: GCP_WIP_ID
@@ -86,7 +101,7 @@ commands:
             echo $CIRCLE_OIDC_TOKEN > << parameters.oidc_token_file_path >>
             # Create a credential configuration for the generated OIDC ID Token
             gcloud iam workload-identity-pools create-cred-config \
-                "projects/${<< parameters.project_id >>}/locations/global/workloadIdentityPools/${<< parameters.workload_identity_pool_id >>}/providers/${<< parameters.workload_identity_pool_provider_id >>}"\
+                "projects/${<< parameters.project_number >>}/locations/global/workloadIdentityPools/${<< parameters.workload_identity_pool_id >>}/providers/${<< parameters.workload_identity_pool_provider_id >>}"\
                 --output-file="<< parameters.gcp_cred_config_file_path >>" \
                 --service-account="${<< parameters.service_account_email >>}" \
                 --credential-source-file=<< parameters.oidc_token_file_path >>
@@ -165,8 +180,9 @@ commands:
 
 jobs:
   cannon-go-lint-and-test:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     parameters:
       skip_slow_tests:
         type: boolean
@@ -308,8 +324,8 @@ jobs:
 
   contracts-bedrock-build:
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
-    resource_class: large
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     parameters:
       build_args:
         description: Forge build arguments
@@ -335,6 +351,10 @@ jobs:
           environment:
             FOUNDRY_PROFILE: <<parameters.profile>>
           working_directory: packages/contracts-bedrock
+      - run:
+          name: Generate allocs
+          command: |
+            make devnet-allocs
       - persist_to_workspace:
           root: "."
           paths:
@@ -343,6 +363,12 @@ jobs:
             - "packages/contracts-bedrock/forge-artifacts"
             - "packages/contracts-bedrock/deploy-config/devnetL1.json"
             - "packages/contracts-bedrock/deployments/devnetL1"
+            - ".devnet"
+            - ".devnet-standard"
+            - ".devnet-l2oo"
+            - ".devnet-alt-da"
+            - ".devnet-alt-da-generic"
+            - ".devnet-mt-cannon"
       - notify-failures-on-develop
 
   check-kontrol-build:
@@ -378,14 +404,6 @@ jobs:
         description: "Docker buildx bake target"
         type: string
         default: ""
-      registry:
-        description: Docker registry
-        type: string
-        default: "us-docker.pkg.dev"
-      repo:
-        description: Docker repo
-        type: string
-        default: "oplabs-tools-artifacts/images"
       save_image_tag:
         description: Save docker image with given tag
         type: string
@@ -439,12 +457,13 @@ jobs:
               echo "$DOCKER_HUB_READ_ONLY_TOKEN" | docker login -u "$DOCKER_HUB_READ_ONLY_USER" --password-stdin
             fi
 
-            export REGISTRY="<<parameters.registry>>"
-            export REPOSITORY="<<parameters.repo>>"
+            export REGISTRY="<<pipeline.parameters.registry>>"
+            export REPOSITORY="<< pipeline.parameters.repo >>"
             export IMAGE_TAGS="$(echo -ne "<<parameters.docker_tags>>" | sed "s/[^a-zA-Z0-9\n,]/-/g")"
             export GIT_COMMIT="$(git rev-parse HEAD)"
             export GIT_DATE="$(git show -s --format='%ct')"
             export PLATFORMS="<<parameters.platforms>>"
+            export VERSION="$(echo -ne "<<pipeline.git.tag>>" | sed "s#.*/\(.*\)#\1#")"
 
             echo "Checking git tags pointing at $GIT_COMMIT:"
             tags_at_commit=$(git tag --points-at $GIT_COMMIT)
@@ -477,7 +496,7 @@ jobs:
 
             DOCKER_OUTPUT_DESTINATION=""
             if [ "<<parameters.publish>>" == "true" ]; then
-              gcloud auth configure-docker <<parameters.registry>>
+              gcloud auth configure-docker <<pipeline.parameters.registry>>
               echo "Building for platforms $PLATFORMS and then publishing to registry"
               DOCKER_OUTPUT_DESTINATION="--push"
               if [ "<<parameters.save_image_tag>>" != "" ]; then
@@ -516,7 +535,7 @@ jobs:
             - run:
                 name: Save
                 command: |
-                  IMAGE_NAME="<<parameters.registry>>/<<parameters.repo>>/<<parameters.docker_name>>:<<parameters.save_image_tag>>"
+                  IMAGE_NAME="<<pipeline.parameters.registry>>/<<pipeline.parameters.repo>>/<<parameters.docker_name>>:<<parameters.save_image_tag>>"
                   docker save -o /tmp/docker_images/<<parameters.docker_name>>.tar $IMAGE_NAME
             - persist_to_workspace:
                 root: /tmp/docker_images
@@ -528,36 +547,34 @@ jobs:
             - run:
                 name: Tag
                 command: |
-                  ./ops/scripts/ci-docker-tag-op-stack-release.sh <<parameters.registry>>/<<parameters.repo>> $CIRCLE_TAG $CIRCLE_SHA1
-      - when:
-          condition:
-            or:
-              - and:
-                  - "<<parameters.publish>>"
-                  - "<<parameters.release>>"
-              - and:
-                  - "<<parameters.publish>>"
-                  - equal: [develop, << pipeline.git.branch >>]
-          steps:
-            - gcp-oidc-authenticate:
-                service_account_email: GCP_SERVICE_ATTESTOR_ACCOUNT_EMAIL
-            - run:
-                name: Sign
-                command: |
-                  VER=$(yq '.tools.binary_signer' mise.toml)
-                  wget -O - "https://github.com/ethereum-optimism/binary_signer/archive/refs/tags/v${VER}.tar.gz" | tar xz
-                  cd "binary_signer-${VER}/signer"
+                  ./ops/scripts/ci-docker-tag-op-stack-release.sh <<pipeline.parameters.registry>>/<<pipeline.parameters.repo>> $CIRCLE_TAG $CIRCLE_SHA1
+      # - when:
+      #     condition:
+      #       and:
+      #         - or:
+      #           - "<<parameters.publish>>"
+      #           - "<<parameters.release>>"
+      #         - equal: [develop, << pipeline.git.branch >>]
+      #     steps:
+      #       - gcp-oidc-authenticate:
+      #           service_account_email: GCP_SERVICE_ATTESTOR_ACCOUNT_EMAIL
+      #       - run:
+      #           name: Sign
+      #           command: |
+      #             git clone https://github.com/ethereum-optimism/binary_signer
+      #             cd binary_signer/signer
+      #             git checkout tags/v1.0.3
 
-                  IMAGE_PATH="<<parameters.registry>>/<<parameters.repo>>/<<parameters.docker_name>>:<<pipeline.git.revision>>"
-                  echo $IMAGE_PATH
-                  pip3 install -r requirements.txt
+      #             IMAGE_PATH="<<parameters.registry>>/<<parameters.repo>>/<<parameters.docker_name>>:<<pipeline.git.revision>>"
+      #             echo $IMAGE_PATH
+      #             pip3 install -r requirements.txt
 
-                  python3 ./sign_image.py --command="sign"\
-                      --attestor-project-name="$ATTESTOR_PROJECT_NAME"\
-                      --attestor-name="$ATTESTOR_NAME"\
-                      --image-path="$IMAGE_PATH"\
-                      --signer-logging-level="INFO"\
-                      --attestor-key-id="//cloudkms.googleapis.com/v1/projects/$ATTESTOR_PROJECT_NAME/locations/global/keyRings/$ATTESTOR_NAME-key-ring/cryptoKeys/$ATTESTOR_NAME-key/cryptoKeyVersions/1"
+      #             python3 ./sign_image.py --command="sign"\
+      #                 --attestor-project-name="$ATTESTOR_PROJECT_NAME"\
+      #                 --attestor-name="$ATTESTOR_NAME"\
+      #                 --image-path="$IMAGE_PATH"\
+      #                 --signer-logging-level="INFO"\
+      #                 --attestor-key-id="//cloudkms.googleapis.com/v1/projects/$ATTESTOR_PROJECT_NAME/locations/global/keyRings/$ATTESTOR_NAME-key-ring/cryptoKeys/$ATTESTOR_NAME-key/cryptoKeyVersions/1"
 
   # Verify newly published images (built on AMD machine) will run on ARM
   check-cross-platform:
@@ -604,38 +621,9 @@ jobs:
             docker pull $image_name || exit 1
             docker run $image_name <<parameters.op_component>> --version || exit 1
 
-  contracts-bedrock-frozen-code:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
-    steps:
-      - utils/checkout-with-mise
-      - attach_workspace: { at: "." }
-      - install-contracts-dependencies
-      - check-changed:
-          patterns: contracts-bedrock
-      - run:
-          name: Check if target branch is develop
-          command: |
-            # Get PR number from CIRCLE_PULL_REQUEST
-            PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | rev | cut -d/ -f1 | rev)
-
-            # Use GitHub API to get target branch
-            TARGET_BRANCH=$(curl -s "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${PR_NUMBER}" | jq -r .base.ref)
-
-            # If the target branch is not develop, do not run this check
-            if [ "$TARGET_BRANCH" != "develop" ]; then
-              echo "Target branch is not develop, skipping frozen files check"
-              exit 0
-            fi
-      - run:
-          name: Check frozen files
-          command: just check-frozen-code
-          working_directory: packages/contracts-bedrock
-
   contracts-bedrock-tests:
-    circleci_ip_ranges: true
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     parameters:
       test_list:
@@ -791,10 +779,9 @@ jobs:
       - notify-failures-on-develop
 
   contracts-bedrock-tests-upgrade:
-    circleci_ip_ranges: true
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
-    resource_class: large
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - utils/checkout-with-mise
       - attach_workspace: { at: "." }
@@ -823,13 +810,15 @@ jobs:
           name: Restore forked state
           key: forked-state-contracts-bedrock-tests-upgrade-{{ checksum "packages/contracts-bedrock/pinnedBlockNumber.txt" }}
       - run:
+          name: Set ETH_RPC_URL
+          command: echo 'export ETH_RPC_URL=<<pipeline.parameters.mainnet_rpc_url>>' >> $BASH_ENV
+      - run:
           name: Run tests
           command: just test-upgrade
           environment:
             FOUNDRY_FUZZ_SEED: 42424242
             FOUNDRY_FUZZ_RUNS: 1
             FOUNDRY_PROFILE: ci
-            ETH_RPC_URL: https://ci-mainnet-l1-archive.optimism.io
           working_directory: packages/contracts-bedrock
           no_output_timeout: 15m
       - run:
@@ -839,7 +828,6 @@ jobs:
             FOUNDRY_FUZZ_SEED: 42424242
             FOUNDRY_FUZZ_RUNS: 1
             FOUNDRY_PROFILE: ci
-            ETH_RPC_URL: https://ci-mainnet-l1-archive.optimism.io
           working_directory: packages/contracts-bedrock
           when: on_fail
       - save_cache:
@@ -856,8 +844,9 @@ jobs:
       - notify-failures-on-develop
 
   contracts-bedrock-checks:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - utils/checkout-with-mise
       - attach_workspace: { at: "." }
@@ -922,7 +911,7 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
+      - image: <<pipeline.parameters.ci_builder_image>>
     resource_class: xlarge
     steps:
       - utils/checkout-with-mise
@@ -931,6 +920,11 @@ jobs:
       - attach_workspace:
           at: "."
           if: ${{ uses_artifacts }}
+      - run:
+          name: Install parallel
+          command: |
+            apt-get update
+            apt-get install -y parallel
       - run:
           name: Fuzz
           command: |
@@ -947,8 +941,8 @@ jobs:
           when: always
 
   go-lint:
-    machine: true
-    resource_class: ethereum-optimism/latitude-1
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
     steps:
       - utils/checkout-with-mise
       - run:
@@ -963,6 +957,10 @@ jobs:
         description: Whether to notify on failure
         type: boolean
         default: false
+      test_parallelism:
+        description: Number of test jobs to run in parallel
+        type: integer
+        default: 4
       mentions:
         description: Slack user or group to mention when notifying of failures
         type: string
@@ -986,8 +984,10 @@ jobs:
       packages:
         description: List of packages to test
         type: string
-    machine: true
-    resource_class: <<parameters.resource_class>>
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
+    parallelism: <<parameters.test_parallelism>>
     steps:
       - utils/checkout-with-mise
       - attach_workspace:
@@ -1023,8 +1023,8 @@ jobs:
             export OP_E2E_SKIP_SLOW_TEST=true
             export OP_E2E_USE_HTTP=true
             export ENABLE_ANVIL=true
-            export SEPOLIA_RPC_URL="https://ci-sepolia-l1-archive.optimism.io"
-            export MAINNET_RPC_URL="https://ci-mainnet-l1-archive.optimism.io"
+            export SEPOLIA_RPC_URL=<<pipeline.parameters.sepolia_rpc_url>>
+            export MAINNET_RPC_URL=<<pipeline.parameters.mainnet_rpc_url>>
             export PARALLEL=$(nproc)
             export OP_TESTLOG_FILE_LOGGER_OUTDIR=$(realpath ./tmp/testlogs)
 
@@ -1077,6 +1077,82 @@ jobs:
           command: make sanitize-program GUEST_PROGRAM=../op-program/bin/op-program-client.elf
           working_directory: cannon
 
+  go-e2e-test:
+    parameters:
+      module:
+        description: Go Module Name
+        type: string
+      target:
+        description: The make target to execute
+        type: string
+      parallelism:
+        description: Number of parallel test runs
+        type: integer
+        default: 6
+      notify:
+        description: Whether to notify on failure
+        type: boolean
+        default: false
+      mentions:
+        description: Slack user or group to mention when notifying of failures
+        type: string
+        default: ""
+      resource_class:
+        description: Machine resource class
+        type: string
+        default: ethereum-optimism/latitude-1
+      skip_slow_tests:
+        description: Indicates that slow tests should be skipped
+        type: boolean
+        default: false
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
+    parallelism: <<parameters.parallelism>>
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./tmp/workspace
+      - run:
+          name: Load devnet-allocs and artifacts
+          command: |
+            mkdir -p .devnet
+            cp -r ./tmp/workspace/.devnet* .
+            cp -r ./tmp/workspace/packages/contracts-bedrock/forge-artifacts packages/contracts-bedrock/forge-artifacts
+            cp ./tmp/workspace/packages/contracts-bedrock/deploy-config/devnetL1.json packages/contracts-bedrock/deploy-config/devnetL1.json
+            cp -r ./tmp/workspace/packages/contracts-bedrock/deployments/devnetL1 packages/contracts-bedrock/deployments/devnetL1
+      - run:
+          name: print go's available MIPS targets
+          command: go tool dist list | grep mips
+      - run:
+          name: run tests
+          no_output_timeout: 20m
+          command: |
+            mkdir -p ./tmp/testlogs
+            mkdir -p ./tmp/test-results
+
+            # The below env var gets overridden when running make test-cannon, but we
+            # need to explicitly set it here to prevent Cannon from running when we don't
+            # want it to.
+            export OP_E2E_CANNON_ENABLED="false"
+            export OP_E2E_SKIP_SLOW_TEST=<<parameters.skip_slow_tests>>
+            # Note: We don't use circle CI test splits because we need to split by test name, not by package. There is an additional
+            # constraint that gotestsum does not currently (nor likely will) accept files from different packages when building.
+            JUNIT_FILE=../tmp/test-results/<<parameters.module>>_<<parameters.target>>.xml JSON_LOG_FILE=../tmp/testlogs/test.log make <<parameters.target>>
+          working_directory: <<parameters.module>>
+      - store_artifacts:
+          path: ./tmp/testlogs
+          when: always
+      - store_artifacts:
+          path: ./tmp/test-results
+          when: always
+      - store_test_results:
+          path: ./tmp/test-results
+      - when:
+          condition: "<<parameters.notify>>"
+          steps:
+            - notify-failures-on-develop:
+                mentions: "<<parameters.mentions>>"
 
   cannon-prestate-quick:
     machine: true
@@ -1324,11 +1400,9 @@ jobs:
     steps:
       - gcp-cli/install
       - gcp-oidc-authenticate:
-          gcp_cred_config_file_path: /tmp/gcp_cred_config.json
-          oidc_token_file_path: /tmp/oidc_token.json
-          project_id: GCP_TOOLS_ARTIFACTS_PROJECT_ID
-          service_account_email: GCP_CONTRACTS_PUBLISHER_SERVICE_ACCOUNT_EMAIL
-      - utils/checkout-with-mise
+          gcp_cred_config_file_path: /root/gcp_cred_config.json
+          oidc_token_file_path: /root/oidc_token.json
+      - checkout
       - install-contracts-dependencies
       - run:
           name: Pull artifacts
@@ -1355,8 +1429,8 @@ jobs:
         default: .goreleaser.yaml
         type: string
     docker:
-      - image: <<pipeline.parameters.default_docker_image>>
-    resource_class: large
+      - image: <<pipeline.parameters.ci_builder_image>>
+    resource_class: xlarge
     steps:
       - setup_remote_docker
       - gcp-cli/install
@@ -1492,6 +1566,13 @@ workflows:
             - contracts-bedrock-build
             - cannon-prestate-quick
       - op-program-compat
+      - go-e2e-test:
+          name: op-e2e-ext-erigon-tests
+          module: op-e2e
+          target: test-external-erigon
+          requires:
+            - contracts-bedrock-build
+            - cannon-prestate
       - bedrock-go-tests:
           requires:
             - go-lint

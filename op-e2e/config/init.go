@@ -4,13 +4,18 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
+	"flag"
 	"fmt"
 	"log/slog"
 	"math/big"
 	"os"
 	"path"
+	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/ethereum-optimism/optimism/op-deployer/pkg/deployer"
@@ -28,6 +33,7 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-chain-ops/foundry"
 	"github.com/ethereum-optimism/optimism/op-chain-ops/genesis"
+	"github.com/ethereum-optimism/optimism/op-e2e/external"
 	op_service "github.com/ethereum-optimism/optimism/op-service"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 
@@ -54,6 +60,15 @@ const (
 	AllocTypeMTCannon AllocType = "mt-cannon"
 
 	DefaultAllocType = AllocTypeStandard
+)
+
+var (
+	// ExternalL2Shim is the shim to use if external ethereum client testing is
+	// enabled
+	ExternalL2Shim string
+	// ExternalL2TestParms is additional metadata for executing external L2
+	// tests.
+	ExternalL2TestParms external.TestParms
 )
 
 func (a AllocType) Check() error {
@@ -142,6 +157,8 @@ func DeployConfig(allocType AllocType) *genesis.DeployConfig {
 }
 
 func init() {
+	var externalL2 string
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -149,6 +166,14 @@ func init() {
 	root, err := op_service.FindMonorepoRoot(cwd)
 	if err != nil {
 		panic(err)
+	}
+
+	flag.StringVar(&externalL2, "externalL2", "", "Enable tests with external L2")
+	testing.Init()
+	flag.Parse()
+
+	for _, allocType := range allocTypes {
+		initAllocType(root, allocType)
 	}
 
 	// Setup global logger
@@ -229,6 +254,12 @@ func init() {
 
 	// Use regular level going forward.
 	oplog.SetGlobalLogHandler(handler)
+
+	if externalL2 != "" {
+		if err := initExternalL2(externalL2); err != nil {
+			panic(fmt.Errorf("could not initialize external L2: %w", err))
+		}
+	}
 }
 
 func initAllocType(root string, allocType AllocType) {
@@ -554,4 +585,52 @@ func cannonPrestate(monorepoRoot string, allocType AllocType) common.Hash {
 	})
 
 	return *cacheVar
+}
+
+func initExternalL2(externalL2 string) error {
+	var err error
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("could not get current working directory: %w", err)
+	}
+
+	const target = "op-e2e"
+	index := strings.Index(workingDir, target)
+	if index == -1 {
+		return fmt.Errorf("target '%s' not found in path", target)
+	}
+
+	subPath := workingDir[index+len(target):]
+	count := strings.Count(subPath, "/")
+	path := strings.Repeat("../", count)
+
+	ExternalL2Shim, err = filepath.Abs(filepath.Join(path, externalL2, "shim"))
+	if err != nil {
+		return fmt.Errorf("could not compute abs of externalL2Nodes shim: %w", err)
+	}
+
+	_, err = os.Stat(ExternalL2Shim)
+	if err != nil {
+		return fmt.Errorf("failed to stat externalL2Nodes path: %w", err)
+	}
+
+	paraPath, err := filepath.Abs(filepath.Join(path, externalL2, "test_parms.json"))
+	if err != nil {
+		return fmt.Errorf("could not compute abs of externalL2Nodes test parms: %w", err)
+	}
+
+	file, err := os.Open(paraPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("could not open external L2 test parms: %w", err)
+	}
+	defer file.Close()
+
+	if err := json.NewDecoder(file).Decode(&ExternalL2TestParms); err != nil {
+		return fmt.Errorf("could not decode external L2 test parms: %w", err)
+	}
+
+	return nil
 }

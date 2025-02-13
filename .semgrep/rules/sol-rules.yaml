@@ -38,6 +38,7 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/test/dispute/WETH98.t.sol
+        - packages/contracts-bedrock/test/dispute/PermissionedDisputeGame.t.sol
 
   - id: sol-safety-natspec-semver-match
     languages: [generic]
@@ -91,6 +92,10 @@ rules:
         - packages/contracts-bedrock/src/universal/WETH98.sol
         - packages/contracts-bedrock/src/L2/SuperchainWETH.sol
         - packages/contracts-bedrock/src/governance/GovernanceToken.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-return-arg-fmt
     languages: [solidity]
@@ -105,6 +110,12 @@ rules:
         - packages/contracts-bedrock/test/safe-tools
         - packages/contracts-bedrock/scripts/libraries/Solarray.sol
         - packages/contracts-bedrock/scripts/interfaces/IGnosisSafe.sol
+        - packages/contracts-bedrock/src/dispute/interfaces/IPermissionedDisputeGame.sol
+        - packages/contracts-bedrock/src/dispute/interfaces/IFaultDisputeGame.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-doc-comment
     languages: [solidity]
@@ -114,6 +125,10 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/test/safe-tools/CompatibilityFallbackHandler_1_3_0.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-malformed-require
     languages: [solidity]
@@ -135,6 +150,10 @@ rules:
         - packages/contracts-bedrock/src/cannon/MIPS2.sol
         - packages/contracts-bedrock/src/cannon/libraries/MIPSMemory.sol
         - packages/contracts-bedrock/src/cannon/libraries/MIPSInstructions.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
 
   - id: sol-style-malformed-revert
     languages: [solidity]
@@ -151,6 +170,7 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/src/cannon/libraries/MIPSInstructions.sol
+        - packages/contracts-bedrock/lib/openzeppelin-contracts-patched/**/*.sol
 
   - id: sol-style-use-abi-encodecall
     languages: [solidity]
@@ -168,6 +188,7 @@ rules:
         - packages/contracts-bedrock/src/L1/OPContractsManager.sol
         - packages/contracts-bedrock/src/L1/OPContractsManagerInterop.sol
         - packages/contracts-bedrock/src/legacy/L1ChugSplashProxy.sol
+        - packages/contracts-bedrock/lib/openzeppelin-contracts-patched/**/*.sol
 
   - id: sol-style-enforce-require-msg
     languages: [solidity]
@@ -179,6 +200,10 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/src/universal/WETH98.sol
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/lib/openzeppelin-contracts-patched/**/*.sol
+        - packages/contracts-bedrock/scripts/deploy/FPUpgrade.s.sol
+        - packages/contracts-bedrock/src/dispute/PermissionedDisputeGame.sol
 
   - id: sol-style-no-bare-imports
     languages: [solidity]
@@ -188,6 +213,12 @@ rules:
     paths:
       exclude:
         - packages/contracts-bedrock/test
+        - packages/contracts-bedrock/src/cannon/libraries/MIPSInstructions.sol
+        - packages/contracts-bedrock/lib
+        - packages/contracts-bedrock/src/boba/WETH9.sol
+        - packages/contracts-bedrock/src/boba/BOBA.sol
+        - packages/contracts-bedrock/src/boba/L2GovernanceERC20.sol
+        - packages/contracts-bedrock/scripts/deploy/FPUpgrade.s.sol
 
   - id: sol-safety-use-disable-initializer
     languages: [solidity]

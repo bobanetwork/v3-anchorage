@@ -19,7 +19,14 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/retry"
 )
 
-var httpRegex = regexp.MustCompile("^http(s)?://")
+var (
+	httpRegex = regexp.MustCompile("^http(s)?://")
+)
+
+type BaseRPCTimeout struct {
+	RPCTimeout      time.Duration
+	RPCBatchTimeout time.Duration
+}
 
 type RPC interface {
 	Close()
@@ -113,7 +120,17 @@ func NewRPC(ctx context.Context, lgr log.Logger, addr string, opts ...RPCOption)
 		if err != nil {
 			return nil, err
 		}
-		wrapped = wrapClient(underlying, cfg)
+
+		baseRPCClient := &BaseRPCClient{c: underlying, CallTimeout: 10 * time.Second, BatchCallTimeout: 20 * time.Second}
+
+		if cfg.callTimeout != time.Duration(0) {
+			baseRPCClient.CallTimeout = cfg.callTimeout
+		}
+		if cfg.batchCallTimeout != time.Duration(0) {
+			baseRPCClient.BatchCallTimeout = cfg.batchCallTimeout
+		}
+
+		wrapped = baseRPCClient
 	}
 
 	return NewRPCWithClient(ctx, lgr, addr, wrapped, cfg.httpPollInterval)
@@ -199,8 +216,8 @@ func IsURLAvailable(ctx context.Context, address string) bool {
 // It sets a default timeout of 10s on CallContext & 20s on BatchCallContext made through it.
 type BaseRPCClient struct {
 	c                *rpc.Client
-	batchCallTimeout time.Duration
-	callTimeout      time.Duration
+	BatchCallTimeout time.Duration
+	CallTimeout      time.Duration
 }
 
 func NewBaseRPCClient(c *rpc.Client, opts ...RPCOption) RPC {
@@ -210,7 +227,16 @@ func NewBaseRPCClient(c *rpc.Client, opts ...RPCOption) RPC {
 
 func wrapClient(c *rpc.Client, cfg rpcConfig) RPC {
 	var wrapped RPC
-	wrapped = &BaseRPCClient{c: c, callTimeout: cfg.callTimeout, batchCallTimeout: cfg.batchCallTimeout}
+	baseRPCClient := &BaseRPCClient{c: c, CallTimeout: 10 * time.Second, BatchCallTimeout: 20 * time.Second}
+
+	if cfg.callTimeout != time.Duration(0) {
+		baseRPCClient.CallTimeout = cfg.callTimeout
+	}
+	if cfg.batchCallTimeout != time.Duration(0) {
+		baseRPCClient.BatchCallTimeout = cfg.batchCallTimeout
+	}
+
+	wrapped = baseRPCClient
 
 	if cfg.limit != 0 {
 		wrapped = NewRateLimitingClient(wrapped, rate.Limit(cfg.limit), cfg.burst)
@@ -223,13 +249,13 @@ func (b *BaseRPCClient) Close() {
 }
 
 func (b *BaseRPCClient) CallContext(ctx context.Context, result any, method string, args ...any) error {
-	cCtx, cancel := context.WithTimeout(ctx, b.callTimeout)
+	cCtx, cancel := context.WithTimeout(ctx, b.CallTimeout)
 	defer cancel()
 	return b.c.CallContext(cCtx, result, method, args...)
 }
 
 func (b *BaseRPCClient) BatchCallContext(ctx context.Context, batch []rpc.BatchElem) error {
-	cCtx, cancel := context.WithTimeout(ctx, b.batchCallTimeout)
+	cCtx, cancel := context.WithTimeout(ctx, b.BatchCallTimeout)
 	defer cancel()
 	return b.c.BatchCallContext(cCtx, batch)
 }

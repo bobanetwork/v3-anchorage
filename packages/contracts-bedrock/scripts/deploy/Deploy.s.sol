@@ -24,6 +24,12 @@ import {
     DeployImplementationsOutput
 } from "scripts/deploy/DeployImplementations.s.sol";
 
+// Contracts
+import { OPContractsManager } from "src/L1/OPContractsManager.sol";
+import { Chains } from "scripts/libraries/Chains.sol";
+import { Config } from "scripts/libraries/Config.sol";
+import { BOBA } from "src/boba/BOBA.sol";
+
 // Libraries
 import { Constants } from "src/libraries/Constants.sol";
 import { Types } from "scripts/libraries/Types.sol";
@@ -219,6 +225,8 @@ contract Deploy is Deployer {
         }
 
         transferProxyAdminOwnership();
+
+        deployBOBA();
         console.log("set up op chain!");
     }
 
@@ -413,6 +421,23 @@ contract Deploy is Deployer {
         deployDataAvailabilityChallengeProxy();
         deployDataAvailabilityChallenge();
         initializeDataAvailabilityChallenge();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    //              Non-Proxied Deployment Functions              //
+    ////////////////////////////////////////////////////////////////
+
+    /// @notice Deploy the BOBA
+    function deployBOBA() public broadcast returns (address addr_) {
+        BOBA bobaToken = new BOBA();
+
+        save("BOBA", address(bobaToken));
+        console.log("BOBA deployed at %s", address(bobaToken));
+
+        addr_ = address(bobaToken);
+
+        address owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+        bobaToken.transfer(owner, 10000e18);
     }
 
     ////////////////////////////////////////////////////////////////

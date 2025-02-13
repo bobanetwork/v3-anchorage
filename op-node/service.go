@@ -23,6 +23,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/rollup/interop"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/sync"
 	opflags "github.com/ethereum-optimism/optimism/op-service/flags"
+	"github.com/ethereum-optimism/optimism/op-service/httputil"
 	"github.com/ethereum-optimism/optimism/op-service/oppprof"
 	"github.com/ethereum-optimism/optimism/op-service/rpc"
 	"github.com/ethereum-optimism/optimism/op-service/sources"
@@ -89,8 +90,14 @@ func NewConfig(ctx *cli.Context, log log.Logger) (*node.Config, error) {
 		Beacon:        NewBeaconEndpointConfig(ctx),
 		InteropConfig: NewSupervisorEndpointConfig(ctx),
 		RPC: node.RPCConfig{
-			ListenAddr:  ctx.String(flags.RPCListenAddr.Name),
-			ListenPort:  ctx.Int(flags.RPCListenPort.Name),
+			ListenAddr: ctx.String(flags.RPCListenAddr.Name),
+			ListenPort: ctx.Int(flags.RPCListenPort.Name),
+			ListenTimeout: &httputil.HTTPTimeouts{
+				ReadTimeout:       ctx.Duration(flags.RPCListenReadTimeout.Name),
+				ReadHeaderTimeout: ctx.Duration(flags.RPCListenReadHeaderTimeout.Name),
+				WriteTimeout:      ctx.Duration(flags.RPCListenWriteTimeout.Name),
+				IdleTimeout:       ctx.Duration(flags.RPCListenIdleTimeout.Name),
+			},
 			EnableAdmin: ctx.Bool(flags.RPCEnableAdmin.Name),
 		},
 		Metrics: node.MetricsConfig{
@@ -176,6 +183,8 @@ func NewL2EndpointConfig(ctx *cli.Context, logger log.Logger) (*node.L2EndpointC
 		L2EngineAddr:        l2Addr,
 		L2EngineJWTSecret:   secret,
 		L2EngineCallTimeout: l2RpcTimeout,
+		L2RpcTimeout:        ctx.Duration(flags.L2RpcTimeout.Name),
+		L2RpcBatchTimeout:   ctx.Duration(flags.L2RpcBatchTimeout.Name),
 	}, nil
 }
 

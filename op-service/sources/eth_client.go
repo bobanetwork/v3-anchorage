@@ -346,6 +346,7 @@ func (s *EthClient) ExecutionWitness(ctx context.Context, blockNum uint64) (*eth
 func (s *EthClient) GetProof(ctx context.Context, address common.Address, storage []common.Hash, blockTag string) (*eth.AccountResult, error) {
 	var getProofResponse *eth.AccountResult
 	err := s.client.CallContext(ctx, &getProofResponse, "eth_getProof", address, storage, blockTag)
+	s.log.Debug("eth_client GetProof", "err", err, "address", address, "blockTag", blockTag, "Response", getProofResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +366,7 @@ func (s *EthClient) GetProof(ctx context.Context, address common.Address, storag
 
 // GetStorageAt returns the storage value at the given address and storage slot, **without verifying the correctness of the result**.
 // This should only ever be used as alternative to GetProof when the user opts in.
-// E.g. Erigon L1 node users may have to use this, since Erigon does not support eth_getProof, see https://github.com/ledgerwatch/erigon/issues/1349
+// E.g. Erigon L1 node users may have to use this, since Erigon does not support eth_getProof, see https://github.com/erigontech/erigon/issues/1349
 func (s *EthClient) GetStorageAt(ctx context.Context, address common.Address, storageSlot common.Hash, blockTag string) (common.Hash, error) {
 	var out common.Hash
 	err := s.client.CallContext(ctx, &out, "eth_getStorageAt", address, storageSlot, blockTag)
