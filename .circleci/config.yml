@@ -1569,7 +1569,7 @@ workflows:
           target: test-external-erigon
           requires:
             - contracts-bedrock-build
-            - cannon-prestate
+            - cannon-prestate-quick
       - bedrock-go-tests:
           requires:
             - go-lint
