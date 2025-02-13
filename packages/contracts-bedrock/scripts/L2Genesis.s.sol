@@ -107,7 +107,7 @@ contract L2Genesis is Deployer {
             l1CrossDomainMessengerProxy: artifacts.mustGetAddress("L1CrossDomainMessengerProxy"),
             l1StandardBridgeProxy: artifacts.mustGetAddress("L1StandardBridgeProxy"),
             l1ERC721BridgeProxy: artifacts.mustGetAddress("L1ERC721BridgeProxy"),
-            l1BobaToken: mustGetAddress("BOBA")
+            l1BobaToken: artifacts.mustGetAddress("BOBA")
         });
     }
 

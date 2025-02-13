@@ -431,7 +431,7 @@ contract Deploy is Deployer {
     function deployBOBA() public broadcast returns (address addr_) {
         BOBA bobaToken = new BOBA();
 
-        save("BOBA", address(bobaToken));
+        artifacts.save("BOBA", address(bobaToken));
         console.log("BOBA deployed at %s", address(bobaToken));
 
         addr_ = address(bobaToken);

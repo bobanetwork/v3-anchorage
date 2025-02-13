@@ -105,38 +105,38 @@ contract Deploy is Deployer {
     /// @notice Returns the proxy addresses. If a proxy is not found, it will have address(0).
     function _proxies() internal view returns (Types.ContractSet memory proxies_) {
         proxies_ = Types.ContractSet({
-            L1CrossDomainMessenger: mustGetAddress("L1CrossDomainMessengerProxy"),
-            L1StandardBridge: mustGetAddress("L1StandardBridgeProxy"),
-            L2OutputOracle: mustGetAddress("L2OutputOracleProxy"),
-            DisputeGameFactory: mustGetAddress("DisputeGameFactoryProxy"),
-            PermissionedDelayedWETH: getAddress("PermissionedDelayedWETHProxy"),
-            DelayedWETH: mustGetAddress("DelayedWETHProxy"),
-            AnchorStateRegistry: mustGetAddress("AnchorStateRegistryProxy"),
-            OptimismMintableERC20Factory: mustGetAddress("OptimismMintableERC20FactoryProxy"),
-            OptimismPortal: mustGetAddress("OptimismPortalProxy"),
-            SystemConfig: mustGetAddress("SystemConfigProxy"),
-            L1ERC721Bridge: mustGetAddress("L1ERC721BridgeProxy"),
-            ProtocolVersions: mustGetAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: mustGetAddress("SuperchainConfigProxy")
+            L1CrossDomainMessenger: artifacts.mustGetAddress("L1CrossDomainMessengerProxy"),
+            L1StandardBridge: artifacts.mustGetAddress("L1StandardBridgeProxy"),
+            L2OutputOracle: artifacts.mustGetAddress("L2OutputOracleProxy"),
+            DisputeGameFactory: artifacts.mustGetAddress("DisputeGameFactoryProxy"),
+            PermissionedDelayedWETH: artifacts.getAddress("PermissionedDelayedWETHProxy"),
+            DelayedWETH: artifacts.mustGetAddress("DelayedWETHProxy"),
+            AnchorStateRegistry: artifacts.mustGetAddress("AnchorStateRegistryProxy"),
+            OptimismMintableERC20Factory: artifacts.mustGetAddress("OptimismMintableERC20FactoryProxy"),
+            OptimismPortal: artifacts.mustGetAddress("OptimismPortalProxy"),
+            SystemConfig: artifacts.mustGetAddress("SystemConfigProxy"),
+            L1ERC721Bridge: artifacts.mustGetAddress("L1ERC721BridgeProxy"),
+            ProtocolVersions: artifacts.mustGetAddress("ProtocolVersionsProxy"),
+            SuperchainConfig: artifacts.mustGetAddress("SuperchainConfigProxy")
         });
     }
 
     /// @notice Returns the proxy addresses, not reverting if any are unset.
     function _proxiesUnstrict() internal view returns (Types.ContractSet memory proxies_) {
         proxies_ = Types.ContractSet({
-            L1CrossDomainMessenger: getAddress("L1CrossDomainMessengerProxy"),
-            L1StandardBridge: getAddress("L1StandardBridgeProxy"),
-            L2OutputOracle: getAddress("L2OutputOracleProxy"),
-            DisputeGameFactory: getAddress("DisputeGameFactoryProxy"),
-            DelayedWETH: getAddress("DelayedWETHProxy"),
-            PermissionedDelayedWETH: getAddress("PermissionedDelayedWETHProxy"),
-            AnchorStateRegistry: getAddress("AnchorStateRegistryProxy"),
-            OptimismMintableERC20Factory: getAddress("OptimismMintableERC20FactoryProxy"),
-            OptimismPortal: getAddress("OptimismPortalProxy"),
-            SystemConfig: getAddress("SystemConfigProxy"),
-            L1ERC721Bridge: getAddress("L1ERC721BridgeProxy"),
-            ProtocolVersions: getAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: getAddress("SuperchainConfigProxy")
+            L1CrossDomainMessenger: artifacts.getAddress("L1CrossDomainMessengerProxy"),
+            L1StandardBridge: artifacts.getAddress("L1StandardBridgeProxy"),
+            L2OutputOracle: artifacts.getAddress("L2OutputOracleProxy"),
+            DisputeGameFactory: artifacts.getAddress("DisputeGameFactoryProxy"),
+            DelayedWETH: artifacts.getAddress("DelayedWETHProxy"),
+            PermissionedDelayedWETH: artifacts.getAddress("PermissionedDelayedWETHProxy"),
+            AnchorStateRegistry: artifacts.getAddress("AnchorStateRegistryProxy"),
+            OptimismMintableERC20Factory: artifacts.getAddress("OptimismMintableERC20FactoryProxy"),
+            OptimismPortal: artifacts.getAddress("OptimismPortalProxy"),
+            SystemConfig: artifacts.getAddress("SystemConfigProxy"),
+            L1ERC721Bridge: artifacts.getAddress("L1ERC721BridgeProxy"),
+            ProtocolVersions: artifacts.getAddress("ProtocolVersionsProxy"),
+            SuperchainConfig: artifacts.getAddress("SuperchainConfigProxy")
         });
     }
 
@@ -200,7 +200,8 @@ contract Deploy is Deployer {
         deployDelayedWETH();
         deployPreimageOracle();
         deployMips();
-        deployAnchorStateRegistry();
+        // Fix later
+        // deployAnchorStateRegistry();
     }
 
     /// @notice Initialize all of the implementations
@@ -212,17 +213,18 @@ contract Deploy is Deployer {
 
         initializeDisputeGameFactory();
         initializeDelayedWETH();
-        initializeAnchorStateRegistry();
+        Fix later
+        // initializeAnchorStateRegistry();
     }
 
     /// @notice Transfer the ERC1967Proxy ownership to the ProxyAdmin
     function transferERC1967Proxy(string memory _name) public {
         address proxyAdmin = readProxyAddress("ProxyAdmin");
         require(proxyAdmin != address(0), "Deploy: ProxyAdmin address not found");
-        EIP1967Helper.setAdmin(mustGetAddress(_name), proxyAdmin);
+        EIP1967Helper.setAdmin(artifacts.mustGetAddress(_name), proxyAdmin);
 
         // verify the admin
-        require(EIP1967Helper.getAdmin(mustGetAddress(_name)) == proxyAdmin, "Deploy: ProxyAdmin transfer failed");
+        require(EIP1967Helper.getAdmin(artifacts.mustGetAddress(_name)) == proxyAdmin, "Deploy: ProxyAdmin transfer failed");
         console.log("Transferred %s ownership to ProxyAdmin at %s", _name, proxyAdmin);
     }
 
@@ -243,7 +245,7 @@ contract Deploy is Deployer {
 
         require(EIP1967Helper.getAdmin(address(proxy)) == _proxyOwner);
 
-        save(_name, address(proxy));
+        artifacts.save(_name, address(proxy));
         console.log("   at %s", address(proxy));
         addr_ = address(proxy);
     }
@@ -262,7 +264,7 @@ contract Deploy is Deployer {
             _disputeGameFinalityDelaySeconds: cfg.disputeGameFinalityDelaySeconds()
         });
 
-        save("OptimismPortal2", address(portal));
+        artifacts.save("OptimismPortal2", address(portal));
         console.log("OptimismPortal2 deployed at %s", address(portal));
 
         // Override the `OptimismPortal2` contract to the deployed implementation. This is necessary
@@ -279,7 +281,7 @@ contract Deploy is Deployer {
     function deployDisputeGameFactory() public broadcast returns (address addr_) {
         console.log("Deploying DisputeGameFactory implementation");
         DisputeGameFactory factory = new DisputeGameFactory();
-        save("DisputeGameFactory", address(factory));
+        artifacts.save("DisputeGameFactory", address(factory));
         console.log("DisputeGameFactory deployed at %s", address(factory));
 
         // Override the `DisputeGameFactory` contract to the deployed implementation. This is necessary to check the
@@ -294,7 +296,7 @@ contract Deploy is Deployer {
     function deployDelayedWETH() public broadcast returns (address addr_) {
         console.log("Deploying DelayedWETH implementation");
         DelayedWETH weth = new DelayedWETH(cfg.faultGameWithdrawalDelay());
-        save("DelayedWETH", address(weth));
+        artifacts.save("DelayedWETH", address(weth));
         console.log("DelayedWETH deployed at %s", address(weth));
 
         // Override the `DelayedWETH` contract to the deployed implementation. This is necessary
@@ -319,7 +321,7 @@ contract Deploy is Deployer {
             _minProposalSize: cfg.preimageOracleMinProposalSize(),
             _challengePeriod: cfg.preimageOracleChallengePeriod()
         });
-        save("PreimageOracle", address(preimageOracle));
+        artifacts.save("PreimageOracle", address(preimageOracle));
         console.log("PreimageOracle deployed at %s", address(preimageOracle));
 
         addr_ = address(preimageOracle);
@@ -328,29 +330,30 @@ contract Deploy is Deployer {
     /// @notice Deploy Mips
     function deployMips() public broadcast returns (address addr_) {
         console.log("Deploying Mips implementation");
-        MIPS mips = new MIPS(IPreimageOracle(mustGetAddress("PreimageOracle")));
-        save("Mips", address(mips));
+        MIPS mips = new MIPS(IPreimageOracle(artifacts.mustGetAddress("PreimageOracle")));
+        artifacts.save("Mips", address(mips));
         console.log("MIPS deployed at %s", address(mips));
 
         addr_ = address(mips);
     }
 
-    /// @notice Deploy the AnchorStateRegistry
-    function deployAnchorStateRegistry() public broadcast returns (address addr_) {
-        console.log("Deploying AnchorStateRegistry implementation");
-        AnchorStateRegistry anchorStateRegistry =
-            new AnchorStateRegistry(IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy")));
-        save("AnchorStateRegistry", address(anchorStateRegistry));
-        console.log("AnchorStateRegistry deployed at %s", address(anchorStateRegistry));
+    // Fix later
+    // /// @notice Deploy the AnchorStateRegistry
+    // function deployAnchorStateRegistry() public broadcast returns (address addr_) {
+    //     console.log("Deploying AnchorStateRegistry implementation");
+    //     AnchorStateRegistry anchorStateRegistry =
+    //         new AnchorStateRegistry(IDisputeGameFactory(artifacts.mustGetAddress("DisputeGameFactoryProxy")));
+    //     artifacts.save("AnchorStateRegistry", address(anchorStateRegistry));
+    //     console.log("AnchorStateRegistry deployed at %s", address(anchorStateRegistry));
 
-        addr_ = address(anchorStateRegistry);
-    }
+    //     addr_ = address(anchorStateRegistry);
+    // }
 
     /// @notice Initialize the DisputeGameFactory
     function initializeDisputeGameFactory() public broadcast {
         console.log("Upgrading and initializing DisputeGameFactory proxy");
-        address disputeGameFactoryProxy = mustGetAddress("DisputeGameFactoryProxy");
-        address disputeGameFactory = mustGetAddress("DisputeGameFactory");
+        address disputeGameFactoryProxy = artifacts.mustGetAddress("DisputeGameFactoryProxy");
+        address disputeGameFactory = artifacts.mustGetAddress("DisputeGameFactory");
 
         _upgradeToAndCall({
             _proxy: payable(disputeGameFactoryProxy),
@@ -370,8 +373,8 @@ contract Deploy is Deployer {
 
     function initializeDelayedWETH() public broadcast {
         console.log("Upgrading and initializing DelayedWETH proxy");
-        address delayedWETHProxy = mustGetAddress("DelayedWETHProxy");
-        address delayedWETH = mustGetAddress("DelayedWETH");
+        address delayedWETHProxy = artifacts.mustGetAddress("DelayedWETHProxy");
+        address delayedWETH = artifacts.mustGetAddress("DelayedWETH");
         address superchainConfigProxy = readProxyAddress("SuperchainConfigProxy");
         require(superchainConfigProxy != address(0), "Deploy: SuperchainConfigProxy address not found");
 
@@ -391,60 +394,61 @@ contract Deploy is Deployer {
         ChainAssertions.checkDelayedWETH({ _contracts: contracts, _cfg: cfg, _isProxy: true, _expectedOwner: msg.sender });
     }
 
-    function initializeAnchorStateRegistry() public broadcast {
-        console.log("Upgrading and initializing AnchorStateRegistry proxy");
-        address anchorStateRegistryProxy = mustGetAddress("AnchorStateRegistryProxy");
-        address anchorStateRegistry = mustGetAddress("AnchorStateRegistry");
-        address superchainConfigProxy = readProxyAddress("SuperchainConfigProxy");
-        require(superchainConfigProxy != address(0), "Deploy: SuperchainConfigProxy address not found");
+    // Fix later
+    // function initializeAnchorStateRegistry() public broadcast {
+    //     console.log("Upgrading and initializing AnchorStateRegistry proxy");
+    //     address anchorStateRegistryProxy = artifacts.mustGetAddress("AnchorStateRegistryProxy");
+    //     address anchorStateRegistry = artifacts.mustGetAddress("AnchorStateRegistry");
+    //     address superchainConfigProxy = readProxyAddress("SuperchainConfigProxy");
+    //     require(superchainConfigProxy != address(0), "Deploy: SuperchainConfigProxy address not found");
 
-        AnchorStateRegistry.StartingAnchorRoot[] memory roots = new AnchorStateRegistry.StartingAnchorRoot[](4);
-        roots[0] = AnchorStateRegistry.StartingAnchorRoot({
-            gameType: GameTypes.CANNON,
-            outputRoot: OutputRoot({
-                root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
-                l2BlockNumber: cfg.faultGameGenesisBlock()
-            })
-        });
-        roots[1] = AnchorStateRegistry.StartingAnchorRoot({
-            gameType: GameTypes.PERMISSIONED_CANNON,
-            outputRoot: OutputRoot({
-                root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
-                l2BlockNumber: cfg.faultGameGenesisBlock()
-            })
-        });
-        roots[2] = AnchorStateRegistry.StartingAnchorRoot({
-            gameType: GameTypes.ALPHABET,
-            outputRoot: OutputRoot({
-                root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
-                l2BlockNumber: cfg.faultGameGenesisBlock()
-            })
-        });
-        roots[3] = AnchorStateRegistry.StartingAnchorRoot({
-            gameType: GameTypes.ASTERISC,
-            outputRoot: OutputRoot({
-                root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
-                l2BlockNumber: cfg.faultGameGenesisBlock()
-            })
-        });
+    //     AnchorStateRegistry.StartingAnchorRoot[] memory roots = new AnchorStateRegistry.StartingAnchorRoot[](4);
+    //     roots[0] = AnchorStateRegistry.StartingAnchorRoot({
+    //         gameType: GameTypes.CANNON,
+    //         outputRoot: OutputRoot({
+    //             root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
+    //             l2BlockNumber: cfg.faultGameGenesisBlock()
+    //         })
+    //     });
+    //     roots[1] = AnchorStateRegistry.StartingAnchorRoot({
+    //         gameType: GameTypes.PERMISSIONED_CANNON,
+    //         outputRoot: OutputRoot({
+    //             root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
+    //             l2BlockNumber: cfg.faultGameGenesisBlock()
+    //         })
+    //     });
+    //     roots[2] = AnchorStateRegistry.StartingAnchorRoot({
+    //         gameType: GameTypes.ALPHABET,
+    //         outputRoot: OutputRoot({
+    //             root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
+    //             l2BlockNumber: cfg.faultGameGenesisBlock()
+    //         })
+    //     });
+    //     roots[3] = AnchorStateRegistry.StartingAnchorRoot({
+    //         gameType: GameTypes.ASTERISC,
+    //         outputRoot: OutputRoot({
+    //             root: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
+    //             l2BlockNumber: cfg.faultGameGenesisBlock()
+    //         })
+    //     });
 
-        _upgradeToAndCall({
-            _proxy: payable(anchorStateRegistryProxy),
-            _implementation: anchorStateRegistry,
-            _innerCallData: abi.encodeCall(
-                AnchorStateRegistry.initialize, (roots, ISuperchainConfig(superchainConfigProxy))
-            )
-        });
+    //     _upgradeToAndCall({
+    //         _proxy: payable(anchorStateRegistryProxy),
+    //         _implementation: anchorStateRegistry,
+    //         _innerCallData: abi.encodeCall(
+    //             AnchorStateRegistry.initialize, (roots, ISuperchainConfig(superchainConfigProxy))
+    //         )
+    //     });
 
-        string memory version = AnchorStateRegistry(payable(anchorStateRegistryProxy)).version();
-        console.log("AnchorStateRegistry version: %s", version);
-    }
+    //     string memory version = AnchorStateRegistry(payable(anchorStateRegistryProxy)).version();
+    //     console.log("AnchorStateRegistry version: %s", version);
+    // }
 
     /// @notice Sets the implementation for the `CANNON` game type in the `DisputeGameFactory`
     function setCannonFaultGameImplementation() public broadcast {
         console.log("Setting Cannon FaultDisputeGame implementation");
-        IDisputeGameFactory factory = IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
-        IDelayedWETH weth = IDelayedWETH(mustGetAddress("DelayedWETHProxy"));
+        IDisputeGameFactory factory = IDisputeGameFactory(artifacts.mustGetAddress("DisputeGameFactoryProxy"));
+        IDelayedWETH weth = IDelayedWETH(artifacts.mustGetAddress("DelayedWETHProxy"));
 
         // Set the Cannon FaultDisputeGame implementation in the factory.
         _setFaultGameImplementation({
@@ -456,9 +460,9 @@ contract Deploy is Deployer {
                 splitDepth: cfg.faultGameSplitDepth(),
                 clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
                 maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-                vm: IBigStepper(mustGetAddress("Mips")),
+                vm: IBigStepper(artifacts.mustGetAddress("Mips")),
                 weth: weth,
-                anchorStateRegistry: IAnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
+                anchorStateRegistry: IAnchorStateRegistry(artifacts.mustGetAddress("AnchorStateRegistryProxy")),
                 l2ChainId: cfg.l2ChainID()
             })
         });
@@ -467,8 +471,8 @@ contract Deploy is Deployer {
     /// @notice Sets the implementation for the `ALPHABET` game type in the `DisputeGameFactory`
     function setAlphabetFaultGameImplementation() public broadcast {
         console.log("Setting Alphabet FaultDisputeGame implementation");
-        IDisputeGameFactory factory = IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
-        IDelayedWETH weth = IDelayedWETH(mustGetAddress("DelayedWETHProxy"));
+        IDisputeGameFactory factory = IDisputeGameFactory(artifacts.mustGetAddress("DisputeGameFactoryProxy"));
+        IDelayedWETH weth = IDelayedWETH(artifacts.mustGetAddress("DelayedWETHProxy"));
 
         Claim outputAbsolutePrestate = Claim.wrap(bytes32(cfg.faultGameAbsolutePrestate()));
         _setFaultGameImplementation({
@@ -481,9 +485,9 @@ contract Deploy is Deployer {
                 splitDepth: cfg.faultGameSplitDepth(),
                 clockExtension: Duration.wrap(uint64(cfg.faultGameClockExtension())),
                 maxClockDuration: Duration.wrap(uint64(cfg.faultGameMaxClockDuration())),
-                vm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, IPreimageOracle(mustGetAddress("PreimageOracle")))),
+                vm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, IPreimageOracle(artifacts.mustGetAddress("PreimageOracle")))),
                 weth: weth,
-                anchorStateRegistry: IAnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
+                anchorStateRegistry: IAnchorStateRegistry(artifacts.mustGetAddress("AnchorStateRegistryProxy")),
                 l2ChainId: cfg.l2ChainID()
             })
         });
@@ -492,13 +496,13 @@ contract Deploy is Deployer {
     /// @notice Sets the implementation for the `ALPHABET` game type in the `DisputeGameFactory`
     function setFastFaultGameImplementation() public broadcast {
         console.log("Setting Fast FaultDisputeGame implementation");
-        IDisputeGameFactory factory = IDisputeGameFactory(mustGetAddress("DisputeGameFactoryProxy"));
-        IDelayedWETH weth = IDelayedWETH(mustGetAddress("DelayedWETHProxy"));
+        IDisputeGameFactory factory = IDisputeGameFactory(artifacts.mustGetAddress("DisputeGameFactoryProxy"));
+        IDelayedWETH weth = IDelayedWETH(artifacts.mustGetAddress("DelayedWETHProxy"));
 
         Claim outputAbsolutePrestate = Claim.wrap(bytes32(cfg.faultGameAbsolutePrestate()));
         IPreimageOracle fastOracle = IPreimageOracle(
             DeployUtils.create2AndSave({
-                _save: this,
+                _save: artifacts,
                 _salt: _implSalt(),
                 _name: "PreimageOracle",
                 _nick: "FastPreimageOracle",
@@ -519,7 +523,7 @@ contract Deploy is Deployer {
                 maxClockDuration: Duration.wrap(0), // Resolvable immediately
                 vm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, fastOracle)),
                 weth: weth,
-                anchorStateRegistry: IAnchorStateRegistry(mustGetAddress("AnchorStateRegistryProxy")),
+                anchorStateRegistry: IAnchorStateRegistry(artifacts.mustGetAddress("AnchorStateRegistryProxy")),
                 l2ChainId: cfg.l2ChainID()
             })
         });
@@ -549,7 +553,7 @@ contract Deploy is Deployer {
             _params.gameType,
             IDisputeGame(
                 DeployUtils.create2AndSave({
-                    _save: this,
+                    _save: artifacts,
                     _salt: _implSalt(),
                     _name: "FaultDisputeGame",
                     _nick: string.concat("FaultDisputeGame_", vm.toString(rawGameType)),
