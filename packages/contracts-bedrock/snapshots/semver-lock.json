@@ -188,7 +188,7 @@
     "sourceCodeHash": "0x62c9a6182d82692fb9c173ddb0d7978bcff2d1d4dc8cd2f10625e1e65bda6888"
   },
   "src/safe/DeputyGuardianModule.sol": {
-    "initCodeHash": "0x5eaf823d81995ce1f703f26e31049c54c1d4902dd9873a0b4645d470f2f459a2",
+    "initCodeHash": "0xf170ba8120f9e83cf9933958892edcf1a0d4e19bd1cfe73de9de94fb28325f4c",
     "sourceCodeHash": "0x17236a91c4171ae9525eae0e59fa65bb2dc320d62677cfc7d7eb942f182619fb"
   },
   "src/safe/DeputyPauseModule.sol": {
@@ -196,11 +196,11 @@
     "sourceCodeHash": "0xfbe7f5733aa57de7557605e40e03e9708fbdec872bc8739c551905c4b1e1b61b"
   },
   "src/safe/LivenessGuard.sol": {
-    "initCodeHash": "0xc8e29e8b12f423c8cd229a38bc731240dd815d96f1b0ab96c71494dde63f6a81",
+    "initCodeHash": "0xb9c1318f86bfc429abfe43b4f051a639aa0707563ff7ca371e72385b218f1f50",
     "sourceCodeHash": "0x72b8d8d855e7af8beee29330f6cb9b9069acb32e23ce940002ec9a41aa012a16"
   },
   "src/safe/LivenessModule.sol": {
-    "initCodeHash": "0xb710b33ee83412b7e210de0cd623e911952351711d5c84a99dd03b00066cf66f",
+    "initCodeHash": "0xde3b3273aa37604048b5fa228b90f3b05997db613dfcda45061545a669b2476a",
     "sourceCodeHash": "0x918965e52bbd358ac827ebe35998f5d8fa5ca77d8eb9ab8986b44181b9aaa48a"
   },
   "src/universal/OptimismMintableERC20.sol": {
