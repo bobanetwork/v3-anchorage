@@ -351,10 +351,6 @@ jobs:
           environment:
             FOUNDRY_PROFILE: <<parameters.profile>>
           working_directory: packages/contracts-bedrock
-      - run:
-          name: Generate allocs
-          command: |
-            make devnet-allocs
       - persist_to_workspace:
           root: "."
           paths:
@@ -363,12 +359,6 @@ jobs:
             - "packages/contracts-bedrock/forge-artifacts"
             - "packages/contracts-bedrock/deploy-config/devnetL1.json"
             - "packages/contracts-bedrock/deployments/devnetL1"
-            - ".devnet"
-            - ".devnet-standard"
-            - ".devnet-l2oo"
-            - ".devnet-alt-da"
-            - ".devnet-alt-da-generic"
-            - ".devnet-mt-cannon"
       - notify-failures-on-develop
 
   check-kontrol-build:
