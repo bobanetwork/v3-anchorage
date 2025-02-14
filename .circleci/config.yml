@@ -274,8 +274,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            sudo apt-get update
-            sudo apt-get install -y binutils-mips-linux-gnu
+            apt-get update
+            apt-get install -y binutils-mips-linux-gnu
             pip install capstone pyelftools
       - run:
           name: Build MIPS test vectors
@@ -745,8 +745,8 @@ jobs:
       - run:
           name: Install lcov
           command: |
-            sudo apt-get update
-            sudo apt-get install -y lcov
+            apt-get update
+            apt-get install -y lcov
       - run:
           name: Write pinned block number for cache key
           command: |
@@ -1064,8 +1064,8 @@ jobs:
       - run:
           name: Install tools
           command: |
-            sudo apt-get update
-            sudo apt-get install -y binutils-mips-linux-gnu
+            apt-get update
+            apt-get install -y binutils-mips-linux-gnu
       - run:
           name: Build cannon
           command: make cannon
