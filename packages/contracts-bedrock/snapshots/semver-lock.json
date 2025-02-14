@@ -200,7 +200,7 @@
     "sourceCodeHash": "0x72b8d8d855e7af8beee29330f6cb9b9069acb32e23ce940002ec9a41aa012a16"
   },
   "src/safe/LivenessModule.sol": {
-    "initCodeHash": "0xde3b3273aa37604048b5fa228b90f3b05997db613dfcda45061545a669b2476a",
+    "initCodeHash": "0xb710b33ee83412b7e210de0cd623e911952351711d5c84a99dd03b00066cf66f",
     "sourceCodeHash": "0x918965e52bbd358ac827ebe35998f5d8fa5ca77d8eb9ab8986b44181b9aaa48a"
   },
   "src/universal/OptimismMintableERC20.sol": {
