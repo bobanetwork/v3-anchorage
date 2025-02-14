@@ -195,6 +195,7 @@ var bobaSepoliaCfg = rollup.Config{
 	GraniteTime:             u64Ptr(1726470000),
 	HoloceneTime:            u64Ptr(1736150400),
 	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
+	ChainOpConfig:           defaultOpConfig,
 }
 
 var bobaMainnetCfg = rollup.Config{
@@ -232,6 +233,7 @@ var bobaMainnetCfg = rollup.Config{
 	GraniteTime:             u64Ptr(1729753200),
 	HoloceneTime:            u64Ptr(1738785600),
 	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
+	ChainOpConfig:           defaultOpConfig,
 }
 
 var bobaBnbTestnetCfg = rollup.Config{
@@ -269,6 +271,7 @@ var bobaBnbTestnetCfg = rollup.Config{
 	GraniteTime:             u64Ptr(1726470000),
 	HoloceneTime:            u64Ptr(1736150400),
 	ProtocolVersionsAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
+	ChainOpConfig:           defaultOpConfig,
 }
 
 var bobaDev0Cfg = rollup.Config{
@@ -306,6 +309,7 @@ var bobaDev0Cfg = rollup.Config{
 	GraniteTime:             u64Ptr(1724914800),
 	HoloceneTime:            u64Ptr(1732435200),
 	ProtocolVersionsAddress: common.HexToAddress("0x252CbE9517F731C618961D890D534183822dcC8d"),
+	ChainOpConfig:           defaultOpConfig,
 }
 
 func u64Ptr(v uint64) *uint64 {
