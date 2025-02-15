@@ -104,7 +104,6 @@
     "sourceCodeHash": "0xb67b91f28c8666fee26c40375f835c61629e0f14054bfaf78bc3c61175bbf136"
   },
   "src/L2/OptimismMintableERC721Factory.sol": {
-    "initCodeHash": "0x174f9ece897365a31525cee030d6ea71864f832ab7dc1c2a56b657fa56122087",
     "initCodeHash": "0x9ccba9a5db77356c361fe4aea0e93498a56bda9fdac8d5e654d6f7abc4553028",
     "sourceCodeHash": "0x2e4b8535b1f7749a0479b2c1de86b3ff79ee4ff6122c6f87c52d66cd301f3f97"
   },
