@@ -1105,6 +1105,12 @@ jobs:
       - checkout
       - attach_workspace:
           at: ./tmp/workspace
+      - install-contracts-dependencies
+      - run:
+          name: Build contracts
+          command: |
+            forge build
+          working_directory: packages/contracts-bedrock
       - run:
           name: print go's available MIPS targets
           command: go tool dist list | grep mips
