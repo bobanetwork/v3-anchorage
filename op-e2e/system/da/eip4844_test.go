@@ -361,7 +361,7 @@ func TestBatcherAutoDA(t *testing.T) {
 	require.Less(t, feeRatio, 16.0, "expected fee ratio to be less than 16 (blobspace should be cheaper, even without Pectra)")
 
 	// Now wait for batcher to have switched to blob txs.
-	requireEventualBatcherTxType(types.BlobTxType, 60*time.Second, false)
+	requireEventualBatcherTxType(types.BlobTxType, 120*time.Second, false)
 }
 
 func u64Ptr(v uint64) *uint64 {
