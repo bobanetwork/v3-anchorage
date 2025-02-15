@@ -1106,14 +1106,6 @@ jobs:
       - attach_workspace:
           at: ./tmp/workspace
       - run:
-          name: Load devnet-allocs and artifacts
-          command: |
-            mkdir -p .devnet
-            cp -r ./tmp/workspace/.devnet* .
-            cp -r ./tmp/workspace/packages/contracts-bedrock/forge-artifacts packages/contracts-bedrock/forge-artifacts
-            cp ./tmp/workspace/packages/contracts-bedrock/deploy-config/devnetL1.json packages/contracts-bedrock/deploy-config/devnetL1.json
-            cp -r ./tmp/workspace/packages/contracts-bedrock/deployments/devnetL1 packages/contracts-bedrock/deployments/devnetL1
-      - run:
           name: print go's available MIPS targets
           command: go tool dist list | grep mips
       - run:
