@@ -217,6 +217,7 @@ func init() {
 
 	configPath := path.Join(root, "op-e2e", "config")
 	forks := []genesis.L2AllocsMode{
+		genesis.L2AllocsIsthmus,
 		genesis.L2AllocsHolocene,
 		genesis.L2AllocsGranite,
 		genesis.L2AllocsFjord,
@@ -275,6 +276,7 @@ func initAllocType(root string, allocType AllocType) {
 	lgr := log.New()
 
 	allocModes := []genesis.L2AllocsMode{
+		genesis.L2AllocsIsthmus,
 		genesis.L2AllocsHolocene,
 		genesis.L2AllocsGranite,
 		genesis.L2AllocsFjord,
@@ -318,6 +320,7 @@ func initAllocType(root string, allocType AllocType) {
 				"l2GenesisFjordTimeOffset":    nil,
 				"l2GenesisGraniteTimeOffset":  nil,
 				"l2GenesisHoloceneTimeOffset": nil,
+				"l2GenesisIsthmusTimeOffset":  nil,
 			}
 
 			upgradeSchedule := new(genesis.UpgradeScheduleDeployConfig)
@@ -340,6 +343,7 @@ func initAllocType(root string, allocType AllocType) {
 			if err := deployer.ApplyPipeline(
 				context.Background(),
 				deployer.ApplyPipelineOpts{
+					DeploymentTarget:   deployer.DeploymentTargetGenesis,
 					L1RPCUrl:           "",
 					DeployerPrivateKey: pk,
 					Intent:             intent,
@@ -391,9 +395,8 @@ func defaultIntent(root string, loc *artifacts.Locator, deployer common.Address,
 	defaultPrestate := common.HexToHash("0x03c7ae758795765c6664a5d39bf63841c71ff191e9189522bad8ebff5d4eca98")
 	genesisOutputRoot := common.HexToHash("0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF")
 	return &state.Intent{
-		ConfigType:         state.IntentConfigTypeCustom,
-		DeploymentStrategy: state.DeploymentStrategyGenesis,
-		L1ChainID:          900,
+		ConfigType: state.IntentConfigTypeCustom,
+		L1ChainID:  900,
 		SuperchainRoles: &state.SuperchainRoles{
 			ProxyAdminOwner:       deployer,
 			ProtocolVersionsOwner: deployer,
@@ -432,6 +435,7 @@ func defaultIntent(root string, loc *artifacts.Locator, deployer common.Address,
 			"faultGameGenesisBlock":                    0,
 			"faultGameGenesisOutputRoot":               genesisOutputRoot.Hex(),
 			"faultGameSplitDepth":                      14,
+			"dangerouslyAllowCustomDisputeParameters":  true,
 			"faultGameWithdrawalDelay":                 604800,
 			"preimageOracleMinProposalSize":            10000,
 			"preimageOracleChallengePeriod":            120,
@@ -473,7 +477,6 @@ func defaultIntent(root string, loc *artifacts.Locator, deployer common.Address,
 						OracleMinProposalSize:        10000,
 						OracleChallengePeriodSeconds: 0,
 						MakeRespected:                true,
-						StartingAnchorRoot:           genesisOutputRoot,
 					},
 					{
 						ChainProofParams: state.ChainProofParams{
@@ -485,8 +488,7 @@ func defaultIntent(root string, loc *artifacts.Locator, deployer common.Address,
 							DisputeClockExtension:   0,
 							DisputeMaxClockDuration: 1200,
 						},
-						VMType:             state.VMTypeAlphabet,
-						StartingAnchorRoot: genesisOutputRoot,
+						VMType: state.VMTypeAlphabet,
 					},
 					{
 						ChainProofParams: state.ChainProofParams{
@@ -497,8 +499,7 @@ func defaultIntent(root string, loc *artifacts.Locator, deployer common.Address,
 							DisputeClockExtension:   0,
 							DisputeMaxClockDuration: 1200,
 						},
-						VMType:             cannonVMType(allocType),
-						StartingAnchorRoot: genesisOutputRoot,
+						VMType: cannonVMType(allocType),
 					},
 				},
 			},
@@ -560,7 +561,7 @@ func cannonPrestate(monorepoRoot string, allocType AllocType) common.Hash {
 		once = &cannonPrestateSTOnce
 		cacheVar = &cannonPrestateST
 	} else {
-		filename = "prestate-proof-mt.json"
+		filename = "prestate-proof-mt64.json"
 		once = &cannonPrestateMTOnce
 		cacheVar = &cannonPrestateMT
 	}

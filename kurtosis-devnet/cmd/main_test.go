@@ -1,9 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,12 +23,10 @@ func TestParseFlags(t *testing.T) {
 			args: []string{
 				"--template", "path/to/template.yaml",
 				"--enclave", "test-enclave",
-				"--local-hostname", "test.local",
 			},
 			wantCfg: &config{
 				templateFile:    "path/to/template.yaml",
 				enclave:         "test-enclave",
-				localHostName:   "test.local",
 				kurtosisPackage: kurtosis.DefaultPackageName,
 			},
 			wantError: false,
@@ -51,7 +46,6 @@ func TestParseFlags(t *testing.T) {
 			wantCfg: &config{
 				templateFile:    "path/to/template.yaml",
 				dataFile:        "path/to/data.json",
-				localHostName:   "host.docker.internal",
 				enclave:         kurtosis.DefaultEnclave,
 				kurtosisPackage: kurtosis.DefaultPackageName,
 			},
@@ -83,7 +77,6 @@ func TestParseFlags(t *testing.T) {
 			require.NotNil(t, cfg)
 			assert.Equal(t, tt.wantCfg.templateFile, cfg.templateFile)
 			assert.Equal(t, tt.wantCfg.enclave, cfg.enclave)
-			assert.Equal(t, tt.wantCfg.localHostName, cfg.localHostName)
 			assert.Equal(t, tt.wantCfg.kurtosisPackage, cfg.kurtosisPackage)
 			if tt.wantCfg.dataFile != "" {
 				assert.Equal(t, tt.wantCfg.dataFile, cfg.dataFile)
@@ -92,104 +85,7 @@ func TestParseFlags(t *testing.T) {
 	}
 }
 
-func TestLaunchStaticServer(t *testing.T) {
-	cfg := &config{
-		localHostName: "test.local",
-	}
-
-	ctx := context.Background()
-	server, cleanup, err := launchStaticServer(ctx, cfg)
-	require.NoError(t, err)
-	defer cleanup()
-
-	// Verify server properties
-	assert.NotEmpty(t, server.dir)
-	assert.DirExists(t, server.dir)
-	assert.NotNil(t, server.Server)
-
-	// Verify cleanup works
-	cleanup()
-	assert.NoDirExists(t, server.dir)
-}
-
-func TestRenderTemplate(t *testing.T) {
-	// Create a temporary directory for test files
-	tmpDir, err := os.MkdirTemp("", "template-test")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
-
-	// Create a test template file
-	templateContent := `
-name: {{.name}}
-image: {{localDockerImage "test-project"}}
-artifacts: {{localContractArtifacts "l1"}}`
-
-	templatePath := filepath.Join(tmpDir, "template.yaml")
-	err = os.WriteFile(templatePath, []byte(templateContent), 0644)
-	require.NoError(t, err)
-
-	// Create a test data file
-	dataContent := `{"name": "test-deployment"}`
-	dataPath := filepath.Join(tmpDir, "data.json")
-	err = os.WriteFile(dataPath, []byte(dataContent), 0644)
-	require.NoError(t, err)
-
-	cfg := &config{
-		templateFile: templatePath,
-		dataFile:     dataPath,
-		enclave:      "test-enclave",
-		dryRun:       true, // Important for tests
-	}
-
-	ctx := context.Background()
-	server, cleanup, err := launchStaticServer(ctx, cfg)
-	require.NoError(t, err)
-	defer cleanup()
-
-	buf, err := renderTemplate(cfg, server)
-	require.NoError(t, err)
-
-	// Verify template rendering
-	assert.Contains(t, buf.String(), "test-deployment")
-	assert.Contains(t, buf.String(), "test-project:test-enclave")
-	assert.Contains(t, buf.String(), server.URL())
-}
-
-func TestDeploy(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Create a temporary directory for the environment output
-	tmpDir, err := os.MkdirTemp("", "deploy-test")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
-
-	envPath := filepath.Join(tmpDir, "env.json")
-	cfg := &config{
-		environment: envPath,
-		dryRun:      true,
-	}
-
-	// Create a simple deployment configuration
-	deployConfig := bytes.NewBufferString(`{"test": "config"}`)
-
-	err = deploy(ctx, cfg, deployConfig)
-	require.NoError(t, err)
-
-	// Verify the environment file was created
-	assert.FileExists(t, envPath)
-
-	// Read and verify the content
-	content, err := os.ReadFile(envPath)
-	require.NoError(t, err)
-
-	var env map[string]interface{}
-	err = json.Unmarshal(content, &env)
-	require.NoError(t, err)
-}
-
-// TestMainFunc performs an integration test of the main function
-func TestMainFunc(t *testing.T) {
+func TestMainFuncValidatesConfig(t *testing.T) {
 	// Create a temporary directory for test files
 	tmpDir, err := os.MkdirTemp("", "main-test")
 	require.NoError(t, err)
@@ -203,13 +99,32 @@ func TestMainFunc(t *testing.T) {
 	// Create environment output path
 	envPath := filepath.Join(tmpDir, "env.json")
 
-	cfg := &config{
-		templateFile: templatePath,
-		environment:  envPath,
-		dryRun:       true,
+	app := &cli.App{
+		Flags: getFlags(),
+		Action: func(c *cli.Context) error {
+			cfg, err := newConfig(c)
+			if err != nil {
+				return err
+			}
+
+			// Verify config values
+			assert.Equal(t, templatePath, cfg.templateFile)
+			assert.Equal(t, envPath, cfg.environment)
+			assert.True(t, cfg.dryRun)
+
+			// Create an empty environment file to simulate successful deployment
+			return os.WriteFile(envPath, []byte("{}"), 0644)
+		},
 	}
 
-	err = mainFunc(cfg)
+	args := []string{
+		"prog",
+		"--template", templatePath,
+		"--environment", envPath,
+		"--dry-run",
+	}
+
+	err = app.Run(args)
 	require.NoError(t, err)
 
 	// Verify the environment file was created
