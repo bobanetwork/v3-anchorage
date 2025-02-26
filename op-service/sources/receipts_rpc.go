@@ -105,6 +105,12 @@ func (f *RPCReceiptsFetcher) FetchReceipts(ctx context.Context, blockInfo eth.Bl
 		return nil, err
 	}
 
+	// This is a special case for BNB Testnet, where the receipt hash is not deterministic.
+	// We skip the validation for this block.
+	if blockInfo.ReceiptHash() == common.HexToHash("0xccc2eafe27c3dbcd0ad60a40f599fbc67a5e2dfbfdfbcce7e2455688870e7ec2") {
+		return
+	}
+
 	if err = validateReceipts(block, blockInfo.ReceiptHash(), txHashes, result); err != nil {
 		return nil, err
 	}
